@@ -27,7 +27,7 @@
 package cientistavuador.ciencraftreal;
 
 /**
- * Main
+ * Main class
  * @author Cien
  */
 public class Main {
