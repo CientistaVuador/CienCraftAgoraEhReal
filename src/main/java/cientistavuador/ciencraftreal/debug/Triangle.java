@@ -26,10 +26,43 @@
  */
 package cientistavuador.ciencraftreal.debug;
 
+import java.util.Objects;
+import org.joml.Matrix4f;
+
 /**
  *
  * @author Cien
  */
 public class Triangle {
+    
+    private final Matrix4f model = new Matrix4f();
+    
+    public Triangle() {
+        
+    }
+
+    public Matrix4f getModel() {
+        return model;
+    }
+    
+    
+    public void render(Matrix4f projectionView) {
+        renderImpl(null, projectionView);
+    }
+    
+    public void render(Matrix4f view, Matrix4f projection) {
+        renderImpl(
+                Objects.requireNonNull(view),
+                Objects.requireNonNull(projection)
+        );
+    }
+    
+    public void render() {
+        renderImpl(null, null);
+    }
+    
+    private void renderImpl(Matrix4f view, Matrix4f projection) {
+        
+    }
     
 }
