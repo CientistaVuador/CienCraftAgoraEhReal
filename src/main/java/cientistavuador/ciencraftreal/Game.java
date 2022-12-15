@@ -26,6 +26,8 @@
  */
 package cientistavuador.ciencraftreal;
 
+import cientistavuador.ciencraftreal.debug.Triangle;
+
 /**
  *
  * @author Cien
@@ -38,6 +40,8 @@ public class Game {
         return GAME;
     }
     
+    private final Triangle triangle = new Triangle();
+    
     private Game() {
         
     }
@@ -47,7 +51,7 @@ public class Game {
     }
     
     public void loop() {
-        
+        triangle.render();
     }
     
     public void windowSizeChanged(int width, int height) {

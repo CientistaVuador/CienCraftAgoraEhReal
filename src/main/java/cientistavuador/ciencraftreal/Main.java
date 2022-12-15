@@ -99,7 +99,7 @@ public class Main {
             throw new IllegalStateException("Could not initialize GLFW!");
         }
         
-        //glfwWindowHint(GLFW_SAMPLES, 4); //MSAA 4x
+        //glfwWindowHint(GLFW_SAMPLES, 16); //MSAA 16x
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -125,6 +125,8 @@ public class Main {
         glEnable(GL_DEPTH_TEST);
         glClearDepth(1f);
         glDepthFunc(GL_LEQUAL);
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
         
         Main.checkGLError();
         
