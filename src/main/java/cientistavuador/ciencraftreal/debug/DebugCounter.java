@@ -27,7 +27,6 @@
 package cientistavuador.ciencraftreal.debug;
 
 import java.io.PrintStream;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
