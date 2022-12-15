@@ -147,7 +147,7 @@ public class Main {
                 glfwSetWindowTitle(WINDOW_POINTER, "CienCraft - FPS: "+Main.FPS);
             }
             
-            Main.TPF = (System.nanoTime()-timeFrameBegin) / 1E6d;
+            Main.TPF = (System.nanoTime()-timeFrameBegin) / 1E9d;
         }
         
         glfwTerminate();
