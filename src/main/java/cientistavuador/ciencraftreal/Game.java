@@ -32,7 +32,13 @@ package cientistavuador.ciencraftreal;
  */
 public class Game {
     
-    public Game() {
+    private static final Game GAME = new Game();
+    
+    public static Game get() {
+        return GAME;
+    }
+    
+    private Game() {
         
     }
     

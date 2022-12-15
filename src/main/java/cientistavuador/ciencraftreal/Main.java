@@ -73,7 +73,6 @@ public class Main {
     public static double TPF = 1/60d;
     public static int FPS = 60;
     public static long WINDOW_POINTER = NULL;
-    public static final Game GAME = new Game();
     
     /**
      * @param args the command line arguments
@@ -102,12 +101,6 @@ public class Main {
         
         GL.createCapabilities();
         
-        glfwSetFramebufferSizeCallback(WINDOW_POINTER, (window, width, height) -> {
-            glViewport(0, 0, width, height);
-            GAME.windowSizeChanged(width, height);
-            Main.checkGLError();
-        });
-        
         //glEnable(GL_MULTISAMPLE);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -121,7 +114,15 @@ public class Main {
         int frames = 0;
         long nextFpsUpdate = System.currentTimeMillis() + 1000;
         
-        GAME.start();
+        Game.get(); //static initialize
+        
+        glfwSetFramebufferSizeCallback(WINDOW_POINTER, (window, width, height) -> {
+            glViewport(0, 0, width, height);
+            Game.get().windowSizeChanged(width, height);
+            Main.checkGLError();
+        });
+        
+        Game.get().start();
         
         Main.checkGLError();
         
@@ -131,7 +132,7 @@ public class Main {
             glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
             glfwPollEvents();
             
-            GAME.loop();
+            Game.get().loop();
             
             glfwSwapBuffers(WINDOW_POINTER);
             
