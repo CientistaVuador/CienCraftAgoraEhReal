@@ -29,6 +29,7 @@ package cientistavuador.ciencraftreal;
 import static org.lwjgl.glfw.GLFW.*;
 import org.lwjgl.opengl.GL;
 import static org.lwjgl.opengl.GL33C.*;
+import org.lwjgl.system.MemoryUtil;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 /**
@@ -54,15 +55,22 @@ public class Main {
         public int getError() {
             return error;
         }
-        
     }
     
-    public static boolean THROW_GL_ERRORS = true;
+    public static class GLFWErrorException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
+        
+        public GLFWErrorException(String error) {
+            super(error);
+        }
+    }
+    
+    public static boolean THROW_GL_GLFW_ERRORS = true;
     public static void checkGLError() {
         int error = glGetError();
         if (error != 0) {
             OpenGLErrorException err = new OpenGLErrorException(error);
-            if (THROW_GL_ERRORS) {
+            if (THROW_GL_GLFW_ERRORS) {
                 throw err;
             } else {
                 err.printStackTrace(System.err);
@@ -78,6 +86,15 @@ public class Main {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
+        glfwSetErrorCallback((error, description) -> {
+            GLFWErrorException exception = new GLFWErrorException("GLFW Error "+error+": "+MemoryUtil.memASCIISafe(description));
+            if (THROW_GL_GLFW_ERRORS) {
+                throw exception;
+            } else {
+                exception.printStackTrace(System.err);
+            }
+        });
+        
         if (!glfwInit()) {
             throw new IllegalStateException("Could not initialize GLFW!");
         }
@@ -111,9 +128,6 @@ public class Main {
         
         Main.checkGLError();
         
-        int frames = 0;
-        long nextFpsUpdate = System.currentTimeMillis() + 1000;
-        
         Game.get(); //static initialize
         
         glfwSetFramebufferSizeCallback(WINDOW_POINTER, (window, width, height) -> {
@@ -126,6 +140,9 @@ public class Main {
         
         Main.checkGLError();
         
+        int frames = 0;
+        long nextFpsUpdate = System.currentTimeMillis() + 1000;
+        
         while (!glfwWindowShouldClose(WINDOW_POINTER)) {
             long timeFrameBegin = System.nanoTime();
             
@@ -134,9 +151,11 @@ public class Main {
             
             Game.get().loop();
             
-            glfwSwapBuffers(WINDOW_POINTER);
+            glFlush();
             
             Main.checkGLError();
+            
+            glfwSwapBuffers(WINDOW_POINTER);
             
             frames++;
             if (System.currentTimeMillis() >= nextFpsUpdate) {
