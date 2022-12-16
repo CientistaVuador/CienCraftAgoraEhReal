@@ -79,6 +79,8 @@ public class Main {
         }
     }
     
+    public static int WIDTH = 800;
+    public static int HEIGHT = 600;
     public static double TPF = 1/60d;
     public static int FPS = 60;
     public static long WINDOW_POINTER = NULL;
@@ -135,6 +137,8 @@ public class Main {
         
         GLFWFramebufferSizeCallbackI frameBufferSizecb = (window, width, height) -> {
             glViewport(0, 0, width, height);
+            Main.WIDTH = width;
+            Main.HEIGHT = height;
             Game.get().windowSizeChanged(width, height);
             Main.checkGLError();
         };
