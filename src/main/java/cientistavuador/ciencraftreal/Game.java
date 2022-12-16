@@ -26,6 +26,7 @@
  */
 package cientistavuador.ciencraftreal;
 
+import cientistavuador.ciencraftreal.camera.Camera;
 import cientistavuador.ciencraftreal.debug.Triangle;
 
 /**
@@ -42,8 +43,10 @@ public class Game {
     
     private final Triangle triangle = new Triangle();
     
+    private Camera camera;
+    
     private Game() {
-        
+        camera = new Camera(0, 0, -5,70);
     }
     
     public void start() {
@@ -51,11 +54,16 @@ public class Game {
     }
     
     public void loop() {
-        triangle.render();
+        camera.update();
+        triangle.render(camera.projection, camera.view);
+    }
+    
+    public void mouseCursorMoved(double x, double y) {
+        camera.rotate(x, y);
     }
     
     public void windowSizeChanged(int width, int height) {
-        
+        camera.makeProjection(width, height);
     }
     
 }

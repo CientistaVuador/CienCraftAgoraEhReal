@@ -27,6 +27,7 @@
 package cientistavuador.ciencraftreal;
 
 import static org.lwjgl.glfw.GLFW.*;
+import org.lwjgl.glfw.GLFWFramebufferSizeCallbackI;
 import org.lwjgl.opengl.GL;
 import static org.lwjgl.opengl.GL33C.*;
 import org.lwjgl.system.MemoryUtil;
@@ -99,6 +100,12 @@ public class Main {
             throw new IllegalStateException("Could not initialize GLFW!");
         }
         
+        GLFWFramebufferSizeCallbackI frameBufferSizecb = (window, width, height) -> {
+            glViewport(0, 0, width, height);
+            Game.get().windowSizeChanged(width, height);
+            Main.checkGLError();
+        };
+        
         //glfwWindowHint(GLFW_SAMPLES, 16); //MSAA 16x
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -132,13 +139,13 @@ public class Main {
         
         Game.get(); //static initialize
         
-        glfwSetFramebufferSizeCallback(WINDOW_POINTER, (window, width, height) -> {
-            glViewport(0, 0, width, height);
-            Game.get().windowSizeChanged(width, height);
-            Main.checkGLError();
+        glfwSetFramebufferSizeCallback(WINDOW_POINTER, frameBufferSizecb);
+        glfwSetCursorPosCallback(WINDOW_POINTER, (window, x, y) -> {
+            Game.get().mouseCursorMoved(x, y);
         });
         
         Game.get().start();
+        frameBufferSizecb.invoke(WINDOW_POINTER, 800, 600);
         
         Main.checkGLError();
         
