@@ -53,12 +53,12 @@ public class Game {
     }
     
     public void loop() {
-        camera.update();
-        triangle.render(camera.getProjection(), camera.getProjection());
+        camera.updateMovement();
+        triangle.render(camera.getProjection(), camera.getView());
     }
     
     public void mouseCursorMoved(double x, double y) {
-        camera.rotate(x, y);
+        camera.mouseCursorMoved(x, y);
     }
     
     public void windowSizeChanged(int width, int height) {
