@@ -140,6 +140,9 @@ public class Main {
         Game.get(); //static initialize
         
         glfwSetFramebufferSizeCallback(WINDOW_POINTER, frameBufferSizecb);
+        glfwSetCursorPosCallback(WINDOW_POINTER, (window, x, y) -> {
+            Game.get().mouseCursorMoved(x, y);
+        });
         
         Game.get().start();
         frameBufferSizecb.invoke(WINDOW_POINTER, 800, 600);

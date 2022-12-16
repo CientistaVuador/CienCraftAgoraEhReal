@@ -46,7 +46,7 @@ public class Game {
     private Camera camera;
     
     private Game() {
-        camera = new Camera(0, 0, -1,70);
+        camera = new Camera(0, 0, -5,70);
     }
     
     public void start() {
@@ -56,6 +56,10 @@ public class Game {
     public void loop() {
         camera.update();
         triangle.render(camera.projection, camera.view);
+    }
+    
+    public void mouseCursorMoved(double x, double y) {
+        camera.rotate(x, y);
     }
     
     public void windowSizeChanged(int width, int height) {
