@@ -28,7 +28,11 @@ package cientistavuador.ciencraftreal.camera;
 
 import cientistavuador.ciencraftreal.Main;
 import org.joml.Matrix4f;
+import org.joml.Matrix4fc;
+import org.joml.Vector2f;
+import org.joml.Vector2fc;
 import org.joml.Vector3f;
+import org.joml.Vector3fc;
 import static org.lwjgl.glfw.GLFW.*;
 
 /**
@@ -37,113 +41,254 @@ import static org.lwjgl.glfw.GLFW.*;
  */
 public class Camera {
 
-    private static float NEAR_PLANE = 0.1f;
-    private static float FAR_PLANE = 1000f;
+    public static final float DEFAULT_NEAR_PLANE = 0.1f;
+    public static final float DEFAULT_FAR_PLANE = 1000f;
+    public static final float DEFAULT_FOV = 90f;
+    public static final float DEFAULT_SENSITIVITY = 8f;
+    public static final float DEFAULT_SPEED = 3f;
+    public static final float DEFAULT_PITCH = 0f;
+    public static final float DEFAULT_YAW = -90f;
+    public static final Vector3fc DEFAULT_WORLD_UP = new Vector3f(0, 1, 0);
+    public static final Vector3fc DEFAULT_POSITION = new Vector3f(0, 0, 2);
     
-    //Axises for the view Matrix
-    private static Vector3f AxisX = new Vector3f(1, 0, 0);
-    private static Vector3f AxisY = new Vector3f(0, 1, 0);
-    private static Vector3f AxisZ = new Vector3f(0, 0, 1);
-
-    //Camera's Field of View
-    public float fov;
-
-    public Vector3f position;
-    public Vector3f rotation;
-
-    public Matrix4f view;
-    public Matrix4f projection;
+    //Camera fields
+    private final Vector2f dimensions = new Vector2f(Main.WIDTH, Main.HEIGHT);
     
-    private final float sensitivity = 0.8f;
-    private final float speed = 3;
-
+    private float nearPlane = DEFAULT_NEAR_PLANE;
+    private float farPlane = DEFAULT_FAR_PLANE;
+    private float fov = DEFAULT_FOV;
+    
+    private float sensitivity = DEFAULT_SENSITIVITY;
+    private float speed = DEFAULT_SPEED;
+    
+    //Camera axises
+    private final Vector3f front = new Vector3f(0, 0, 1);
+    private final Vector3f up = new Vector3f(0, 1, 0);
+    private final Vector3f right = new Vector3f(1, 0, 0);
+    
     //whatever it should capture the cursor or not.
     // press LeftControl in game to capture/release the cursor
     private boolean captureMouse = false;
-
-    public Camera(float fov) {
-        this(0, 0, 0, fov);
+    private boolean controlAlreadyPressed = false;
+    
+    //Position and Rotation
+    private final Vector3f position = new Vector3f(DEFAULT_POSITION);
+    private final Vector3f rotation = new Vector3f(DEFAULT_PITCH, DEFAULT_YAW, 0);
+    
+    //Matrices
+    private final Matrix4f view = new Matrix4f();
+    private final Matrix4f projection = new Matrix4f();
+    
+    //Last mouse position
+    private double lastX = 0;
+    private double lastY = 0;
+    
+    public Camera() {
+        updateProjection();
+        updateView();
     }
 
-    public Camera(float x, float y, float z, float fov) {
-        this.fov = fov;
-        position = new Vector3f(x, y, z);
-        rotation = new Vector3f(0, 0, 0);
-        projection = new Matrix4f();
-        view = new Matrix4f();
+    public Matrix4fc getView() {
+        return view;
     }
 
-    //movimentation magic
-    public void update() {
-        //makes a new view matrix
-        this.view.identity();
-        this.view.translate(position);
-        this.view.rotate(rotation.x, AxisX);
-        this.view.rotate(rotation.y, AxisY);
-        this.view.rotate(rotation.z, AxisZ);
+    public Matrix4fc getProjection() {
+        return projection;
+    }
+
+    private void updateProjection() {
+        this.projection
+                .identity()
+                .perspective(
+                        (float) Math.toRadians(this.fov),
+                        (this.dimensions.x() / this.dimensions.y()),
+                        this.nearPlane,
+                        this.farPlane
+                );
+    }
+    
+    private void updateView() {
+        float pitchRadians = (float) Math.toRadians(this.rotation.x());
+        float yawRadians = (float) Math.toRadians(this.rotation.y());
         
+        this.front.set(
+                Math.cos(pitchRadians) * Math.cos(yawRadians),
+                Math.sin(pitchRadians),
+                Math.cos(pitchRadians) * Math.sin(yawRadians)
+        ).normalize();
+        
+        this.right.set(DEFAULT_WORLD_UP).cross(this.front).normalize();
+        this.up.set(this.front).cross(this.right).normalize();
+        
+        this.view.identity().lookAt(
+                this.position.x(),
+                this.position.y(),
+                this.position.z(),
+                this.position.x() + this.front.x(),
+                this.position.y() + this.front.y(),
+                this.position.z() + this.front.z(),
+                this.up.x(), this.up.y(), this.up.z()
+        );
+    }
+
+    public void setNearPlane(float nearPlane) {
+        this.nearPlane = nearPlane;
+        updateProjection();
+    }
+
+    public void setFarPlane(float farPlane) {
+        this.farPlane = farPlane;
+        updateProjection();
+    }
+
+    public void setFov(float fov) {
+        this.fov = fov;
+        updateProjection();
+    }
+
+    public void setDimensions(float width, float height) {
+        this.dimensions.set(width, height);
+        updateProjection();
+    }
+    
+    public void setDimensions(Vector2fc dimensions) {
+        setDimensions(dimensions.x(), dimensions.y());
+    }
+
+    public void setPosition(float x, float y, float z) {
+        this.position.set(x, y, z);
+        updateView();
+    }
+    
+    public void setPosition(Vector3fc position) {
+        setPosition(position.x(), position.y(), position.z());
+    }
+
+    public void setRotation(float pitch, float yaw, float roll) {
+        this.rotation.set(pitch, yaw, roll);
+        updateView();
+    }
+    
+    public void setRotation(Vector3fc rotation) {
+        setRotation(rotation.x(), rotation.y(), rotation.z());
+    }
+    
+    public void setSensitivity(float sensitivity) {
+        this.sensitivity = sensitivity;
+    }
+
+    public void setSpeed(float speed) {
+        this.speed = speed;
+    }
+
+    public float getNearPlane() {
+        return nearPlane;
+    }
+
+    public float getFarPlane() {
+        return farPlane;
+    }
+
+    public float getFov() {
+        return fov;
+    }
+
+    public Vector2fc getDimensions() {
+        return dimensions;
+    }
+
+    public Vector3fc getPosition() {
+        return position;
+    }
+
+    public Vector3fc getRotation() {
+        return rotation;
+    }
+
+    public float getSensitivity() {
+        return sensitivity;
+    }
+
+    public float getSpeed() {
+        return speed;
+    }
+    
+    public Vector3fc getFront() {
+        return front;
+    }
+
+    public Vector3fc getRight() {
+        return right;
+    }
+
+    public Vector3fc getUp() {
+        return up;
+    }
+    
+    //movimentation magic
+    public void updateMovement() {
         if (isControlPressedOnce()) {
             this.captureMouse = !this.captureMouse;
             // if true, disable cursor,
             // if false, set cursor to normal
             glfwSetInputMode(Main.WINDOW_POINTER, GLFW_CURSOR,
-                        captureMouse ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
-            System.out.println("Capture state: " + captureMouse);
+                        this.captureMouse ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
+            System.out.println("Capture state: " + this.captureMouse);
         }
         
-        //acceleration in X and Z axis
+        //acceleration in local X and Z axis
         float xa = 0;
         float za = 0;
         
         if (isKeyDown(GLFW_KEY_W)) {
-            za = speed;
+            za = this.speed;
         } else if (isKeyDown(GLFW_KEY_S)) {
-            za = -speed;
+            za = -this.speed;
         }
+        
+        za *= Main.TPF;
+        
+        this.position.add(
+                this.front.x() * za,
+                this.front.y() * za,
+                this.front.z() * za
+        );
         
         if (isKeyDown(GLFW_KEY_A)) {
-            xa = speed;
+            xa = this.speed;
         } else if (isKeyDown(GLFW_KEY_D)) {
-            xa = -speed;
-        }
-           
-        // if these values are 0 we shouldn't
-        // calculate anything 
-        float dist = xa * xa + za * za;
-        if (dist < 0.01F) {
-            return;
+            xa = -this.speed;
         }
         
-        dist = speed / (float) Math.sqrt(dist);
-        xa *= dist;
-        za *= dist;
+        xa *= Main.TPF;
         
-        //
-        float sin = (float) Math.sin(Math.toRadians(this.rotation.y));
-        float cos = (float) Math.cos(Math.toRadians(this.rotation.y));
-
-        this.position.x += (xa * cos - za * sin) * Main.TPF;
-        this.position.z += (za * cos + xa * sin) * Main.TPF;
+        this.position.add(
+                this.right.x() * xa,
+                this.right.y() * xa,
+                this.right.z() * xa
+        );
+        
+        updateView();
     }
-
-    //makes a projection matrix
-    public void makeProjection(int width, int height) {
-        this.projection.identity();
-        this.projection.perspective(fov, width / height, NEAR_PLANE, FAR_PLANE);
-    }
-    
-    //last mouse position
-    double lastX = 0;
-    double lastY = 0;
 
     // rotates camera using the cursor's position
-    public void rotate(double mx, double my) {
+    public void mouseCursorMoved(double mx, double my) {
         if (captureMouse) {
             double x = lastX - mx;
             double y = lastY - my;
-
-            this.rotation.x += (y * sensitivity) * Main.TPF;
-            this.rotation.y += (x * sensitivity) * Main.TPF;
+            
+            this.rotation.add(
+                    (float) ((y * sensitivity) * Main.TPF),
+                    (float) ((x * sensitivity) * -Main.TPF),
+                    0
+            );
+            
+            if (this.rotation.x() >= 90) {
+                this.rotation.setComponent(0, 89.9f);
+            }
+            if (this.rotation.x() <= -90) {
+                this.rotation.setComponent(0, -89.9f);
+            }
         }
         lastX = mx;
         lastY = my;
@@ -158,8 +303,6 @@ public class Camera {
     private boolean isKeyUp(int key) {
         return glfwGetKey(Main.WINDOW_POINTER, key) == GLFW_RELEASE;
     }
-
-    boolean controlAlreadyPressed = false;
 
     /**
      * May be a little of Overengineering by me, but, here's the idea: it only
