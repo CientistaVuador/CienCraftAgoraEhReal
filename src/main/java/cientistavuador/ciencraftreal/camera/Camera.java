@@ -33,7 +33,6 @@ import org.joml.Vector2f;
 import org.joml.Vector2fc;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
-import static org.lwjgl.glfw.GLFW.*;
 
 /**
  * A Somewhat simple 3D Camera
