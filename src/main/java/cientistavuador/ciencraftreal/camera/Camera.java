@@ -38,6 +38,7 @@ import static org.lwjgl.glfw.GLFW.*;
 /**
  * A Somewhat simple 3D Camera
  * @author Shinoa Hiragi
+ * @author Cien
  */
 public class Camera {
 
