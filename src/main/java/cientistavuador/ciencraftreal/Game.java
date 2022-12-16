@@ -42,11 +42,10 @@ public class Game {
     }
     
     private final Triangle triangle = new Triangle();
-    
-    private Camera camera;
+    private final Camera camera = new Camera();
     
     private Game() {
-        camera = new Camera(0, 0, -5,70);
+        
     }
     
     public void start() {
@@ -54,16 +53,16 @@ public class Game {
     }
     
     public void loop() {
-        camera.update();
-        triangle.render(camera.projection, camera.view);
+        camera.updateMovement();
+        triangle.render(camera.getProjection(), camera.getView());
     }
     
     public void mouseCursorMoved(double x, double y) {
-        camera.rotate(x, y);
+        camera.mouseCursorMoved(x, y);
     }
     
     public void windowSizeChanged(int width, int height) {
-        camera.makeProjection(width, height);
+        camera.setDimensions(width, height);
     }
     
 }

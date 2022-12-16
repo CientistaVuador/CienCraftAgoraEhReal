@@ -79,6 +79,8 @@ public class Main {
         }
     }
     
+    public static int WIDTH = 800;
+    public static int HEIGHT = 600;
     public static double TPF = 1/60d;
     public static int FPS = 60;
     public static long WINDOW_POINTER = NULL;
@@ -100,18 +102,12 @@ public class Main {
             throw new IllegalStateException("Could not initialize GLFW!");
         }
         
-        GLFWFramebufferSizeCallbackI frameBufferSizecb = (window, width, height) -> {
-            glViewport(0, 0, width, height);
-            Game.get().windowSizeChanged(width, height);
-            Main.checkGLError();
-        };
-        
         //glfwWindowHint(GLFW_SAMPLES, 16); //MSAA 16x
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         
-        WINDOW_POINTER = glfwCreateWindow(800, 600, "CienCraft - FPS: 60", NULL, NULL);
+        WINDOW_POINTER = glfwCreateWindow(Main.WIDTH, Main.HEIGHT, "CienCraft - FPS: 60", NULL, NULL);
         if (WINDOW_POINTER == NULL) {
             throw new IllegalStateException("Could not create a OpenGL 3.3 Context Window! Update your drivers or buy a new GPU.");
         }
@@ -139,13 +135,21 @@ public class Main {
         
         Game.get(); //static initialize
         
+        GLFWFramebufferSizeCallbackI frameBufferSizecb = (window, width, height) -> {
+            glViewport(0, 0, width, height);
+            Main.WIDTH = width;
+            Main.HEIGHT = height;
+            Game.get().windowSizeChanged(width, height);
+            Main.checkGLError();
+        };
+        frameBufferSizecb.invoke(WINDOW_POINTER, Main.WIDTH, Main.HEIGHT);
         glfwSetFramebufferSizeCallback(WINDOW_POINTER, frameBufferSizecb);
+        
         glfwSetCursorPosCallback(WINDOW_POINTER, (window, x, y) -> {
             Game.get().mouseCursorMoved(x, y);
         });
         
         Game.get().start();
-        frameBufferSizecb.invoke(WINDOW_POINTER, 800, 600);
         
         Main.checkGLError();
         

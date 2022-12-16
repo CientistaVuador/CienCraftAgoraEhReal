@@ -30,6 +30,7 @@ import cientistavuador.ciencraftreal.Main;
 import java.nio.FloatBuffer;
 import java.util.Objects;
 import org.joml.Matrix4f;
+import org.joml.Matrix4fc;
 import static org.lwjgl.opengl.GL33C.*;
 import org.lwjgl.system.MemoryStack;
 
@@ -167,11 +168,11 @@ public class Triangle {
         return model;
     }
 
-    public void render(Matrix4f projectionView) {
+    public void render(Matrix4fc projectionView) {
         renderImpl(Objects.requireNonNull(projectionView), null);
     }
 
-    public void render(Matrix4f projection, Matrix4f view) {
+    public void render(Matrix4fc projection, Matrix4fc view) {
         renderImpl(
                 Objects.requireNonNull(projection),
                 Objects.requireNonNull(view)
@@ -182,7 +183,7 @@ public class Triangle {
         renderImpl(null, null);
     }
 
-    private void renderImpl(Matrix4f projection, Matrix4f view) {
+    private void renderImpl(Matrix4fc projection, Matrix4fc view) {
         glUseProgram(program);
         glBindVertexArray(vao);
 
