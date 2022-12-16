@@ -83,7 +83,7 @@ public class Camera {
         return projection;
     }
 
-    protected final void updateProjection() {
+    private void updateProjection() {
         this.projection
                 .identity()
                 .perspective(
@@ -94,7 +94,7 @@ public class Camera {
                 );
     }
     
-    protected final void updateView() {
+    private void updateView() {
         float pitchRadians = (float) Math.toRadians(this.rotation.x());
         float yawRadians = (float) Math.toRadians(this.rotation.y());
         

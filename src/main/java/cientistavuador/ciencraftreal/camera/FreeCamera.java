@@ -75,25 +75,21 @@ public class FreeCamera extends Camera {
             za = -currentSpeed;
         }
         
-        za *= Main.TPF;
-        
         if (isKeyDown(GLFW_KEY_A)) {
             xa = currentSpeed;
         } else if (isKeyDown(GLFW_KEY_D)) {
             xa = -currentSpeed;
         }
         
-        xa *= Main.TPF;
-        
         this.setPosition(
-                getPosition().x() + (this.getRight().x() * xa + this.getFront().x() * za),
-                getPosition().y() + (this.getRight().y() * xa + this.getFront().y() * za),
-                getPosition().z() + (this.getRight().z() * xa + this.getFront().z() * za)
+            getPosition().x() + ((this.getRight().x() * xa + this.getFront().x() * za) * (float)Main.TPF),
+            getPosition().y() + ((this.getRight().y() * xa + this.getFront().y() * za) * (float)Main.TPF),
+            getPosition().z() + ((this.getRight().z() * xa + this.getFront().z() * za) * (float)Main.TPF)
         );
         
         //updateView();
     }
-
+    
     // rotates camera using the cursor's position
     public void mouseCursorMoved(double mx, double my) {
         if (captureMouse) {
