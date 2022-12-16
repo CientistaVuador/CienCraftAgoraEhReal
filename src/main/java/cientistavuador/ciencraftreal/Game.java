@@ -42,11 +42,10 @@ public class Game {
     }
     
     private final Triangle triangle = new Triangle();
-    
-    private Camera camera;
+    private final Camera camera = new Camera();
     
     private Game() {
-        camera = new Camera(0, 0, -5,70);
+        
     }
     
     public void start() {
