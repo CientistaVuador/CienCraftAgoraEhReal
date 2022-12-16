@@ -37,8 +37,8 @@ import static org.lwjgl.glfw.GLFW.*;
  */
 public class Camera {
 
-    private static float NEAR_PLANE = 0.001f;
-    private static float FAR_PLANE = 100f;
+    private static float NEAR_PLANE = 0.1f;
+    private static float FAR_PLANE = 1000f;
     
     //Axises for the view Matrix
     private static Vector3f AxisX = new Vector3f(1, 0, 0);
