@@ -55,7 +55,7 @@ public class Game {
     
     public void loop() {
         camera.update();
-        triangle.render(camera.projection, camera.view);
+        triangle.render(camera.getProjection(), camera.getProjection());
     }
     
     public void mouseCursorMoved(double x, double y) {
