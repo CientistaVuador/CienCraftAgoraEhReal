@@ -32,7 +32,7 @@ import org.joml.Vector3f;
 import static org.lwjgl.glfw.GLFW.*;
 
 /**
- *
+ * A Somewhat simple 3D Camera
  * @author Shinoa Hiragi
  */
 public class Camera {
@@ -40,27 +40,25 @@ public class Camera {
     private static float NEAR_PLANE = 0.001f;
     private static float FAR_PLANE = 100f;
     
+    //Axises for the view Matrix
     private static Vector3f AxisX = new Vector3f(1, 0, 0);
     private static Vector3f AxisY = new Vector3f(0, 1, 0);
     private static Vector3f AxisZ = new Vector3f(0, 0, 1);
 
+    //Camera's Field of View
     public float fov;
-    
+
     public Vector3f position;
     public Vector3f rotation;
 
     public Matrix4f view;
     public Matrix4f projection;
     
-    private float distance = 0;
-    private float sensitivity = 2;
-    private float speed = 2;
-    
-    // width and height of the window
-    // specifically for mouse rotation
-    private float width;
-    private float height;
-    
+    private final float sensitivity = 0.8f;
+    private final float speed = 3;
+
+    //whatever it should capture the cursor or not.
+    // press LeftControl in game to capture/release the cursor
     private boolean captureMouse = false;
 
     public Camera(float fov) {
@@ -74,74 +72,100 @@ public class Camera {
         projection = new Matrix4f();
         view = new Matrix4f();
     }
-    
+
     //movimentation magic
     public void update() {
-        if (isControlPressedOnce()) {
-            this.captureMouse = !this.captureMouse;
-            glfwSetInputMode(Main.WINDOW_POINTER, GLFW_CURSOR, captureMouse ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
-            System.out.println("Capture state: " + captureMouse);
-        }
-        
-        // how far to move forward
-        if (isKeyDown(GLFW_KEY_W)) {
-            distance += speed * Main.TPF;
-        } else if (isKeyDown(GLFW_KEY_S)) {
-            distance -= speed * Main.TPF;
-        } else {
-            distance = 0;
-        }
-
-        position.x -= distance * (float) Math.sin(Math.toRadians(rotation.y));
-        position.z += distance * (float) Math.cos(Math.toRadians(rotation.y));
-        position.y += distance * (float) Math.sin(Math.toRadians(rotation.x));
-        
+        //makes a new view matrix
         this.view.identity();
         this.view.translate(position);
         this.view.rotate(rotation.x, AxisX);
         this.view.rotate(rotation.y, AxisY);
         this.view.rotate(rotation.z, AxisZ);
+        
+        if (isControlPressedOnce()) {
+            this.captureMouse = !this.captureMouse;
+            // if true, disable cursor,
+            // if false, set cursor to normal
+            glfwSetInputMode(Main.WINDOW_POINTER, GLFW_CURSOR,
+                        captureMouse ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
+            System.out.println("Capture state: " + captureMouse);
+        }
+        
+        //acceleration in X and Z axis
+        float xa = 0;
+        float za = 0;
+        
+        if (isKeyDown(GLFW_KEY_W)) {
+            za = speed;
+        } else if (isKeyDown(GLFW_KEY_S)) {
+            za = -speed;
+        }
+        
+        if (isKeyDown(GLFW_KEY_A)) {
+            xa = speed;
+        } else if (isKeyDown(GLFW_KEY_D)) {
+            xa = -speed;
+        }
+           
+        // if these values are 0 we shouldn't
+        // calculate anything 
+        float dist = xa * xa + za * za;
+        if (dist < 0.01F) {
+            return;
+        }
+        
+        dist = speed / (float) Math.sqrt(dist);
+        xa *= dist;
+        za *= dist;
+        
+        //
+        float sin = (float) Math.sin(Math.toRadians(this.rotation.y));
+        float cos = (float) Math.cos(Math.toRadians(this.rotation.y));
+
+        this.position.x += (xa * cos - za * sin) * Main.TPF;
+        this.position.z += (za * cos + xa * sin) * Main.TPF;
     }
 
+    //makes a projection matrix
     public void makeProjection(int width, int height) {
-        this.width = width;
-        this.height = height;
         this.projection.identity();
         this.projection.perspective(fov, width / height, NEAR_PLANE, FAR_PLANE);
     }
     
+    //last mouse position
     double lastX = 0;
     double lastY = 0;
+
+    // rotates camera using the cursor's position
     public void rotate(double mx, double my) {
         if (captureMouse) {
             double x = lastX - mx;
             double y = lastY - my;
-            
+
             this.rotation.x += (y * sensitivity) * Main.TPF;
             this.rotation.y += (x * sensitivity) * Main.TPF;
-            
-            System.out.printf("%g %g\n", x, y);
         }
         lastX = mx;
         lastY = my;
     }
-   
+
+    //returns true if the key was pressed
     private boolean isKeyDown(int key) {
         return glfwGetKey(Main.WINDOW_POINTER, key) == GLFW_PRESS;
     }
-    
+
+    // returns true if the key wasn't pressed
     private boolean isKeyUp(int key) {
         return glfwGetKey(Main.WINDOW_POINTER, key) == GLFW_RELEASE;
     }
-    
-    
+
     boolean controlAlreadyPressed = false;
+
     /**
-     * May be a little of Overengineering by me, 
-     * but, here's the idea: it only returns true one time
-     * if the left control key is  pressed, it won't return true again
-     * until that key is released; and pressed again,
-    */
+     * May be a little of Overengineering by me, but, here's the idea: it only
+     * returns true one time if the left control key is pressed, it won't return
+     * true again until that key is released; and pressed again,
+     */
     private boolean isControlPressedOnce() {
         if (isKeyDown(GLFW_KEY_LEFT_CONTROL)) {
             if (!controlAlreadyPressed) {
