@@ -107,7 +107,7 @@ public class Main {
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         
-        WINDOW_POINTER = glfwCreateWindow(800, 600, "CienCraft - FPS: 60", NULL, NULL);
+        WINDOW_POINTER = glfwCreateWindow(Main.WIDTH, Main.HEIGHT, "CienCraft - FPS: 60", NULL, NULL);
         if (WINDOW_POINTER == NULL) {
             throw new IllegalStateException("Could not create a OpenGL 3.3 Context Window! Update your drivers or buy a new GPU.");
         }
@@ -142,7 +142,7 @@ public class Main {
             Game.get().windowSizeChanged(width, height);
             Main.checkGLError();
         };
-        frameBufferSizecb.invoke(WINDOW_POINTER, 800, 600);
+        frameBufferSizecb.invoke(WINDOW_POINTER, Main.WIDTH, Main.HEIGHT);
         glfwSetFramebufferSizeCallback(WINDOW_POINTER, frameBufferSizecb);
         
         glfwSetCursorPosCallback(WINDOW_POINTER, (window, x, y) -> {
