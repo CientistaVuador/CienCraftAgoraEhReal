@@ -62,7 +62,7 @@ public class Game {
     }
     
     public void windowSizeChanged(int width, int height) {
-        camera.makeProjection(width, height);
+        camera.setDimensions(width, height);
     }
     
 }
