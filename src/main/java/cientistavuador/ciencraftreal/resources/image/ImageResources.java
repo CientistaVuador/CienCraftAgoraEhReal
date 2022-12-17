@@ -24,12 +24,12 @@
  *
  * For more information, please refer to <https://unlicense.org>
  */
-package cientistavuador.ciencraftreal.resources.texture;
+package cientistavuador.ciencraftreal.resources.image;
 
 /**
  *
  * @author Cien
  */
-public class TextureResources {
+public class ImageResources {
     
 }

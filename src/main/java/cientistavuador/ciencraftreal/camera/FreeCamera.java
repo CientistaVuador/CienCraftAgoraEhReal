@@ -36,12 +36,12 @@ import static org.lwjgl.glfw.GLFW.*;
 public class FreeCamera extends Camera {
     
     public static final float DEFAULT_SENSITIVITY = 8f;
-    public static final float RUN_DEFAULT_SPEED = 13f;
+    public static final float DEFAULT_RUN_SPEED = 13f;
     public static final float DEFAULT_SPEED = 4.5f;
         
     private float sensitivity = DEFAULT_SENSITIVITY;
     private float speed = DEFAULT_SPEED;
-    private float runSpeed = RUN_DEFAULT_SPEED;
+    private float runSpeed = DEFAULT_RUN_SPEED;
                                                     
     //whatever it should capture the cursor or not.
     // press LeftControl in game to capture/release the cursor
@@ -60,34 +60,37 @@ public class FreeCamera extends Camera {
             // if false, set cursor to normal
             glfwSetInputMode(Main.WINDOW_POINTER, GLFW_CURSOR,
                         this.captureMouse ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
-            System.out.println("Capture state: " + this.captureMouse);
+            System.out.println("Free Camera capture state: " + this.captureMouse);
         }
         
-        float currentSpeed = isKeyDown(GLFW_KEY_LEFT_SHIFT) ? runSpeed : speed;
-        
-        //acceleration in local X and Z axis
-        float xa = 0;
-        float za = 0;
+        int directionX = 0;
+        int directionZ = 0;
         
         if (isKeyDown(GLFW_KEY_W)) {
-            za = currentSpeed;
-        } else if (isKeyDown(GLFW_KEY_S)) {
-            za = -currentSpeed;
+            directionZ += 1;
         }
-        
+        if (isKeyDown(GLFW_KEY_S)) {
+            directionZ += -1;
+        }
         if (isKeyDown(GLFW_KEY_A)) {
-            xa = currentSpeed;
-        } else if (isKeyDown(GLFW_KEY_D)) {
-            xa = -currentSpeed;
+            directionX += 1;
+        }
+        if (isKeyDown(GLFW_KEY_D)) {
+            directionX += -1;
         }
         
-        this.setPosition(
-            getPosition().x() + ((this.getRight().x() * xa + this.getFront().x() * za) * (float)Main.TPF),
-            getPosition().y() + ((this.getRight().y() * xa + this.getFront().y() * za) * (float)Main.TPF),
-            getPosition().z() + ((this.getRight().z() * xa + this.getFront().z() * za) * (float)Main.TPF)
-        );
+        float diagonal = (Math.abs(directionX) == 1 && Math.abs(directionZ) == 1) ? 0.707106781186f : 1f;
+        float currentSpeed = isKeyDown(GLFW_KEY_LEFT_SHIFT) ? runSpeed : speed;
         
-        //updateView();
+        //acceleration in X and Z axis
+        float xa = currentSpeed * diagonal * directionX;
+        float za = currentSpeed * diagonal * directionZ;
+        
+        super.setPosition(
+            getPosition().x() + ((super.getRight().x() * xa + super.getFront().x() * za) * (float)Main.TPF),
+            getPosition().y() + ((super.getRight().y() * xa + super.getFront().y() * za) * (float)Main.TPF),
+            getPosition().z() + ((super.getRight().z() * xa + super.getFront().z() * za) * (float)Main.TPF)
+        );
     }
     
     // rotates camera using the cursor's position
@@ -96,17 +99,17 @@ public class FreeCamera extends Camera {
             double x = lastX - mx;
             double y = lastY - my;
             
-            this.setRotation(
-                    getRotation().x() + (float) ((y * sensitivity) * Main.TPF),
-                    getRotation().y() + (float) ((x * sensitivity) * -Main.TPF),
+            super.setRotation(
+                    super.getRotation().x() + (float) ((y * sensitivity) * Main.TPF),
+                    super.getRotation().y() + (float) ((x * sensitivity) * -Main.TPF),
                     0
             );
             
-            if (this.getRotation().x() >= 90) {
-                this.setRotation(89.9f, getRotation().y(), 0);
+            if (super.getRotation().x() >= 90) {
+                super.setRotation(89.9f, super.getRotation().y(), 0);
             }
-            if (this.getRotation().x() <= -90) {
-                this.setRotation(-89.9f, getRotation().y(),0);
+            if (super.getRotation().x() <= -90) {
+                super.setRotation(-89.9f, super.getRotation().y(), 0);
             }
         }
         lastX = mx;
