@@ -100,16 +100,16 @@ public class FreeCamera extends Camera {
             double y = lastY - my;
             
             super.setRotation(
-                    getRotation().x() + (float) ((y * sensitivity) * Main.TPF),
-                    getRotation().y() + (float) ((x * sensitivity) * -Main.TPF),
+                    super.getRotation().x() + (float) ((y * sensitivity) * Main.TPF),
+                    super.getRotation().y() + (float) ((x * sensitivity) * -Main.TPF),
                     0
             );
             
             if (super.getRotation().x() >= 90) {
-                super.setRotation(89.9f, getRotation().y(), 0);
+                super.setRotation(89.9f, super.getRotation().y(), 0);
             }
             if (super.getRotation().x() <= -90) {
-                super.setRotation(-89.9f, getRotation().y(),0);
+                super.setRotation(-89.9f, super.getRotation().y(), 0);
             }
         }
         lastX = mx;
