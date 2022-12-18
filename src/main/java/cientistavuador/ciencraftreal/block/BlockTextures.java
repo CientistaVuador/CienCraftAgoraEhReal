@@ -30,33 +30,6 @@ package cientistavuador.ciencraftreal.block;
  *
  * @author Shinoa Hiragi
  */
-public enum Side {
-    NORTH(0),
-    SOUTH(1),
-    EAST(2),
-    WEST(3),
-    TOP(4),
-    BOTTOM(5);
+public class BlockTextures {
     
-    private final int index;
-    
-    private Side(int index) {
-        this.index = index;
-    }
-    
-    public int getIndex() {
-        return this.index;
-    }
-    
-    public static Side getSide(int index) {
-        return switch (index) {
-            case 0 -> NORTH;
-            case 1 -> SOUTH;
-            case 2 -> EAST;
-            case 3 -> WEST;
-            case 4 -> TOP;
-            case 5 -> BOTTOM;
-            default -> throw new IndexOutOfBoundsException(index); 
-        };
-    }
 }
