@@ -32,4 +32,8 @@ package cientistavuador.ciencraftreal.debug;
  */
 public class DebugBlock {
     
+    public DebugBlock() {
+        
+    }
+    
 }
