@@ -32,4 +32,28 @@ package cientistavuador.ciencraftreal.block;
  */
 public class BlockTextures {
     
+    //0.5-DEV
+    public static final int GRASS = BlockTextureLoader.push("vulpes_grass.png");
+    public static final int GRASS_SIDE = BlockTextureLoader.push("vulpes_grass_side.png");
+    public static final int DIRT = BlockTextureLoader.push("vulpes_dirt.png");
+    public static final int STONE = BlockTextureLoader.push("vulpes_stone.png");
+    public static final int BEDROCK = BlockTextureLoader.push("vulpes_bedrock.png");
+    
+    //FUTURE
+    //TODO
+    
+    public static final int GL_TEXTURE_ARRAY;
+    
+    static {
+        BlockTextureLoader.loadTextures();
+        GL_TEXTURE_ARRAY = BlockTextureLoader.getGLTextureArray();
+    }
+    
+    public static void init() {
+        
+    }
+    
+    private BlockTextures() {
+        
+    }
 }
