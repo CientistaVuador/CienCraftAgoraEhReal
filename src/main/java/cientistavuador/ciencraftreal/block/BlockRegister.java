@@ -43,6 +43,9 @@ public class BlockRegister {
     }
     
     public static int register(Block block) {
+        if (currentId >= blocks.length) {
+            throw new RuntimeException("Out of Blocks IDs space!");
+        }
         blocks[currentId] = block;
         return currentId++;
     }
