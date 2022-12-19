@@ -34,6 +34,10 @@ public class Blocks {
     
     public static final Block AIR = null;
     
+    public static void init() {
+        
+    }
+    
     private Blocks() {
         
     }
