@@ -26,10 +26,20 @@
  */
 package cientistavuador.ciencraftreal.resources.image;
 
+import java.net.URL;
+
 /**
  *
  * @author Cien
  */
 public class ImageResources {
+    
+    public URL getImage(String name) {
+        return ImageResources.class.getResource(name);
+    }
+    
+    private ImageResources() {
+        
+    }
     
 }
