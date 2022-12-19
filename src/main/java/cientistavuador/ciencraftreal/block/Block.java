@@ -47,6 +47,10 @@ public class Block {
         sideTextures[BlockSide.BOTTOM.index()] = bottomTexture;
     }
     
+    public Block(int topBottomTexture, int sideTexture) {
+        this(topBottomTexture, sideTexture, topBottomTexture);
+    }
+    
     public Block(
             int northTexture,
             int southTexture,
