@@ -32,4 +32,10 @@ package cientistavuador.ciencraftreal.block;
  */
 public class Blocks {
     
+    public static final Block AIR = null;
+    
+    private Blocks() {
+        
+    }
+    
 }
