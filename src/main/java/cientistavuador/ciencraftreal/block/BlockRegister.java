@@ -32,13 +32,22 @@ package cientistavuador.ciencraftreal.block;
  */
 public class BlockRegister {
     
+    private static final Block[] blocks = new Block[256];
+    private static int currentId = 1;
+    
     public static Block getBlock(int id) {
-        return null;
+        if (id >= currentId) {
+            throw new IndexOutOfBoundsException(id);
+        }
+        return blocks[id];
     }
     
     public static int register(Block block) {
-        return -1;
+        blocks[currentId] = block;
+        return currentId++;
     }
     
-    private BlockRegister(){}
+    private BlockRegister() {
+        
+    }
 }
