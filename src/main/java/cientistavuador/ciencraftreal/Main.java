@@ -26,6 +26,8 @@
  */
 package cientistavuador.ciencraftreal;
 
+import cientistavuador.ciencraftreal.block.BlockTextures;
+import cientistavuador.ciencraftreal.block.Blocks;
 import static org.lwjgl.glfw.GLFW.*;
 import org.lwjgl.glfw.GLFWFramebufferSizeCallbackI;
 import org.lwjgl.opengl.GL;
@@ -133,6 +135,8 @@ public class Main {
         
         Main.checkGLError();
         
+        BlockTextures.init();  //static initialize
+        Blocks.init(); //static initialize
         Game.get(); //static initialize
         
         GLFWFramebufferSizeCallbackI frameBufferSizecb = (window, width, height) -> {
