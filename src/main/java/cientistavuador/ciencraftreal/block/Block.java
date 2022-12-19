@@ -35,6 +35,7 @@ import java.util.Arrays;
 public class Block {
     
     private final int[] sideTextures = new int[6];
+    private int blockId = -1;
     
     public Block(int texture) {
         Arrays.fill(sideTextures, texture);
@@ -76,5 +77,18 @@ public class Block {
     
     public BlockTransparency getBlockTransparency() {
         return BlockTransparency.SOLID;
+    }
+    
+    public int getId() {
+        if (blockId == -1) {
+            for (int i = 0; i < BlockRegister.numberOfRegisteredBlocks(); i++) {
+                if (BlockRegister.getBlock(i) == this) {
+                    blockId = i;
+                    return blockId;
+                }
+            }
+            throw new RuntimeException("Block not Registered.");
+        }
+        return blockId;
     }
 }
