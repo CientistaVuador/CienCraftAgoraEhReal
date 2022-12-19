@@ -26,41 +26,37 @@
  */
 package cientistavuador.ciencraftreal.block;
 
-import java.util.Arrays;
-
 /**
  *
- * @author Cien
+ * @author Shinoa Hiragi
  */
-public class Block {
+public enum BlockSide {
+    NORTH(0),
+    SOUTH(1),
+    EAST(2),
+    WEST(3),
+    TOP(4),
+    BOTTOM(5);
     
-    private final int[] textures = new int[6];
+    private final int index;
     
-    public Block(int texture) {
-        Arrays.fill(textures, texture);
+    private BlockSide(int index) {
+        this.index = index;
     }
     
-    public Block(int topTexture, int bottomTexture, int sideTexture) {
-        this(sideTexture);
-        textures[4] = topTexture;
-        textures[5] = bottomTexture;
+    public int getIndex() {
+        return this.index;
     }
     
-    public Block(int north, int south, int east,
-                 int west, int top, int bottom) {
-        textures[0] = north;
-        textures[1] = south;
-        textures[2] = east;
-        textures[3] = west;
-        textures[4] = top;
-        textures[5] = bottom;
-    }
-    
-    public int getSideTexture(BlockSide side) {
-        return textures[side.getIndex()];
-    }
-    
-    public BlockTransparency getBlockTransparent() {
-        return BlockTransparency.SOLID;
+    public static BlockSide getSide(int index) {
+        return switch (index) {
+            case 0 -> NORTH;
+            case 1 -> SOUTH;
+            case 2 -> EAST;
+            case 3 -> WEST;
+            case 4 -> TOP;
+            case 5 -> BOTTOM;
+            default -> throw new IndexOutOfBoundsException(index); 
+        };
     }
 }

@@ -26,41 +26,19 @@
  */
 package cientistavuador.ciencraftreal.block;
 
-import java.util.Arrays;
-
 /**
  *
  * @author Cien
  */
-public class Block {
+public class BlockRegister {
     
-    private final int[] textures = new int[6];
-    
-    public Block(int texture) {
-        Arrays.fill(textures, texture);
+    public static Block getBlock(int id) {
+        return null;
     }
     
-    public Block(int topTexture, int bottomTexture, int sideTexture) {
-        this(sideTexture);
-        textures[4] = topTexture;
-        textures[5] = bottomTexture;
+    public static int register(Block block) {
+        return -1;
     }
     
-    public Block(int north, int south, int east,
-                 int west, int top, int bottom) {
-        textures[0] = north;
-        textures[1] = south;
-        textures[2] = east;
-        textures[3] = west;
-        textures[4] = top;
-        textures[5] = bottom;
-    }
-    
-    public int getSideTexture(BlockSide side) {
-        return textures[side.getIndex()];
-    }
-    
-    public BlockTransparency getBlockTransparent() {
-        return BlockTransparency.SOLID;
-    }
+    private BlockRegister(){}
 }
