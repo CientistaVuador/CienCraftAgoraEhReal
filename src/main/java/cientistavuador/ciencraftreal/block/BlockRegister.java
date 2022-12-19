@@ -32,7 +32,9 @@ package cientistavuador.ciencraftreal.block;
  */
 public class BlockRegister {
     
-    private static final Block[] blocks = new Block[256];
+    public static final int MAX_AMOUNT_OF_BLOCKS = 256;
+    
+    private static final Block[] blocks = new Block[MAX_AMOUNT_OF_BLOCKS];
     private static int currentId = 1;
     
     public static Block getBlock(int id) {
