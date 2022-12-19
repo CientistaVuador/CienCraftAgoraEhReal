@@ -52,6 +52,10 @@ public class BlockRegister {
         return currentId++;
     }
     
+    public static int numberOfRegisteredBlocks() {
+        return currentId;
+    }
+    
     private BlockRegister() {
         
     }
