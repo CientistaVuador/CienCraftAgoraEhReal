@@ -15,6 +15,17 @@
         <lwjgl.natives>natives-windows</lwjgl.natives>
     </properties>
     
+    <build>
+        <resources>
+            <resource>
+                <directory>${basedir}/src/main/java</directory>
+                <includes>
+                    <include>**/*.png</include>
+                </includes>
+            </resource>
+        </resources>
+    </build>
+    
     <dependencyManagement>
         <dependencies>
             <dependency>
