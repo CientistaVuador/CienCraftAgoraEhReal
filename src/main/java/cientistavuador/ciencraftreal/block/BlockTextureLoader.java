@@ -26,19 +26,162 @@
  */
 package cientistavuador.ciencraftreal.block;
 
+import cientistavuador.ciencraftreal.Main;
+import cientistavuador.ciencraftreal.resources.image.ImageResources;
+import cientistavuador.ciencraftreal.resources.image.NativeImage;
+import java.nio.ByteBuffer;
+import java.util.ArrayDeque;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.function.Consumer;
+import org.lwjgl.opengl.GL;
+import static org.lwjgl.opengl.EXTTextureFilterAnisotropic.*;
+import static org.lwjgl.opengl.GL33C.*;
+import static org.lwjgl.system.MemoryUtil.*;
+
 /**
  *
  * @author Cien
  */
 public class BlockTextureLoader {
-    
-    public static int push(String resource) {
-        return 0;
+
+    public static boolean DEBUG_OUTPUT = true;
+    public static boolean USE_ANISOTROPIC_FILTERING = true;
+    public static final int WIDTH = 16;
+    public static final int HEIGHT = 16;
+
+    private static final ArrayDeque<Consumer<ByteBuffer>> queue = new ArrayDeque<>(64);
+    private static int currentTexture = 0;
+    private static int glTextureArray = 0;
+
+    public static int push(final String resource) {
+        if (glTextureArray != 0) {
+            throw new RuntimeException("Already loaded!");
+        }
+        final int index = currentTexture;
+        queue.add((outputBuffer) -> {
+            if (DEBUG_OUTPUT) {
+                System.out.println("Loading '" + resource + "' with index " + index);
+            }
+
+            NativeImage image = ImageResources.load(resource, 4);
+
+            try {
+                if (image.getWidth() != WIDTH || image.getHeight() != HEIGHT) {
+                    throw new IllegalArgumentException("Failed to load '" + resource + "' image dimensions must be " + WIDTH + "x" + HEIGHT);
+                }
+
+                long source = memAddress(image.getData());
+                long dest = memAddress(outputBuffer) + (WIDTH * HEIGHT * 4 * index);
+                memCopy(
+                        source,
+                        dest,
+                        WIDTH * HEIGHT * 4
+                );
+            } finally {
+                image.free();
+            }
+
+            if (DEBUG_OUTPUT) {
+                System.out.println("Finished loading '" + resource + "' with index " + index);
+            }
+        });
+        if (DEBUG_OUTPUT) {
+            System.out.println("Pushed '" + resource + "' into the queue with index " + index);
+        }
+
+        return currentTexture++;
     }
-    
-    public static int getGLTexture() {
-        return 0;
+
+    public static void loadTextures() {
+        if (glTextureArray != 0) {
+            throw new RuntimeException("Already loaded!");
+        }
+        if (DEBUG_OUTPUT) {
+            System.out.println("Loading Textures from the hard drive.");
+        }
+
+        final ByteBuffer data = memAlloc(WIDTH * HEIGHT * currentTexture * 4);
+        final ArrayDeque<Future<?>> tasks = new ArrayDeque<>(64);
+
+        while (true) {
+            final Consumer<ByteBuffer> task = queue.poll();
+            if (task == null) {
+                break;
+            }
+            tasks.add(CompletableFuture.runAsync(() -> {
+                task.accept(data);
+            }));
+        }
+
+        Future<?> result;
+        while ((result = tasks.poll()) != null) {
+            try {
+                result.get();
+            } catch (InterruptedException | ExecutionException ex) {
+                memFree(data);
+                throw new RuntimeException(ex);
+            }
+        }
+
+        if (DEBUG_OUTPUT) {
+            System.out.flush();
+
+            System.out.println("Finished loading textures from the hard drive.");
+
+            System.out.println("Uploading to the gpu.");
+        }
+
+        glTextureArray = glGenTextures();
+        glBindTexture(GL_TEXTURE_2D_ARRAY, glTextureArray);
+
+        glTexImage3D(
+                GL_TEXTURE_2D_ARRAY,
+                0,
+                GL_RGBA8,
+                WIDTH,
+                HEIGHT,
+                currentTexture,
+                0,
+                GL_RGBA,
+                GL_UNSIGNED_BYTE,
+                data
+        );
+        memFree(data);
+
+        glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
+
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+        if (GL.getCapabilities().GL_EXT_texture_filter_anisotropic) {
+            glTexParameterf(
+                    GL_TEXTURE_2D_ARRAY,
+                    GL_TEXTURE_MAX_ANISOTROPY_EXT,
+                    glGetFloat(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT)
+            );
+        }
+
+        glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
+
+        Main.checkGLError();
+
+        if (DEBUG_OUTPUT) {
+            System.out.println("Finished uploading to the gpu.");
+        }
     }
-    
-    private BlockTextureLoader(){}
+
+    public static int getGLTextureArray() {
+        if (glTextureArray == 0) {
+            throw new RuntimeException("Not loaded.");
+        }
+        return glTextureArray;
+    }
+
+    private BlockTextureLoader() {
+    }
 }

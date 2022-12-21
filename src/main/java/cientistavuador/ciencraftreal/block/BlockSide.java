@@ -27,28 +27,18 @@
 package cientistavuador.ciencraftreal.block;
 
 /**
- *
  * @author Shinoa Hiragi
+ * @author Cien
  */
 public enum BlockSide {
-    NORTH(0),
-    SOUTH(1),
-    EAST(2),
-    WEST(3),
-    TOP(4),
-    BOTTOM(5);
+    NORTH(0), // /\
+    SOUTH(1), // \/
+    EAST(2), // ->
+    WEST(3), // <-
+    TOP(4), // °
+    BOTTOM(5); // _
     
-    private final int index;
-    
-    private BlockSide(int index) {
-        this.index = index;
-    }
-    
-    public int getIndex() {
-        return this.index;
-    }
-    
-    public static BlockSide getSide(int index) {
+    public static BlockSide sideOf(int index) {
         return switch (index) {
             case 0 -> NORTH;
             case 1 -> SOUTH;
@@ -58,5 +48,15 @@ public enum BlockSide {
             case 5 -> BOTTOM;
             default -> throw new IndexOutOfBoundsException(index); 
         };
+    }
+    
+    private final int index;
+    
+    private BlockSide(int index) {
+        this.index = index;
+    }
+    
+    public int index() {
+        return this.index;
     }
 }

@@ -27,8 +27,8 @@
 package cientistavuador.ciencraftreal.block;
 
 /**
- *
  * @author Shinoa Hiragi
+ * @author Cien
  */
 public enum BlockTransparency {
     SOLID,

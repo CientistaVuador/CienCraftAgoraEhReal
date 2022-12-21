@@ -26,10 +26,42 @@
  */
 package cientistavuador.ciencraftreal.block;
 
+import cientistavuador.ciencraftreal.block.blocks.Bedrock;
+import cientistavuador.ciencraftreal.block.blocks.Dirt;
+import cientistavuador.ciencraftreal.block.blocks.Grass;
+import cientistavuador.ciencraftreal.block.blocks.Stone;
+
 /**
- *
  * @author Shinoa Hiragi
+ * @author Cien
  */
 public class Blocks {
+    
+    //0.5-DEV
+    public static final Block AIR = null;
+    public static final Grass GRASS = new Grass();
+    public static final Dirt DIRT = new Dirt();
+    public static final Stone STONE = new Stone();
+    public static final Bedrock BEDROCK = new Bedrock();
+    
+    //Future todo
+    
+    static {
+        //0.5-DEV
+        BlockRegister.register(GRASS);
+        BlockRegister.register(DIRT);
+        BlockRegister.register(STONE);
+        BlockRegister.register(BEDROCK);
+        
+        //Future todo
+    }
+    
+    public static void init() {
+        
+    }
+    
+    private Blocks() {
+        
+    }
     
 }

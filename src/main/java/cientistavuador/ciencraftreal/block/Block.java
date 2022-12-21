@@ -34,33 +34,65 @@ import java.util.Arrays;
  */
 public class Block {
     
-    private final int[] textures = new int[6];
+    private final int[] sideTextures = new int[6];
+    private int blockId = -1;
     
     public Block(int texture) {
-        Arrays.fill(textures, texture);
+        Arrays.fill(sideTextures, texture);
     }
     
-    public Block(int topTexture, int bottomTexture, int sideTexture) {
+    public Block(int topTexture, int sideTexture, int bottomTexture) {
         this(sideTexture);
-        textures[4] = topTexture;
-        textures[5] = bottomTexture;
+        sideTextures[BlockSide.TOP.index()] = topTexture;
+        sideTextures[BlockSide.BOTTOM.index()] = bottomTexture;
     }
     
-    public Block(int north, int south, int east,
-                 int west, int top, int bottom) {
-        textures[0] = north;
-        textures[1] = south;
-        textures[2] = east;
-        textures[3] = west;
-        textures[4] = top;
-        textures[5] = bottom;
+    public Block(int topBottomTexture, int sideTexture) {
+        this(topBottomTexture, sideTexture, topBottomTexture);
     }
     
-    public int getSideTexture(BlockSide side) {
-        return textures[side.getIndex()];
+    public Block(
+            int northTexture,
+            int southTexture,
+            int eastTexture,
+            int westTexture,
+            int topTexture,
+            int bottomTexture
+    ) {
+        sideTextures[BlockSide.NORTH.index()] = northTexture;
+        sideTextures[BlockSide.SOUTH.index()] = southTexture;
+        sideTextures[BlockSide.EAST.index()] = eastTexture;
+        sideTextures[BlockSide.WEST.index()] = westTexture;
+        sideTextures[BlockSide.TOP.index()] = topTexture;
+        sideTextures[BlockSide.BOTTOM.index()] = bottomTexture;
     }
     
-    public BlockTransparency getBlockTransparent() {
+    protected final void setBlockSideTexture(BlockSide side, int texture) {
+        if (side == null) {
+            Arrays.fill(sideTextures, texture);
+            return;
+        }
+        sideTextures[side.index()] = texture;
+    }
+    
+    public int getBlockSideTexture(BlockSide side) {
+        return sideTextures[side.index()];
+    }
+    
+    public BlockTransparency getBlockTransparency() {
         return BlockTransparency.SOLID;
+    }
+    
+    public int getId() {
+        if (blockId == -1) {
+            for (int i = 0; i < BlockRegister.numberOfRegisteredBlocks(); i++) {
+                if (BlockRegister.getBlock(i) == this) {
+                    blockId = i;
+                    return blockId;
+                }
+            }
+            throw new RuntimeException("Block not Registered.");
+        }
+        return blockId;
     }
 }
