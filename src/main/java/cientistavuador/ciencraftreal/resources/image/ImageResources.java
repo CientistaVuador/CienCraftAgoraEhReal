@@ -34,7 +34,7 @@ import java.net.URL;
  */
 public class ImageResources {
     
-    public static URL getImage(String name) {
+    public static URL getImageURL(String name) {
         return ImageResources.class.getResource(name);
     }
     
