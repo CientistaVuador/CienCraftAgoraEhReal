@@ -24,29 +24,63 @@
  *
  * For more information, please refer to <https://unlicense.org>
  */
-package cientistavuador.ciencraftreal.chunk;
+package cientistavuador.ciencraftreal.chunk.stages;
 
 import java.util.HashMap;
 import java.util.Map;
+import cientistavuador.ciencraftreal.chunk.ParallelNextStage;
 
 /**
  *
  * @author Cien
  */
+@ParallelNextStage
 public class ChunkBase {
     private static final Map<Class<?>, Boolean> multithreadedMap = new HashMap<>();
     
-    public static boolean isMultiThreaded(Class<?> clazz) {
+    public static boolean isNextStageParallel(Class<?> clazz) {
         Boolean b = multithreadedMap.get(clazz);
         if (b == null) {
-            b = clazz.getAnnotation(MultiThreaded.class) != null;
+            b = clazz.getAnnotation(ParallelNextStage.class) != null;
             multithreadedMap.put(clazz, b);
         }
         return b;
     }
     
-    public ChunkBase() {
-        
+    public static final int WIDTH = 32;
+    public static final int HEIGHT = 256;
+    public static final int DEPTH = 32;
+    
+    protected long seed;
+    protected int chunkX;
+    protected int chunkY;
+    protected int chunkZ;
+    
+    public ChunkBase(long seed, int chunkX, int chunkY, int chunkZ) {
+        this.seed = seed;
+        this.chunkX = chunkX;
+        this.chunkY = chunkY;
+        this.chunkZ = chunkZ;
+    }
+
+    public long getSeed() {
+        return seed;
+    }
+    
+    public int getChunkX() {
+        return chunkX;
+    }
+
+    public int getChunkY() {
+        return chunkY;
+    }
+
+    public int getChunkZ() {
+        return chunkZ;
+    }
+    
+    public ChunkSurface nextStage() {
+        return new ChunkSurface(this);
     }
     
 }

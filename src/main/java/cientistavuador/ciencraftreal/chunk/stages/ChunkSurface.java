@@ -24,12 +24,27 @@
  *
  * For more information, please refer to <https://unlicense.org>
  */
-package cientistavuador.ciencraftreal.chunk;
+package cientistavuador.ciencraftreal.chunk.stages;
 
 /**
  *
  * @author Cien
  */
-public final class Chunk {
+public class ChunkSurface extends ChunkBase {
+    
+    protected int[] surfaceMap;
+    protected int highestY;
+    
+    protected ChunkSurface(ChunkBase base, int[] surfaceMap, int highestY) {
+        super(base.seed, base.chunkX, base.chunkY, base.chunkZ);
+        this.surfaceMap = surfaceMap;
+        this.highestY = highestY;
+    }
+    
+    public ChunkSurface(ChunkBase base) {
+        super(base.seed, base.chunkX, base.chunkY, base.chunkZ);
+        this.surfaceMap = new int[WIDTH * DEPTH];
+        this.highestY = 255;
+    }
     
 }
