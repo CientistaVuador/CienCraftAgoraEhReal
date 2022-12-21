@@ -43,7 +43,7 @@ public class Camera {
 
     public static final float DEFAULT_NEAR_PLANE = 0.1f;
     public static final float DEFAULT_FAR_PLANE = 1000f;
-    public static final float DEFAULT_FOV = 90f;
+    public static final float DEFAULT_FOV = 70f;
     public static final float DEFAULT_PITCH = 0f;
     public static final float DEFAULT_YAW = -90f;
     public static final Vector3fc DEFAULT_WORLD_UP = new Vector3f(0, 1, 0);
