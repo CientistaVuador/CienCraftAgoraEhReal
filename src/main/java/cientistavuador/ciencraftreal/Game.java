@@ -26,41 +26,50 @@
  */
 package cientistavuador.ciencraftreal;
 
+import cientistavuador.ciencraftreal.block.BlockRegister;
+import cientistavuador.ciencraftreal.block.Blocks;
 import cientistavuador.ciencraftreal.debug.Triangle;
 import cientistavuador.ciencraftreal.camera.FreeCamera;
+import cientistavuador.ciencraftreal.debug.DebugBlock;
 
 /**
  *
  * @author Cien
  */
 public class Game {
-    
+
     private static final Game GAME = new Game();
-    
+
     public static Game get() {
         return GAME;
     }
-    
+
     private final Triangle triangle = new Triangle();
     private final FreeCamera camera = new FreeCamera();
-    
+    private final DebugBlock block = new DebugBlock();
+
     private Game() {
-        
+
     }
-    
+
     public void start() {
-        
+
     }
-    
+
     public void loop() {
         camera.updateMovement();
         triangle.render(camera.getProjection(), camera.getView());
+        for (int i = 1; i < BlockRegister.numberOfRegisteredBlocks(); i++) {
+            block.getModel().identity().translate(1 + (i * 1), 0, 0);
+            block.copySideTextures(BlockRegister.getBlock(i));
+            block.render(camera.getProjection(), camera.getView());
+        }
     }
-    
+
     public void mouseCursorMoved(double x, double y) {
         camera.mouseCursorMoved(x, y);
     }
-    
+
     public void windowSizeChanged(int width, int height) {
         camera.setDimensions(width, height);
     }
