@@ -26,20 +26,98 @@
  */
 package cientistavuador.ciencraftreal.resources.image;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
+import java.net.URLConnection;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+import static org.lwjgl.stb.STBImage.*;
+import org.lwjgl.system.MemoryStack;
+import static org.lwjgl.system.MemoryUtil.*;
 
 /**
  *
  * @author Cien
  */
 public class ImageResources {
-    
+
+    /**
+     * Loads an image
+     * @param name the resource name
+     * @param desiredChannels desired number of channels (0 1 2 3 4)
+     * @return a native image that must be manually freed
+     */
+    public static NativeImage load(String name, int desiredChannels) {
+        URL url = ImageResources.getImageURL(name);
+
+        if (url == null) {
+            throw new NullPointerException("'" + name + "' not found.");
+        }
+
+        try {
+            URLConnection conn = url.openConnection();
+            conn.connect();
+
+            InputStream in = conn.getInputStream();
+
+            ByteBuffer imageFile = memAlloc(conn.getContentLength());
+            try {
+
+                byte[] buffer = new byte[4096];
+
+                int r;
+                while ((r = in.read(buffer)) != -1) {
+                    imageFile.put(buffer, 0, r);
+                }
+
+                imageFile.flip();
+
+                NativeImage image;
+                
+                try (MemoryStack stack = MemoryStack.stackPush()) {
+                    IntBuffer widthBuffer = stack.callocInt(1);
+                    IntBuffer heightBuffer = stack.callocInt(1);
+                    IntBuffer channels = stack.callocInt(1);
+
+                    stbi_set_flip_vertically_on_load_thread(1);
+
+                    ByteBuffer imageData = stbi_load_from_memory(
+                            imageFile,
+                            widthBuffer,
+                            heightBuffer,
+                            channels,
+                            desiredChannels
+                    );
+
+                    if (imageData == null) {
+                        throw new NullPointerException("Failed to load '" + name + "': " + stbi_failure_reason());
+                    }
+
+                    image = new NativeImage(
+                            imageData,
+                            widthBuffer.get(),
+                            heightBuffer.get(),
+                            channels.get()
+                    );
+                }
+                
+                return image;
+            } finally {
+                memFree(imageFile);
+            }
+
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
     public static URL getImageURL(String name) {
         return ImageResources.class.getResource(name);
     }
-    
+
     private ImageResources() {
-        
+
     }
-    
+
 }
