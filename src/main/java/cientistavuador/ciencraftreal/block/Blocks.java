@@ -32,8 +32,8 @@ import cientistavuador.ciencraftreal.block.blocks.Grass;
 import cientistavuador.ciencraftreal.block.blocks.Stone;
 
 /**
- *
  * @author Shinoa Hiragi
+ * @author Cien
  */
 public class Blocks {
     
