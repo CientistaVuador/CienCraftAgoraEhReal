@@ -28,16 +28,15 @@ package cientistavuador.ciencraftreal.block;
 
 import cientistavuador.ciencraftreal.Main;
 import cientistavuador.ciencraftreal.resources.image.ImageResources;
-import java.net.URL;
+import cientistavuador.ciencraftreal.resources.image.NativeImage;
 import java.nio.ByteBuffer;
 import java.util.ArrayDeque;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.function.Consumer;
-import static org.lwjgl.opengl.EXTTextureCompressionS3TC.GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
-import static org.lwjgl.opengl.EXTTextureFilterAnisotropic.*;
 import org.lwjgl.opengl.GL;
+import static org.lwjgl.opengl.EXTTextureFilterAnisotropic.*;
 import static org.lwjgl.opengl.GL33C.*;
 import static org.lwjgl.system.MemoryUtil.*;
 
@@ -61,12 +60,28 @@ public class BlockTextureLoader {
             throw new RuntimeException("Already loaded!");
         }
         final int index = currentTexture;
-        queue.add((buffer) -> {
+        queue.add((outputBuffer) -> {
             if (DEBUG_OUTPUT) {
                 System.out.println("Loading '" + resource + "' with index " + index);
             }
-            
-            //todo
+
+            NativeImage image = ImageResources.load(resource, 4);
+
+            try {
+                if (image.getWidth() != WIDTH || image.getHeight() != HEIGHT) {
+                    throw new IllegalArgumentException("Failed to load '" + resource + "' image dimensions must be " + WIDTH + "x" + HEIGHT);
+                }
+
+                long source = memAddress(image.getData());
+                long dest = memAddress(outputBuffer) + (WIDTH * HEIGHT * 4 * index);
+                memCopy(
+                        source,
+                        dest,
+                        WIDTH * HEIGHT * 4
+                );
+            } finally {
+                image.free();
+            }
 
             if (DEBUG_OUTPUT) {
                 System.out.println("Finished loading '" + resource + "' with index " + index);
@@ -121,17 +136,10 @@ public class BlockTextureLoader {
         glTextureArray = glGenTextures();
         glBindTexture(GL_TEXTURE_2D_ARRAY, glTextureArray);
 
-        int type;
-        if (GL.getCapabilities().GL_EXT_texture_compression_s3tc) {
-            type = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
-        } else {
-            type = GL_RGBA8;
-        }
-
         glTexImage3D(
                 GL_TEXTURE_2D_ARRAY,
                 0,
-                type,
+                GL_RGBA8,
                 WIDTH,
                 HEIGHT,
                 currentTexture,
