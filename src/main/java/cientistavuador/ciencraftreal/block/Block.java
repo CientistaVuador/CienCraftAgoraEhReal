@@ -26,6 +26,7 @@
  */
 package cientistavuador.ciencraftreal.block;
 
+import cientistavuador.ciencraftreal.chunk.Chunk;
 import java.util.Arrays;
 
 /**
@@ -94,5 +95,9 @@ public class Block {
             throw new RuntimeException("Block not Registered.");
         }
         return blockId;
+    }
+    
+    public float[] generateVertices(Chunk chunk, int chunkBlockX, int chunkBlockY, int chunkBlockZ) {
+        return null;
     }
 }
