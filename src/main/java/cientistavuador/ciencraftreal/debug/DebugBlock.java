@@ -64,7 +64,7 @@ public class DebugBlock {
             flat out int textureID;
             
             void main() {
-                vec4 resultPosition = vec4(vertexPosition * 0.5, 1.0);
+                vec4 resultPosition = vec4(vertexPosition, 1.0);
                 switch (type) {
                     case MODEL_ONLY:
                         resultPosition = model * resultPosition;
