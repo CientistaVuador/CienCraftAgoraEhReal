@@ -39,6 +39,10 @@ public class BlockTextures {
     public static final int STONE = BlockTextureLoader.push("vulpes_stone.png");
     public static final int BEDROCK = BlockTextureLoader.push("vulpes_bedrock.png");
     
+    //0.6-DEV
+    public static final int COAL_ORE = BlockTextureLoader.push("vulpes_coal_ore.png");
+    public static final int IRON_ORE = BlockTextureLoader.push("vulpes_iron_ore.png");
+    
     //FUTURE
     //TODO
     

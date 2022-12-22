@@ -30,6 +30,7 @@ import cientistavuador.ciencraftreal.block.Block;
 import cientistavuador.ciencraftreal.block.BlockRegister;
 import cientistavuador.ciencraftreal.block.Blocks;
 import cientistavuador.ciencraftreal.noise.OpenSimplex2;
+import java.util.Arrays;
 import java.util.Random;
 
 /**
@@ -82,7 +83,7 @@ public class Chunk {
                 setSurfaceY(x, -z, height);
             }
         }
-
+        
         Random random = new Random(this.seed);
 
         long caveSeed = random.nextLong();

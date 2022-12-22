@@ -27,8 +27,10 @@
 package cientistavuador.ciencraftreal.block;
 
 import cientistavuador.ciencraftreal.block.blocks.Bedrock;
+import cientistavuador.ciencraftreal.block.blocks.CoalOre;
 import cientistavuador.ciencraftreal.block.blocks.Dirt;
 import cientistavuador.ciencraftreal.block.blocks.Grass;
+import cientistavuador.ciencraftreal.block.blocks.IronOre;
 import cientistavuador.ciencraftreal.block.blocks.Stone;
 
 /**
@@ -44,7 +46,9 @@ public class Blocks {
     public static final Stone STONE = new Stone();
     public static final Bedrock BEDROCK = new Bedrock();
     
-    //Future todo
+    //0.6-DEV
+    public static final CoalOre COAL_ORE = new CoalOre();
+    public static final IronOre IRON_ORE = new IronOre();
     
     static {
         //0.5-DEV
@@ -53,7 +57,9 @@ public class Blocks {
         BlockRegister.register(STONE);
         BlockRegister.register(BEDROCK);
         
-        //Future todo
+        //0.6-DEV
+        BlockRegister.register(COAL_ORE);
+        BlockRegister.register(IRON_ORE);
     }
     
     public static void init() {
