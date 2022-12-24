@@ -49,6 +49,7 @@ public class BlockRegister {
             throw new RuntimeException("Out of Blocks IDs space!");
         }
         blocks[currentId] = block;
+        block.setBlockID(currentId);
         return currentId++;
     }
     

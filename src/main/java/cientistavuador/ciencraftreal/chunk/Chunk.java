@@ -40,12 +40,18 @@ import java.util.Random;
  */
 public class Chunk {
 
-    public static final int GENERATOR_SMOOTHNESS = 50;
+    public static final int GENERATOR_SMOOTHNESS = 80;
     public static final int GENERATOR_DESIRED_MAX_HEIGHT = 74;
     public static final int GENERATOR_DESIRED_MIN_HEIGHT = 64;
 
+    public static final int GENERATOR_CAVE_SMOOTHNESS_Y = 20;
+    public static final int GENERATOR_CAVE_SMOOTHNESS_XZ = 80;
+    public static final float GENERATOR_CAVE_CUTOFF = 0.5f;
+    
     public static final int CHUNK_SIZE = 32;
     public static final int CHUNK_HEIGHT = 256;
+
+    public static final int RENDER_VERTEX_SIZE = 3 + 2 + 1;
 
     private final long seed;
     private final int chunkX;
@@ -96,8 +102,42 @@ public class Chunk {
         for (int y = this.highestY; y >= 0; y--) {
             for (int z = 0; z >= -(CHUNK_SIZE - 1); z--) {
                 for (int x = 0; x < CHUNK_SIZE; x++) {
-                    if (y <= getSurfaceY(x, z)) {
+                    float worldX = (x + (chunkX * CHUNK_SIZE)) + 0.5f;
+                    float worldY = (y + 0.5f);
+                    float worldZ = (z + (chunkZ * CHUNK_SIZE)) - 0.5f;
+
+                    int surfaceHeight = getSurfaceY(x, z);
+
+                    if (y <= surfaceHeight) {
                         setBlockImpl(x, y, z, Blocks.STONE);
+                    }
+
+                    int distanceFromSurface = (y - surfaceHeight);
+
+                    if (distanceFromSurface <= 4) {
+                        if (distanceFromSurface == 0) {
+                            setBlockImpl(x, y, z, Blocks.GRASS);
+                        }
+                        if (distanceFromSurface < 0 && distanceFromSurface >= -3) {
+                            setBlockImpl(x, y, z, Blocks.DIRT);
+                        }
+                    }
+                    
+                    if (OpenSimplex2.noise3_ImproveXY(caveSeed, worldX / GENERATOR_CAVE_SMOOTHNESS_XZ, worldY / GENERATOR_CAVE_SMOOTHNESS_Y, worldZ / GENERATOR_CAVE_SMOOTHNESS_XZ) > GENERATOR_CAVE_CUTOFF) {
+                        setBlockImpl(x, y, z, Blocks.AIR);
+                    }
+                    
+                    if (y == 0) {
+                        setBlockImpl(x, y, z, Blocks.BEDROCK);
+                    }
+                    if (y == 1 && OpenSimplex2.noise2(bedrockSeed, worldX, worldZ) > -0.5) {
+                        setBlockImpl(x, y, z, Blocks.BEDROCK);
+                    }
+                    if (y == 2 && OpenSimplex2.noise2(bedrockSeed, worldX + 1f, worldZ - 1f) > 0) {
+                        setBlockImpl(x, y, z, Blocks.BEDROCK);
+                    }
+                    if (y == 3 && OpenSimplex2.noise2(bedrockSeed, worldX + 2f, worldZ - 2f) > 0.5) {
+                        setBlockImpl(x, y, z, Blocks.BEDROCK);
                     }
                 }
             }
@@ -107,28 +147,28 @@ public class Chunk {
     public void generateVertices() {
         List<float[]> blockVerticesList = new ArrayList<>(64);
         int blockVerticesLength = 0;
-        
+
         for (int y = this.highestY; y >= 0; y--) {
             for (int x = 0; x < CHUNK_SIZE; x++) {
                 int zVertexCounter = 0;
                 for (int z = 0; z >= -(CHUNK_SIZE - 1); z--) {
                     Block block = getBlockImpl(x, y, z);
-                    
+
                     if (block == Blocks.AIR) {
                         continue;
                     }
-                    
+
                     float[] blockVertices = block.generateVertices(
                             this,
                             x,
                             y,
                             z
                     );
-                    
+
                     if (blockVertices == null || blockVertices.length == 0) {
                         continue;
                     }
-                    
+
                     blockVerticesList.add(blockVertices);
                     blockVerticesLength += blockVertices.length;
                     zVertexCounter += blockVertices.length;
@@ -136,27 +176,27 @@ public class Chunk {
                 setZBlockLineVertexStartEnd(x, y, blockVerticesLength - zVertexCounter, blockVerticesLength);
             }
         }
-        
+
         this.vertices = new float[blockVerticesLength];
         int vertexCounter = 0;
-        for (float[] blockVertices:blockVerticesList) {
+        for (float[] blockVertices : blockVerticesList) {
             System.arraycopy(blockVertices, 0, this.vertices, vertexCounter, blockVertices.length);
             vertexCounter += blockVertices.length;
         }
-        
+
     }
 
     private int getZBlockLineVertexStart(int x, int y) {
-        return this.zBlockLineVertexStartEnd[(x + (y * CHUNK_HEIGHT)) * 2];
+        return this.zBlockLineVertexStartEnd[(x + (y * CHUNK_SIZE)) * 2];
     }
 
     private int getZBlockLineVertexEnd(int x, int y) {
-        return this.zBlockLineVertexStartEnd[((x + (y * CHUNK_HEIGHT)) * 2) + 1];
+        return this.zBlockLineVertexStartEnd[((x + (y * CHUNK_SIZE)) * 2) + 1];
     }
 
     private void setZBlockLineVertexStartEnd(int x, int y, int start, int end) {
-        this.zBlockLineVertexStartEnd[(x + (y * CHUNK_HEIGHT)) * 2] = start;
-        this.zBlockLineVertexStartEnd[((x + (y * CHUNK_HEIGHT)) * 2) + 1] = end;
+        this.zBlockLineVertexStartEnd[(x + (y * CHUNK_SIZE)) * 2] = start;
+        this.zBlockLineVertexStartEnd[((x + (y * CHUNK_SIZE)) * 2) + 1] = end;
     }
 
     private void setBlockImpl(int x, int y, int z, Block block) {
@@ -198,13 +238,21 @@ public class Chunk {
         }
     }
 
-    public Block getBlockImpl(int x, int y, int z) {
+    private Block getBlockImpl(int x, int y, int z) {
         int index = x + (-z * CHUNK_SIZE) + (y * CHUNK_SIZE * CHUNK_SIZE);
         return BlockRegister.getBlock(Byte.toUnsignedInt(this.blocks[index]));
     }
 
     private void setSurfaceY(int x, int z, int value) {
         this.surface[x + (-z * CHUNK_SIZE)] = value;
+    }
+
+    public Block getBlock(int x, int y, int z) {
+        return getBlockImpl(x, y, z);
+    }
+
+    public float[] getVertices() {
+        return vertices.clone();
     }
 
     public long getSeed() {

@@ -33,6 +33,7 @@ import cientistavuador.ciencraftreal.debug.Triangle;
 import cientistavuador.ciencraftreal.camera.FreeCamera;
 import cientistavuador.ciencraftreal.chunk.Chunk;
 import static cientistavuador.ciencraftreal.chunk.Chunk.CHUNK_SIZE;
+import cientistavuador.ciencraftreal.chunk.RenderableChunk;
 import cientistavuador.ciencraftreal.debug.DebugBlock;
 import cientistavuador.ciencraftreal.debug.DebugCounter;
 import java.util.Random;
@@ -52,7 +53,11 @@ public class Game {
     private final Triangle triangle = new Triangle();
     private final FreeCamera camera = new FreeCamera();
     private final DebugBlock block = new DebugBlock();
+    private int size = 16;
+    private final Chunk[] chunks = new Chunk[size * size];
+    private final RenderableChunk[] renderableChunks = new RenderableChunk[size * size];
     private final Chunk chunk = new Chunk(65487321654L, 0, 0);
+    private final RenderableChunk renderableChunk = new RenderableChunk(chunk);
 
     private Game() {
 
@@ -70,7 +75,18 @@ public class Game {
         }
 
         counter.print();
-
+        
+        chunk.generateVertices();
+        
+        for (int i = 0; i < chunks.length; i++) {
+            int x = (i % size) - (size/2);
+            int z = (i / size) - (size/2);
+            
+            chunks[i] = new Chunk(65487321654L, x, z);
+            chunks[i].generateBlocks();
+            chunks[i].generateVertices();
+            renderableChunks[i] = new RenderableChunk(chunks[i]);
+        }
     }
 
     public void loop() {
@@ -84,47 +100,8 @@ public class Game {
             block.render(camera.getProjection(), camera.getView());
         }
 
-        block.copySideTextures(Blocks.IRON_ORE);
-        
-        Random random = new Random(89716164987431654L);
-        
-        for (int y =  Chunk.GENERATOR_DESIRED_MIN_HEIGHT; y < Chunk.GENERATOR_DESIRED_MAX_HEIGHT; y++) {
-            for (int z = 0; z >= -(CHUNK_SIZE - 1); z--) {
-                for (int x = 0; x < CHUNK_SIZE; x++) {
-                    float worldX = (x + (chunk.getChunkX() * CHUNK_SIZE)) + 0.5f;
-                    float worldY = y + 0.5f;
-                    float worldZ = (-z + (chunk.getChunkZ() * CHUNK_SIZE)) - 0.5f;
-
-                    Block blockAt = chunk.getBlockImpl(x, y, z);
-
-                    if (blockAt == Blocks.AIR) {
-                        continue;
-                    }
-                    
-                    int value = random.nextInt(10);
-                    
-                    if (value < 5) {
-                        block.copySideTextures(Blocks.STONE);
-                    }
-                    if (value > 5) {
-                        block.copySideTextures(Blocks.COAL_ORE);
-                    }
-                    if (value > 8) {
-                        block.copySideTextures(Blocks.IRON_ORE);
-                    }
-                    
-                    block.copySideTextures(Blocks.GRASS);
-                    
-                    block.getModel()
-                            .identity()
-                            .translate(
-                                    worldX,
-                                    worldY,
-                                    worldZ
-                            );
-                    block.render(camera.getProjection(), camera.getView());
-                }
-            }
+        for (int i = 0; i < renderableChunks.length; i++) {
+            renderableChunks[i].render(camera.getProjection(), camera.getView());
         }
     }
 
