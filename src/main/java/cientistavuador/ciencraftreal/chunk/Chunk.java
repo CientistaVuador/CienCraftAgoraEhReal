@@ -30,7 +30,8 @@ import cientistavuador.ciencraftreal.block.Block;
 import cientistavuador.ciencraftreal.block.BlockRegister;
 import cientistavuador.ciencraftreal.block.Blocks;
 import cientistavuador.ciencraftreal.noise.OpenSimplex2;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -56,6 +57,9 @@ public class Chunk {
     private final int[] blocksInHeight = new int[CHUNK_HEIGHT];
     private int highestY = 0;
 
+    private final int[] zBlockLineVertexStartEnd = new int[CHUNK_SIZE * CHUNK_HEIGHT * 2];
+    private float[] vertices = new float[0];
+
     public Chunk(long seed, int chunkX, int chunkZ) {
         this.seed = seed;
         this.chunkX = chunkX;
@@ -73,24 +77,24 @@ public class Chunk {
 
                 float value = OpenSimplex2.noise2(this.seed, worldX, worldZ);
                 value = (value + 1f) / 2f;
-                
+
                 int height = (int) (value * (GENERATOR_DESIRED_MAX_HEIGHT - GENERATOR_DESIRED_MIN_HEIGHT)) + GENERATOR_DESIRED_MIN_HEIGHT;
-                
+
                 if (height > this.highestY) {
                     this.highestY = height;
                 }
-                
+
                 setSurfaceY(x, -z, height);
             }
         }
-        
+
         Random random = new Random(this.seed);
 
         long caveSeed = random.nextLong();
         long bedrockSeed = random.nextLong();
-        
+
         for (int y = this.highestY; y >= 0; y--) {
-            for (int z = 0; z >= -(CHUNK_SIZE-1); z--) {
+            for (int z = 0; z >= -(CHUNK_SIZE - 1); z--) {
                 for (int x = 0; x < CHUNK_SIZE; x++) {
                     if (y <= getSurfaceY(x, z)) {
                         setBlockImpl(x, y, z, Blocks.STONE);
@@ -100,16 +104,71 @@ public class Chunk {
         }
     }
 
+    public void generateVertices() {
+        List<float[]> blockVerticesList = new ArrayList<>(64);
+        int blockVerticesLength = 0;
+        
+        for (int y = this.highestY; y >= 0; y--) {
+            for (int x = 0; x < CHUNK_SIZE; x++) {
+                int zVertexCounter = 0;
+                for (int z = 0; z >= -(CHUNK_SIZE - 1); z--) {
+                    Block block = getBlockImpl(x, y, z);
+                    
+                    if (block == Blocks.AIR) {
+                        continue;
+                    }
+                    
+                    float[] blockVertices = block.generateVertices(
+                            this,
+                            x,
+                            y,
+                            z
+                    );
+                    
+                    if (blockVertices == null || blockVertices.length == 0) {
+                        continue;
+                    }
+                    
+                    blockVerticesList.add(blockVertices);
+                    blockVerticesLength += blockVertices.length;
+                    zVertexCounter += blockVertices.length;
+                }
+                setZBlockLineVertexStartEnd(x, y, blockVerticesLength - zVertexCounter, blockVerticesLength);
+            }
+        }
+        
+        this.vertices = new float[blockVerticesLength];
+        int vertexCounter = 0;
+        for (float[] blockVertices:blockVerticesList) {
+            System.arraycopy(blockVertices, 0, this.vertices, vertexCounter, blockVertices.length);
+            vertexCounter += blockVertices.length;
+        }
+        
+    }
+
+    private int getZBlockLineVertexStart(int x, int y) {
+        return this.zBlockLineVertexStartEnd[(x + (y * CHUNK_HEIGHT)) * 2];
+    }
+
+    private int getZBlockLineVertexEnd(int x, int y) {
+        return this.zBlockLineVertexStartEnd[((x + (y * CHUNK_HEIGHT)) * 2) + 1];
+    }
+
+    private void setZBlockLineVertexStartEnd(int x, int y, int start, int end) {
+        this.zBlockLineVertexStartEnd[(x + (y * CHUNK_HEIGHT)) * 2] = start;
+        this.zBlockLineVertexStartEnd[((x + (y * CHUNK_HEIGHT)) * 2) + 1] = end;
+    }
+
     private void setBlockImpl(int x, int y, int z, Block block) {
         int index = x + (-z * CHUNK_SIZE) + (y * CHUNK_SIZE * CHUNK_SIZE);
 
         boolean removing = (Blocks.AIR == block);
         byte blockAtIndex = this.blocks[index];
-        
+
         if (removing && blockAtIndex == 0) {
             return;
         }
-        
+
         boolean removingAndPlacing = !removing && blockAtIndex != 0;
 
         if (removing) {
