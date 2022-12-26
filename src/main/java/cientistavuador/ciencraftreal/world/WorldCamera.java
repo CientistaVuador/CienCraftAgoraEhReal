@@ -26,10 +26,111 @@
  */
 package cientistavuador.ciencraftreal.world;
 
+import cientistavuador.ciencraftreal.camera.Camera;
+import cientistavuador.ciencraftreal.camera.PerspectiveCamera;
+import cientistavuador.ciencraftreal.chunk.Chunk;
+import cientistavuador.ciencraftreal.chunk.ChunkManager;
+import cientistavuador.ciencraftreal.chunk.RenderableChunk;
+import java.util.Arrays;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  *
  * @author Cien
  */
 public class WorldCamera {
+
+    public static final int VIEW_DISTANCE = 10;
+    public static final int VIEW_DISTANCE_SIZE = (VIEW_DISTANCE * 2) + 1;
+    public static final int VIEW_DISTANCE_NUMBER_OF_CHUNKS = VIEW_DISTANCE_SIZE * VIEW_DISTANCE_SIZE;
+
+    private final ChunkManager[] map = new ChunkManager[VIEW_DISTANCE_NUMBER_OF_CHUNKS];
     
+    private final long seed;
+    private final Camera camera;
+    private int oldChunkX = 0;
+    private int oldChunkZ = 0;
+    private int chunkX = 0;
+    private int chunkZ = 0;
+
+    public WorldCamera(Camera camera, long seed) {
+        this.camera = camera;
+        this.seed = seed;
+    }
+
+    public long getSeed() {
+        return seed;
+    }
+
+    private void updateChunks() {
+        for (int i = 0; i < VIEW_DISTANCE_NUMBER_OF_CHUNKS; i++) {
+            int x = (i % VIEW_DISTANCE_SIZE) - VIEW_DISTANCE;
+            int z = -((i / VIEW_DISTANCE_SIZE) - VIEW_DISTANCE);
+
+            ChunkManager m = this.map[i];
+            if (m == null) {
+                m = new ChunkManager(new Chunk(this, this.chunkX + x, this.chunkZ + z));
+                this.map[i] = m;
+            }
+            
+            m.update();
+        }
+    }
+
+    private void updatePosition() {
+        int camChunkX = (int) Math.floor(camera.getPosition().x() / Chunk.CHUNK_SIZE);
+        int camChunkZ = (int) Math.floor(camera.getPosition().z() / Chunk.CHUNK_SIZE);
+        
+        if (this.chunkX != camChunkX || this.chunkZ != camChunkZ) {
+            this.oldChunkX = this.chunkX;
+            this.oldChunkZ = this.chunkZ;
+            this.chunkX = camChunkX;
+            this.chunkZ = camChunkZ;
+        }
+    }
+    
+    private void moveAreas() {
+        int translationX = this.oldChunkX - this.chunkX;
+        int translationZ = this.oldChunkZ - this.chunkZ;
+        
+        if (Math.abs(translationX) > VIEW_DISTANCE_SIZE || Math.abs(translationZ)  > VIEW_DISTANCE_SIZE) {
+            for (int i = 0; i < this.map.length; i++) {
+                ChunkManager m = this.map[i];
+                if (m != null) {
+                    m.delete();
+                }
+            }
+            
+            Arrays.fill(this.map, null);
+            return;
+        }
+        
+        //todo
+    }
+    
+    private void finishUpdatePosition() {
+        this.oldChunkX = this.chunkX;
+        this.oldChunkZ = this.chunkZ;
+    }
+    
+    public void update() {
+        updatePosition();
+        moveAreas();
+        finishUpdatePosition();
+        updateChunks();
+    }
+    
+    public void render() {
+        for (int i = 0; i < VIEW_DISTANCE_NUMBER_OF_CHUNKS; i++) {
+            ChunkManager m = this.map[i];
+            if (m != null && m.isFinished()) {
+                m.getRenderableChunk().render(this.camera.getProjection(), this.camera.getView());
+            }
+        }
+    }
+
 }
