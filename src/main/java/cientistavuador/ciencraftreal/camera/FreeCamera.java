@@ -33,7 +33,7 @@ import static org.lwjgl.glfw.GLFW.*;
  *
  * @author Shinoa Hiragi
  */
-public class FreeCamera extends Camera {
+public class FreeCamera extends PerspectiveCamera {
     
     public static final float DEFAULT_SENSITIVITY = 0.1f;
     public static final float DEFAULT_RUN_SPEED = 13f;
