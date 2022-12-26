@@ -26,17 +26,14 @@
  */
 package cientistavuador.ciencraftreal;
 
-import cientistavuador.ciencraftreal.block.Block;
 import cientistavuador.ciencraftreal.block.BlockRegister;
 import cientistavuador.ciencraftreal.block.Blocks;
 import cientistavuador.ciencraftreal.debug.Triangle;
 import cientistavuador.ciencraftreal.camera.FreeCamera;
 import cientistavuador.ciencraftreal.chunk.Chunk;
-import static cientistavuador.ciencraftreal.chunk.Chunk.CHUNK_SIZE;
-import cientistavuador.ciencraftreal.chunk.RenderableChunk;
 import cientistavuador.ciencraftreal.debug.DebugBlock;
-import cientistavuador.ciencraftreal.debug.DebugCounter;
-import java.util.Random;
+import cientistavuador.ciencraftreal.world.WorldCamera;
+import static org.lwjgl.glfw.GLFW.*;
 
 /**
  *
@@ -53,40 +50,14 @@ public class Game {
     private final Triangle triangle = new Triangle();
     private final FreeCamera camera = new FreeCamera();
     private final DebugBlock block = new DebugBlock();
-    private int size = 16;
-    private final Chunk[] chunks = new Chunk[size * size];
-    private final RenderableChunk[] renderableChunks = new RenderableChunk[size * size];
-    private final Chunk chunk = new Chunk(65487321654L, 0, 0);
-    private final RenderableChunk renderableChunk = new RenderableChunk(chunk);
+    private final WorldCamera world = new WorldCamera(camera, 65487321654L);
 
     private Game() {
 
     }
 
     public void start() {
-        chunk.generateBlocks();
-
-        DebugCounter counter = new DebugCounter("Chunk Generation Benchmark");
-
-        for (int i = 0; i < 1000; i++) {
-            counter.markStart("generation");
-            chunk.generateBlocks();
-            counter.markEnd("generation");
-        }
-
-        counter.print();
-        
-        chunk.generateVertices();
-        
-        for (int i = 0; i < chunks.length; i++) {
-            int x = (i % size) - (size/2);
-            int z = (i / size) - (size/2);
-            
-            chunks[i] = new Chunk(65487321654L, x, z);
-            chunks[i].generateBlocks();
-            chunks[i].generateVertices();
-            renderableChunks[i] = new RenderableChunk(chunks[i]);
-        }
+        camera.setPosition(0, Chunk.GENERATOR_DESIRED_MAX_HEIGHT, 0);
     }
 
     public void loop() {
@@ -100,9 +71,8 @@ public class Game {
             block.render(camera.getProjection(), camera.getView());
         }
 
-        for (int i = 0; i < renderableChunks.length; i++) {
-            renderableChunks[i].render(camera.getProjection(), camera.getView());
-        }
+        world.update();
+        world.render();
     }
 
     public void mouseCursorMoved(double x, double y) {
@@ -111,5 +81,15 @@ public class Game {
 
     public void windowSizeChanged(int width, int height) {
         camera.setDimensions(width, height);
+    }
+    
+    public void keyCallback(long window, int key, int scancode, int action, int mods) {
+        if (key == GLFW_KEY_F && action == GLFW_PRESS) {
+            camera.setPosition(
+                    (float) (Math.random() * 10000),
+                    Chunk.GENERATOR_DESIRED_MAX_HEIGHT,
+                    (float) (Math.random() * 10000)
+            );
+        }
     }
 }
