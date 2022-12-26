@@ -154,6 +154,10 @@ public class Main {
         glfwSetCursorPosCallback(WINDOW_POINTER, (window, x, y) -> {
             Game.get().mouseCursorMoved(x, y);
         });
+        
+        glfwSetKeyCallback(WINDOW_POINTER, (window, key, scancode, action, mods) -> {
+            Game.get().keyCallback(window, key, scancode, action, mods);
+        });
 
         Game.get().start();
 
