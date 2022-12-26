@@ -30,9 +30,11 @@ import cientistavuador.ciencraftreal.block.Block;
 import cientistavuador.ciencraftreal.block.BlockRegister;
 import cientistavuador.ciencraftreal.block.Blocks;
 import cientistavuador.ciencraftreal.noise.OpenSimplex2;
+import cientistavuador.ciencraftreal.world.WorldCamera;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.CompletableFuture;
 
 /**
  *
@@ -53,7 +55,7 @@ public class Chunk {
 
     public static final int RENDER_VERTEX_SIZE = 3 + 2 + 1;
 
-    private final long seed;
+    private final WorldCamera world;
     private final int chunkX;
     private final int chunkZ;
 
@@ -66,13 +68,15 @@ public class Chunk {
     private final int[] zBlockLineVertexStartEnd = new int[CHUNK_SIZE * CHUNK_HEIGHT * 2];
     private float[] vertices = new float[0];
 
-    public Chunk(long seed, int chunkX, int chunkZ) {
-        this.seed = seed;
+    public Chunk(WorldCamera world, int chunkX, int chunkZ) {
+        this.world = world;
         this.chunkX = chunkX;
         this.chunkZ = chunkZ;
     }
 
     public void generateBlocks() {
+        long seed = this.world.getSeed();
+        
         for (int z = 0; z < CHUNK_SIZE; z++) {
             for (int x = 0; x < CHUNK_SIZE; x++) {
                 float worldX = (x + (chunkX * CHUNK_SIZE)) + 0.5f;
@@ -81,7 +85,7 @@ public class Chunk {
                 worldX /= GENERATOR_SMOOTHNESS;
                 worldZ /= GENERATOR_SMOOTHNESS;
 
-                float value = OpenSimplex2.noise2(this.seed, worldX, worldZ);
+                float value = OpenSimplex2.noise2(seed, worldX, worldZ);
                 value = (value + 1f) / 2f;
 
                 int height = (int) (value * (GENERATOR_DESIRED_MAX_HEIGHT - GENERATOR_DESIRED_MIN_HEIGHT)) + GENERATOR_DESIRED_MIN_HEIGHT;
@@ -94,7 +98,7 @@ public class Chunk {
             }
         }
 
-        Random random = new Random(this.seed);
+        Random random = new Random(seed);
 
         long caveSeed = random.nextLong();
         long bedrockSeed = random.nextLong();
@@ -143,7 +147,7 @@ public class Chunk {
             }
         }
     }
-
+    
     public void generateVertices() {
         List<float[]> blockVerticesList = new ArrayList<>(64);
         int blockVerticesLength = 0;
@@ -255,8 +259,8 @@ public class Chunk {
         return vertices.clone();
     }
 
-    public long getSeed() {
-        return seed;
+    public WorldCamera getWorld() {
+        return world;
     }
 
     public int getChunkX() {
