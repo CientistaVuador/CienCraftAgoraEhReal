@@ -74,6 +74,20 @@ public class Chunk {
         this.chunkZ = chunkZ;
     }
 
+    public int getTotalApproximateSizeInBytes() {
+        int size = 0;
+        size += surface.length * Integer.BYTES;
+        size += blocks.length * Byte.BYTES;
+        size += blocksInHeight.length * Integer.BYTES;
+        size += zBlockLineVertexStartEnd.length * Integer.BYTES;
+        size += vertices.length * Float.BYTES;
+        return size;
+    }
+    
+    public int getVerticesSizeInBytes() {
+        return this.vertices.length * Float.BYTES;
+    }
+    
     public void generateBlocks() {
         long seed = this.world.getSeed();
 

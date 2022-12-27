@@ -37,12 +37,15 @@ import java.util.concurrent.Future;
  */
 public class ChunkManager {
 
+    public static final boolean OUTPUT_DEBUG_INFORMATION = true;
+
     private final Chunk chunk;
     private Future<Chunk> futureBlocksChunk = null;
     private Future<Chunk> futureVerticesChunk = null;
     private RenderableChunk renderableChunk = null;
     private boolean finished = false;
-
+    private boolean blocksFinished = false;
+    
     public ChunkManager(Chunk chunk) {
         Objects.requireNonNull(chunk, "Chunk is null");
         this.chunk = chunk;
@@ -59,7 +62,11 @@ public class ChunkManager {
     public boolean isFinished() {
         return this.finished;
     }
-    
+
+    public boolean isBlocksFinished() {
+        return blocksFinished;
+    }
+
     public void update() {
         if (this.finished) {
             return;
@@ -67,7 +74,11 @@ public class ChunkManager {
 
         if (this.futureBlocksChunk == null) {
             this.futureBlocksChunk = CompletableFuture.supplyAsync(() -> {
+                long nanoHere = System.nanoTime();
                 this.chunk.generateBlocks();
+                if (OUTPUT_DEBUG_INFORMATION) {
+                    System.out.println("Chunk at x: " + chunk.getChunkX() + ", z: " + chunk.getChunkZ() + " took " + String.format("%.3f", (System.nanoTime() - nanoHere) / 1E6d) + " ms to generate blocks.");
+                }
                 return this.chunk;
             });
             return;
@@ -80,12 +91,17 @@ public class ChunkManager {
                 }
                 final Chunk c = this.futureBlocksChunk.get();
                 this.futureVerticesChunk = CompletableFuture.supplyAsync(() -> {
+                    long nanoHere = System.nanoTime();
                     c.generateVertices();
+                    if (OUTPUT_DEBUG_INFORMATION) {
+                        System.out.println("Chunk at x: " + chunk.getChunkX() + ", z: " + chunk.getChunkZ() + " took " + String.format("%.3f", (System.nanoTime() - nanoHere) / 1E6d) + " ms to generate vertices.");
+                    }
                     return c;
                 });
             } catch (InterruptedException | ExecutionException ex) {
                 throw new RuntimeException(ex);
             }
+            this.blocksFinished = true;
             return;
         }
 
@@ -95,6 +111,9 @@ public class ChunkManager {
                     return;
                 }
                 final Chunk c = this.futureVerticesChunk.get();
+                if (OUTPUT_DEBUG_INFORMATION) {
+                    System.out.println("Chunk at x: "+chunk.getChunkX()+", z: "+chunk.getChunkZ()+", total aprox size: "+chunk.getTotalApproximateSizeInBytes()+" bytes, vertices size: "+chunk.getVerticesSizeInBytes()+" bytes");
+                }
                 this.renderableChunk = new RenderableChunk(c);
             } catch (InterruptedException | ExecutionException ex) {
                 throw new RuntimeException(ex);

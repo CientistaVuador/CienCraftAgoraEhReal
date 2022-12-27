@@ -29,9 +29,7 @@ package cientistavuador.ciencraftreal.world;
 import cientistavuador.ciencraftreal.camera.Camera;
 import cientistavuador.ciencraftreal.chunk.Chunk;
 import cientistavuador.ciencraftreal.chunk.ChunkManager;
-import java.util.ArrayDeque;
 import java.util.Arrays;
-import java.util.Collections;
 
 /**
  *
@@ -65,7 +63,7 @@ public class WorldCamera {
         for (int i = 0; i < VIEW_DISTANCE_NUMBER_OF_CHUNKS; i++) {
             int x = (i % VIEW_DISTANCE_SIZE) - VIEW_DISTANCE;
             int z = -((i / VIEW_DISTANCE_SIZE) - VIEW_DISTANCE);
-
+            
             ChunkManager m = this.map[i];
             if (m == null) {
                 m = new ChunkManager(new Chunk(this, this.chunkX + x, this.chunkZ + z));
