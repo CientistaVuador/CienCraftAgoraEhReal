@@ -40,6 +40,8 @@ import org.lwjgl.system.MemoryStack;
  */
 public class RenderableChunk {
 
+    public static final double MAX_TIME_SPENT_SENDING_CHUNKS_PER_FRAME = 1.0/120.0;
+    
     private static final String VERTEX_SHADER_SOURCE
             = """
             #version 330 core
@@ -78,7 +80,9 @@ public class RenderableChunk {
             """;
 
     private static final int shaderProgram = ProgramCompiler.compile(VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE);
-
+    private static double chunkUploadTimeCounter = 0;
+    private static long currentFrame = Main.FRAME;
+    
     private final Chunk chunk;
     private final int vao = glGenVertexArrays();
     private final int vbo = glGenBuffers();
@@ -122,8 +126,17 @@ public class RenderableChunk {
             throw new IllegalStateException("Deleted Chunk");
         }
         if (!this.initialized) {
+            if (currentFrame != Main.FRAME) {
+                chunkUploadTimeCounter = 0;
+                currentFrame = Main.FRAME;
+            }
+            if (chunkUploadTimeCounter >= MAX_TIME_SPENT_SENDING_CHUNKS_PER_FRAME) {
+                return;
+            }
+            long nanoHere = System.nanoTime();
             this.initialized = true;
             initialize();
+            chunkUploadTimeCounter += (System.nanoTime() - nanoHere) / 1E9d;
         }
 
         glActiveTexture(GL_TEXTURE0);

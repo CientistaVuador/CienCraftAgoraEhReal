@@ -30,6 +30,7 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 /**
  *
@@ -75,6 +76,9 @@ public class ChunkManager {
 
         if (this.futureVerticesChunk == null) {
             try {
+                if (!this.futureBlocksChunk.isDone()) {
+                    return;
+                }
                 final Chunk c = this.futureBlocksChunk.get();
                 this.futureVerticesChunk = CompletableFuture.supplyAsync(() -> {
                     c.generateVertices();
@@ -88,6 +92,9 @@ public class ChunkManager {
 
         if (this.renderableChunk == null) {
             try {
+                if (!this.futureVerticesChunk.isDone()) {
+                    return;
+                }
                 final Chunk c = this.futureVerticesChunk.get();
                 this.renderableChunk = new RenderableChunk(c);
             } catch (InterruptedException | ExecutionException ex) {
