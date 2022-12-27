@@ -46,9 +46,10 @@ public class Chunk {
     public static final int GENERATOR_DESIRED_MIN_HEIGHT = 64;
 
     public static final int GENERATOR_CAVE_SMOOTHNESS_Y = 20;
-    public static final int GENERATOR_CAVE_SMOOTHNESS_XZ = 80;
-    public static final float GENERATOR_CAVE_CUTOFF = 0.5f;
-    
+    public static final int GENERATOR_CAVE_SMOOTHNESS_XZ = 40;
+    public static final float GENERATOR_CAVE_CUTOFF = 0.2f;
+    public static final float GENERATOR_CAVE_CUTOFF_SURFACE = 0.65f;
+
     public static final int CHUNK_SIZE = 32;
     public static final int CHUNK_HEIGHT = 256;
 
@@ -75,7 +76,7 @@ public class Chunk {
 
     public void generateBlocks() {
         long seed = this.world.getSeed();
-        
+
         for (int z = 0; z < CHUNK_SIZE; z++) {
             for (int x = 0; x < CHUNK_SIZE; x++) {
                 float worldX = (x + (chunkX * CHUNK_SIZE)) + 0.5f;
@@ -117,19 +118,23 @@ public class Chunk {
 
                     int distanceFromSurface = (y - surfaceHeight);
 
-                    if (distanceFromSurface <= 4) {
+                    if (distanceFromSurface <= 0 && distanceFromSurface >= -3) {
                         if (distanceFromSurface == 0) {
                             setBlockImpl(x, y, z, Blocks.GRASS);
-                        }
-                        if (distanceFromSurface < 0 && distanceFromSurface >= -3) {
+                        } else {
                             setBlockImpl(x, y, z, Blocks.DIRT);
                         }
                     }
-                    
-                    if (OpenSimplex2.noise3_ImproveXY(caveSeed, worldX / GENERATOR_CAVE_SMOOTHNESS_XZ, worldY / GENERATOR_CAVE_SMOOTHNESS_Y, worldZ / GENERATOR_CAVE_SMOOTHNESS_XZ) > GENERATOR_CAVE_CUTOFF) {
+
+                    float cutoff
+                            = (y / ((float) surfaceHeight))
+                            * (GENERATOR_CAVE_CUTOFF_SURFACE - GENERATOR_CAVE_CUTOFF)
+                            + GENERATOR_CAVE_CUTOFF;
+
+                    if (y > 3 && OpenSimplex2.noise3_ImproveXY(caveSeed, worldX / GENERATOR_CAVE_SMOOTHNESS_XZ, worldY / GENERATOR_CAVE_SMOOTHNESS_Y, worldZ / GENERATOR_CAVE_SMOOTHNESS_XZ) > cutoff) {
                         setBlockImpl(x, y, z, Blocks.AIR);
                     }
-                    
+
                     if (y == 0) {
                         setBlockImpl(x, y, z, Blocks.BEDROCK);
                     }
@@ -146,7 +151,7 @@ public class Chunk {
             }
         }
     }
-    
+
     public void generateVertices() {
         List<float[]> blockVerticesList = new ArrayList<>(64);
         int blockVerticesLength = 0;
