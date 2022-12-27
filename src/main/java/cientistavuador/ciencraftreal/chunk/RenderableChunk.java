@@ -100,7 +100,7 @@ public class RenderableChunk {
         this.amountOfVertices = vertices.length / Chunk.RENDER_VERTEX_SIZE;
 
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, vertices, GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, vertices, GL_STREAM_DRAW);
 
         glBindVertexArray(vao);
 
