@@ -28,7 +28,6 @@ package cientistavuador.ciencraftreal;
 
 import cientistavuador.ciencraftreal.block.BlockTextures;
 import cientistavuador.ciencraftreal.block.Blocks;
-import cientistavuador.ciencraftreal.util.GLPool;
 import static org.lwjgl.glfw.GLFW.*;
 import org.lwjgl.glfw.GLFWFramebufferSizeCallbackI;
 import org.lwjgl.opengl.GL;
@@ -89,6 +88,7 @@ public class Main {
     public static double TPF = 1 / 60d;
     public static int FPS = 60;
     public static long WINDOW_POINTER = NULL;
+    public static long FRAME = 0;
 
     /**
      * @param args the command line arguments
@@ -192,7 +192,7 @@ public class Main {
 
                 glfwSetWindowTitle(WINDOW_POINTER, "CienCraft - FPS: " + Main.FPS);
             }
-
+            Main.FRAME++;
             Main.TPF = (System.nanoTime() - timeFrameBegin) / 1E9d;
         }
 
