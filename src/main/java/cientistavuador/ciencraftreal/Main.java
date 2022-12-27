@@ -136,10 +136,12 @@ public class Main {
         glCullFace(GL_BACK);
 
         Main.checkGLError();
-
+        
         BlockTextures.init();  //static initialize
         Blocks.init(); //static initialize
         Game.get(); //static initialize
+        
+        Main.checkGLError();
 
         GLFWFramebufferSizeCallbackI frameBufferSizecb = (window, width, height) -> {
             glViewport(0, 0, width, height);
@@ -193,6 +195,8 @@ public class Main {
         }
 
         glfwTerminate();
+        
+        System.exit(0);
     }
 
 }
