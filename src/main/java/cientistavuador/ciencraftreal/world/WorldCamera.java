@@ -26,6 +26,8 @@
  */
 package cientistavuador.ciencraftreal.world;
 
+import cientistavuador.ciencraftreal.block.Block;
+import cientistavuador.ciencraftreal.block.Blocks;
 import cientistavuador.ciencraftreal.camera.Camera;
 import cientistavuador.ciencraftreal.chunk.Chunk;
 import cientistavuador.ciencraftreal.chunk.ChunkManager;
@@ -76,7 +78,7 @@ public class WorldCamera {
 
     private void updatePosition() {
         int camChunkX = (int) Math.floor(camera.getPosition().x() / Chunk.CHUNK_SIZE);
-        int camChunkZ = (int) Math.floor(camera.getPosition().z() / Chunk.CHUNK_SIZE);
+        int camChunkZ = (int) Math.ceil(camera.getPosition().z() / Chunk.CHUNK_SIZE);
 
         if (this.chunkX != camChunkX || this.chunkZ != camChunkZ) {
             this.oldChunkX = this.chunkX;
@@ -149,6 +151,37 @@ public class WorldCamera {
                 m.getRenderableChunk().render(this.camera.getProjection(), this.camera.getView());
             }
         }
+    }
+    
+    public Block getWorldBlock(int x, int y, int z) {
+        int cX = (int) Math.floor((float)x / Chunk.CHUNK_SIZE);
+        int cZ = (int) Math.ceil((float)z / Chunk.CHUNK_SIZE);
+        
+        int camChunkX = cX - this.chunkX;
+        int camChunkZ = cZ - this.chunkZ;
+        
+        if (camChunkX < -VIEW_DISTANCE || camChunkX > VIEW_DISTANCE) {
+            return Blocks.AIR;
+        }
+        
+        if (camChunkZ < -VIEW_DISTANCE || camChunkZ > VIEW_DISTANCE) {
+            return Blocks.AIR;
+        }
+        
+        camChunkX = camChunkX + VIEW_DISTANCE;
+        camChunkZ = -camChunkZ + VIEW_DISTANCE;
+        
+        ChunkManager manager = this.map[camChunkX + (camChunkZ * VIEW_DISTANCE_SIZE)];
+        
+        if (manager != null && manager.isBlocksFinished()) {
+            return manager.getChunk().getBlock(
+                    x - (cX * Chunk.CHUNK_SIZE),
+                    y,
+                    z - (cZ * Chunk.CHUNK_SIZE)
+            );
+        }
+        
+        return Blocks.AIR;
     }
 
 }
