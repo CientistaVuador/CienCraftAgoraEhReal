@@ -154,6 +154,10 @@ public class WorldCamera {
     }
     
     public Block getWorldBlock(int x, int y, int z) {
+        if (y >= Chunk.CHUNK_HEIGHT || y < 0) {
+            return Blocks.AIR;
+        }
+        
         int cX = (int) Math.floor((float)x / Chunk.CHUNK_SIZE);
         int cZ = (int) Math.ceil((float)z / Chunk.CHUNK_SIZE);
         
