@@ -37,7 +37,7 @@ import java.util.concurrent.Future;
  */
 public class ChunkManager {
 
-    public static final boolean OUTPUT_DEBUG_INFORMATION = true;
+    public static final boolean OUTPUT_DEBUG_INFORMATION = false;
 
     private final Chunk chunk;
     private Future<Chunk> futureBlocksChunk = null;
