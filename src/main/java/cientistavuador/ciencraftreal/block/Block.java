@@ -116,7 +116,7 @@ public class Block {
         float worldX = (chunkBlockX + (chunk.getChunkX() * Chunk.CHUNK_SIZE)) + 0.5f;
         float worldY = chunkBlockY + 0.5f;
         float worldZ = (chunkBlockZ + (chunk.getChunkZ() * Chunk.CHUNK_SIZE)) - 0.5f;
-
+        
         float[] vertices = new float[verticesSize];
         int pos = 0;
 
@@ -201,14 +201,16 @@ public class Block {
     }
 
     private boolean containsBlock(Chunk chunk, int chunkBlockX, int chunkBlockY, int chunkBlockZ) {
-        if (chunkBlockX < 0 || chunkBlockX >= Chunk.CHUNK_SIZE) {
-            return false;
-        }
-        if (chunkBlockZ > 0 || chunkBlockZ <= -Chunk.CHUNK_SIZE) {
-            return false;
-        }
         if (chunkBlockY < 0 || chunkBlockY >= Chunk.CHUNK_HEIGHT) {
             return false;
+        }
+        
+        boolean needsOutOfBoundsCheck = (chunkBlockX < 0 || chunkBlockX >= Chunk.CHUNK_SIZE) || (chunkBlockZ > 0 || chunkBlockZ <= -Chunk.CHUNK_SIZE);
+        
+        if (needsOutOfBoundsCheck) {
+            chunkBlockX += chunk.getChunkX() * Chunk.CHUNK_SIZE;
+            chunkBlockZ += chunk.getChunkZ() * Chunk.CHUNK_SIZE;
+            return chunk.getWorld().getWorldBlock(chunkBlockX, chunkBlockY, chunkBlockZ) != Blocks.AIR;
         }
 
         return chunk.getBlock(chunkBlockX, chunkBlockY, chunkBlockZ) != Blocks.AIR;
