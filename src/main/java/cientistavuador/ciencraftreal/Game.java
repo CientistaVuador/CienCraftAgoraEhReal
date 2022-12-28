@@ -87,9 +87,16 @@ public class Game {
         if (key == GLFW_KEY_F && action == GLFW_PRESS) {
             camera.setPosition(
                     (float) (Math.random() * 10000),
-                    Chunk.GENERATOR_DESIRED_MAX_HEIGHT,
+                    camera.getPosition().y(),
                     (float) (Math.random() * 10000)
             );
+        }
+        if (key == GLFW_KEY_G && action == GLFW_PRESS) {
+            System.out.println(world.getWorldBlock(
+                    (int) Math.floor(this.camera.getPosition().x()),
+                    (int) Math.floor(this.camera.getPosition().y()),
+                    (int) Math.ceil(this.camera.getPosition().z())
+            ));
         }
     }
 }
