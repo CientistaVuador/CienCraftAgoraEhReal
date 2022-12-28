@@ -38,4 +38,9 @@ public class CoalOre extends Ore {
         super(BlockTextures.COAL_ORE);
     }
     
+    
+    @Override
+    public String toString() {
+        return "ciencraft_coal_ore";
+    }
 }

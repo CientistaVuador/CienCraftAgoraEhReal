@@ -38,4 +38,10 @@ public class IronOre extends Ore {
         super(BlockTextures.IRON_ORE);
     }
     
+    
+    @Override
+    public String toString() {
+        return "ciencraft_iron_ore";
+    }
+    
 }

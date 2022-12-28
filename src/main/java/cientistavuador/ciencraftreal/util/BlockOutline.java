@@ -24,23 +24,12 @@
  *
  * For more information, please refer to <https://unlicense.org>
  */
-package cientistavuador.ciencraftreal.block.blocks;
-
-import cientistavuador.ciencraftreal.block.Block;
-import cientistavuador.ciencraftreal.block.BlockTextures;
+package cientistavuador.ciencraftreal.util;
 
 /**
  *
  * @author Cien
  */
-public class Stone extends Block {
-
-    public Stone() {
-        super(BlockTextures.STONE);
-    }
-
-    @Override
-    public String toString() {
-        return "ciencraft_stone";
-    }
+public class BlockOutline {
+    
 }

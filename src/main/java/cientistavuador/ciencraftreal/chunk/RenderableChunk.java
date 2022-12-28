@@ -42,8 +42,8 @@ public class RenderableChunk {
 
     public static final double MAX_TIME_SPENT_SENDING_CHUNKS_PER_FRAME = 1.0/120.0;
     
-    private static final String VERTEX_SHADER_SOURCE
-            = """
+    private static final String VERTEX_SHADER_SOURCE =
+            """
             #version 330 core
             
             uniform mat4 projection;
@@ -53,29 +53,33 @@ public class RenderableChunk {
             layout (location = 1) in vec2 vertexTexCoords;
             layout (location = 2) in int vertexTextureID;
             
+            out vec3 inout_Position;
             out vec2 inout_TexCoords;
             flat out int inout_TextureID;
             
             void main() {
                 gl_Position = projection * view * vec4(vertexPosition, 1.0);
+                inout_Position = vertexPosition;
                 inout_TexCoords = vertexTexCoords;
                 inout_TextureID = vertexTextureID;
             }
             """;
 
-    private static final String FRAGMENT_SHADER_SOURCE
-            = """
+    private static final String FRAGMENT_SHADER_SOURCE =
+            """
             #version 330 core
             
             uniform sampler2DArray blockTextures;
             
+            in vec3 inout_Position;
             in vec2 inout_TexCoords;
             flat in int inout_TextureID;
             
             layout (location = 0) out vec4 out_Color;
             
             void main() {
-                out_Color = texture(blockTextures, vec3(inout_TexCoords, float(inout_TextureID)));
+                vec4 texColor = texture(blockTextures, vec3(inout_TexCoords, float(inout_TextureID)));
+                out_Color = texColor;
             }
             """;
 

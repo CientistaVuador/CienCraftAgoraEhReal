@@ -38,4 +38,9 @@ public class Ore extends Block {
         super(texture);
     }
     
+    
+    @Override
+    public String toString() {
+        return "ciencraft_ore";
+    }
 }

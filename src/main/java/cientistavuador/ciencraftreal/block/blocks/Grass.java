@@ -38,4 +38,10 @@ public class Grass extends Block {
     public Grass() {
         super(BlockTextures.GRASS, BlockTextures.GRASS_SIDE, BlockTextures.DIRT);
     }
+    
+    
+    @Override
+    public String toString() {
+        return "ciencraft_grass";
+    }
 }

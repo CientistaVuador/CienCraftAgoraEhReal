@@ -46,17 +46,16 @@ public class GLPool {
     private static final LinkedBlockingQueue<Runnable> tasks = new LinkedBlockingQueue<>();
 
     static {
-        int amountOfThreads = 1;
+        int amountOfThreads = Runtime.getRuntime().availableProcessors();
 
         if (OUTPUT_DEBUG) {
             System.out.println("GLPool: " + amountOfThreads + " CPUs available.");
         }
 
+        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
         Thread[] threads = new Thread[amountOfThreads];
         for (int i = 0; i < amountOfThreads; i++) {
-            glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
             long window = glfwCreateWindow(1, 1, "GL-Pool-Window" + i, NULL, Main.WINDOW_POINTER);
-            glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
 
             threads[i] = new Thread(() -> {
                 glfwMakeContextCurrent(window);
@@ -92,6 +91,7 @@ public class GLPool {
                 System.out.println("GLPool: CPU "+i+" Initialized.");
             }
         }
+        glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
     }
 
     public static void init() {

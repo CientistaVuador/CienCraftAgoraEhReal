@@ -38,4 +38,10 @@ public class Dirt extends Block {
     public Dirt() {
         super(BlockTextures.DIRT);
     }
+    
+    
+    @Override
+    public String toString() {
+        return "ciencraft_dirt";
+    }
 }

@@ -38,4 +38,10 @@ public class Bedrock extends Block {
     public Bedrock() {
         super(BlockTextures.BEDROCK);
     }
+    
+    
+    @Override
+    public String toString() {
+        return "ciencraft_bedrock";
+    }
 }
