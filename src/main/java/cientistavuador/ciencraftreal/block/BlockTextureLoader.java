@@ -158,7 +158,7 @@ public class BlockTextureLoader {
         glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-        if (GL.getCapabilities().GL_EXT_texture_filter_anisotropic) {
+        if (USE_ANISOTROPIC_FILTERING && GL.getCapabilities().GL_EXT_texture_filter_anisotropic) {
             glTexParameterf(
                     GL_TEXTURE_2D_ARRAY,
                     GL_TEXTURE_MAX_ANISOTROPY_EXT,
