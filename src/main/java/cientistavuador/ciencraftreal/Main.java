@@ -135,6 +135,7 @@ public class Main {
         glDepthFunc(GL_LEQUAL);
         glEnable(GL_CULL_FACE);
         glCullFace(GL_BACK);
+        glLineWidth(1f);
 
         Main.checkGLError();
         
