@@ -234,7 +234,7 @@ public class BlockOutline {
         
         glDrawArrays(GL_LINES, 0, 24);
         
-        glLineWidth(lineWidth);
+        glLineWidth(1f);
         glBindVertexArray(0);
         glUseProgram(0);
         
