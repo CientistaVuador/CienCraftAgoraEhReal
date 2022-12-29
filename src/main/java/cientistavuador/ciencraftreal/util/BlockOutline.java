@@ -42,6 +42,7 @@ import org.lwjgl.system.MemoryStack;
  */
 public class BlockOutline {
 
+    public static final boolean OUTPUT_DEBUG_INFORMATION = true;
     public static final float LINE_WIDTH = 4f;
     public static final float LINE_MIN;
     public static final float LINE_MAX;
@@ -52,6 +53,10 @@ public class BlockOutline {
         
         LINE_MIN = lineMinMax[0];
         LINE_MAX = lineMinMax[1];
+        
+        if (OUTPUT_DEBUG_INFORMATION) {
+            System.out.println("Min Line Width: "+LINE_MIN+", Max Line Width: "+LINE_MAX);
+        }
     }
     
     private static final String VERTEX_SHADER = 
