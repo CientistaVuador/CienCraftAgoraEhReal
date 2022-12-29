@@ -36,12 +36,7 @@ import cientistavuador.ciencraftreal.block.BlockTextures;
 public class Grass extends SimpleBlock {
 
     public Grass() {
-        super(BlockTextures.GRASS, BlockTextures.GRASS_SIDE, BlockTextures.DIRT);
+        super("ciencraft_grass", BlockTextures.GRASS, BlockTextures.GRASS_SIDE, BlockTextures.DIRT);
     }
     
-    
-    @Override
-    public String toString() {
-        return "ciencraft_grass";
-    }
 }

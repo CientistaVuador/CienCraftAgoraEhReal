@@ -33,15 +33,9 @@ import cientistavuador.ciencraftreal.block.BlockTextures;
  * @author Cien
  */
 public class IronOre extends Ore {
-    
+
     public IronOre() {
-        super(BlockTextures.IRON_ORE);
-    }
-    
-    
-    @Override
-    public String toString() {
-        return "ciencraft_iron_ore";
+        super("ciencraft_iron_ore", BlockTextures.IRON_ORE);
     }
     
 }

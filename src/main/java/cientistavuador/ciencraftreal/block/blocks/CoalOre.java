@@ -33,14 +33,9 @@ import cientistavuador.ciencraftreal.block.BlockTextures;
  * @author Cien
  */
 public class CoalOre extends Ore {
-    
+
     public CoalOre() {
-        super(BlockTextures.COAL_ORE);
+        super("ciencraft_coal_ore", BlockTextures.COAL_ORE);
     }
-    
-    
-    @Override
-    public String toString() {
-        return "ciencraft_coal_ore";
-    }
+
 }

@@ -35,24 +35,27 @@ import java.util.Arrays;
  */
 public class SimpleBlock implements Block {
 
+    private final String name;
     private final int[] sideTextures = new int[6];
     private int blockId = -1;
 
-    public SimpleBlock(int texture) {
+    public SimpleBlock(String name, int texture) {
+        this.name = name;
         Arrays.fill(sideTextures, texture);
     }
 
-    public SimpleBlock(int topTexture, int sideTexture, int bottomTexture) {
-        this(sideTexture);
+    public SimpleBlock(String name, int topTexture, int sideTexture, int bottomTexture) {
+        this(name, sideTexture);
         sideTextures[BlockSide.TOP.index()] = topTexture;
         sideTextures[BlockSide.BOTTOM.index()] = bottomTexture;
     }
 
-    public SimpleBlock(int topBottomTexture, int sideTexture) {
-        this(topBottomTexture, sideTexture, topBottomTexture);
+    public SimpleBlock(String name, int topBottomTexture, int sideTexture) {
+        this(name, topBottomTexture, sideTexture, topBottomTexture);
     }
 
     public SimpleBlock(
+            String name,
             int northTexture,
             int southTexture,
             int eastTexture,
@@ -60,6 +63,7 @@ public class SimpleBlock implements Block {
             int topTexture,
             int bottomTexture
     ) {
+        this.name = name;
         sideTextures[BlockSide.NORTH.index()] = northTexture;
         sideTextures[BlockSide.SOUTH.index()] = southTexture;
         sideTextures[BlockSide.EAST.index()] = eastTexture;
@@ -218,4 +222,35 @@ public class SimpleBlock implements Block {
 
         return chunk.getBlock(chunkBlockX, chunkBlockY, chunkBlockZ) != Blocks.AIR;
     }
+
+    @Override
+    public String getName() {
+        return this.name;
+    }
+
+    @Override
+    public String toString() {
+        return getName();
+    }
+
+    @Override
+    public int hashCode() {
+        return getId();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final SimpleBlock other = (SimpleBlock) obj;
+        return this.getId() == other.getId();
+    }
+    
 }

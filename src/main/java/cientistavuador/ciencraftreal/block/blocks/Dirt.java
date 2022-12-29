@@ -34,14 +34,9 @@ import cientistavuador.ciencraftreal.block.BlockTextures;
  * @author Cien
  */
 public class Dirt extends SimpleBlock {
-    
+
     public Dirt() {
-        super(BlockTextures.DIRT);
+        super("ciencraft_dirt", BlockTextures.DIRT);
     }
-    
-    
-    @Override
-    public String toString() {
-        return "ciencraft_dirt";
-    }
+
 }

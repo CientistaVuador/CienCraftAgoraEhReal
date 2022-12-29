@@ -33,14 +33,9 @@ import cientistavuador.ciencraftreal.block.SimpleBlock;
  * @author Cien
  */
 public abstract class Ore extends SimpleBlock {
-    
-    public Ore(int texture) {
-        super(texture);
+
+    public Ore(String name, int texture) {
+        super(name, texture);
     }
     
-    
-    @Override
-    public String toString() {
-        return "ciencraft_ore";
-    }
 }

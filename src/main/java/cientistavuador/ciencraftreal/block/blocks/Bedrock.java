@@ -34,14 +34,9 @@ import cientistavuador.ciencraftreal.block.BlockTextures;
  * @author Cien
  */
 public class Bedrock extends SimpleBlock {
-    
+
     public Bedrock() {
-        super(BlockTextures.BEDROCK);
+        super("ciencraft_bedrock", BlockTextures.BEDROCK);
     }
     
-    
-    @Override
-    public String toString() {
-        return "ciencraft_bedrock";
-    }
 }

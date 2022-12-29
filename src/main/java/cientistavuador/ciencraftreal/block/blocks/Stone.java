@@ -36,11 +36,7 @@ import cientistavuador.ciencraftreal.block.BlockTextures;
 public class Stone extends SimpleBlock {
 
     public Stone() {
-        super(BlockTextures.STONE);
+        super("ciencraft_stone", BlockTextures.STONE);
     }
 
-    @Override
-    public String toString() {
-        return "ciencraft_stone";
-    }
 }

@@ -33,7 +33,8 @@ import cientistavuador.ciencraftreal.chunk.Chunk;
  * @author Cien
  */
 public interface Block {
+    String getName();
+    int getId();
     float[] generateVertices(Chunk chunk, int chunkBlockX, int chunkBlockY, int chunkBlockZ);
     BlockTransparency getBlockTransparency();
-    int getId();
 }
