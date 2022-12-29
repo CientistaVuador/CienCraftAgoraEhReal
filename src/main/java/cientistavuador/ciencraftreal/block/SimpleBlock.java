@@ -33,7 +33,7 @@ import java.util.Arrays;
  *
  * @author Cien
  */
-public class SimpleBlock implements Block {
+public abstract class SimpleBlock implements Block {
 
     private final String name;
     private final int[] sideTextures = new int[6];
