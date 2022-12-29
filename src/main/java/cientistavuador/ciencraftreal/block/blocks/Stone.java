@@ -26,14 +26,14 @@
  */
 package cientistavuador.ciencraftreal.block.blocks;
 
-import cientistavuador.ciencraftreal.block.Block;
+import cientistavuador.ciencraftreal.block.SimpleBlock;
 import cientistavuador.ciencraftreal.block.BlockTextures;
 
 /**
  *
  * @author Cien
  */
-public class Stone extends Block {
+public class Stone extends SimpleBlock {
 
     public Stone() {
         super(BlockTextures.STONE);

@@ -26,13 +26,13 @@
  */
 package cientistavuador.ciencraftreal.block.blocks;
 
-import cientistavuador.ciencraftreal.block.Block;
+import cientistavuador.ciencraftreal.block.SimpleBlock;
 
 /**
  *
  * @author Cien
  */
-public class Ore extends Block {
+public abstract class Ore extends SimpleBlock {
     
     public Ore(int texture) {
         super(texture);
