@@ -42,7 +42,7 @@ import org.lwjgl.system.MemoryStack;
  */
 public class BlockOutline {
 
-    public static final float LINE_WIDTH = 3f;
+    public static final float LINE_WIDTH = 4f;
     public static final float LINE_MIN;
     public static final float LINE_MAX;
     
@@ -77,7 +77,7 @@ public class BlockOutline {
             layout (location = 0) out vec4 fragColor;
             
             void main() {
-                fragColor = vec4(0.2, 0.2, 0.3, 1.0);
+                fragColor = vec4(0.15, 0.15, 0.15, 0.5);
             }
             """;
     
