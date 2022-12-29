@@ -32,6 +32,7 @@ import cientistavuador.ciencraftreal.debug.Triangle;
 import cientistavuador.ciencraftreal.camera.FreeCamera;
 import cientistavuador.ciencraftreal.chunk.Chunk;
 import cientistavuador.ciencraftreal.debug.DebugBlock;
+import cientistavuador.ciencraftreal.util.BlockOutline;
 import cientistavuador.ciencraftreal.world.WorldCamera;
 import static org.lwjgl.glfw.GLFW.*;
 
@@ -51,6 +52,7 @@ public class Game {
     private final FreeCamera camera = new FreeCamera();
     private final DebugBlock block = new DebugBlock();
     private final WorldCamera world = new WorldCamera(camera, 65487321654L);
+    private final BlockOutline outline = new BlockOutline(world, camera);
 
     private Game() {
 
@@ -73,6 +75,9 @@ public class Game {
 
         world.update();
         world.render();
+        
+        outline.update();
+        outline.render();
     }
 
     public void mouseCursorMoved(double x, double y) {
@@ -97,6 +102,9 @@ public class Game {
                     (int) Math.floor(this.camera.getPosition().y()),
                     (int) Math.ceil(this.camera.getPosition().z())
             ));
+        }
+        if (key == GLFW_KEY_E && action == GLFW_PRESS) {
+            System.out.println(this.outline.getBlock()+" at "+outline.getCastPosX()+", "+outline.getCastPosY()+", "+outline.getCastPosZ());
         }
     }
 }
