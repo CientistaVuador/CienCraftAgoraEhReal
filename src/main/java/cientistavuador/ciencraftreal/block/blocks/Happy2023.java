@@ -24,29 +24,19 @@
  *
  * For more information, please refer to <https://unlicense.org>
  */
-package cientistavuador.ciencraftreal.chunk;
+package cientistavuador.ciencraftreal.block.blocks;
 
-import java.util.HashMap;
-import java.util.Map;
+import cientistavuador.ciencraftreal.block.BlockTextures;
+import cientistavuador.ciencraftreal.block.SimpleBlock;
 
 /**
  *
  * @author Cien
  */
-public class ChunkBase {
-    private static final Map<Class<?>, Boolean> multithreadedMap = new HashMap<>();
+public class Happy2023 extends SimpleBlock {
     
-    public static boolean isMultiThreaded(Class<?> clazz) {
-        Boolean b = multithreadedMap.get(clazz);
-        if (b == null) {
-            b = clazz.getAnnotation(MultiThreaded.class) != null;
-            multithreadedMap.put(clazz, b);
-        }
-        return b;
-    }
-    
-    public ChunkBase() {
-        
+    public Happy2023() {
+        super("ciencraft_happy_2023", BlockTextures.HAPPY_2023);
     }
     
 }

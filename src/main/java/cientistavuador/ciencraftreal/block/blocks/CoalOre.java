@@ -26,17 +26,16 @@
  */
 package cientistavuador.ciencraftreal.block.blocks;
 
-import cientistavuador.ciencraftreal.block.SimpleBlock;
 import cientistavuador.ciencraftreal.block.BlockTextures;
 
 /**
  *
  * @author Cien
  */
-public class Stone extends SimpleBlock {
+public class CoalOre extends Ore {
 
-    public Stone() {
-        super("ciencraft_stone", BlockTextures.STONE);
+    public CoalOre() {
+        super("ciencraft_coal_ore", BlockTextures.COAL_ORE);
     }
 
 }

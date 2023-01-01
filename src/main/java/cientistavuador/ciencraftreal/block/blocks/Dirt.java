@@ -26,16 +26,17 @@
  */
 package cientistavuador.ciencraftreal.block.blocks;
 
-import cientistavuador.ciencraftreal.block.Block;
+import cientistavuador.ciencraftreal.block.SimpleBlock;
 import cientistavuador.ciencraftreal.block.BlockTextures;
 
 /**
  *
  * @author Cien
  */
-public class Dirt extends Block {
-    
+public class Dirt extends SimpleBlock {
+
     public Dirt() {
-        super(BlockTextures.DIRT);
+        super("ciencraft_dirt", BlockTextures.DIRT);
     }
+
 }

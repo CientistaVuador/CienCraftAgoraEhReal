@@ -27,7 +27,7 @@
 package cientistavuador.ciencraftreal.debug;
 
 import cientistavuador.ciencraftreal.Main;
-import cientistavuador.ciencraftreal.block.Block;
+import cientistavuador.ciencraftreal.block.SimpleBlock;
 import cientistavuador.ciencraftreal.block.BlockSide;
 import cientistavuador.ciencraftreal.block.BlockTextures;
 import java.nio.FloatBuffer;
@@ -64,7 +64,7 @@ public class DebugBlock {
             flat out int textureID;
             
             void main() {
-                vec4 resultPosition = vec4(vertexPosition * 0.5, 1.0);
+                vec4 resultPosition = vec4(vertexPosition, 1.0);
                 switch (type) {
                     case MODEL_ONLY:
                         resultPosition = model * resultPosition;
@@ -241,7 +241,7 @@ public class DebugBlock {
         sideTextures[BlockSide.BOTTOM.index()] = bottomTexture;
     }
     
-    public void copySideTextures(Block b) {
+    public void copySideTextures(SimpleBlock b) {
         for (int i = 0; i < 6; i++) {
             sideTextures[i] = b.getBlockSideTexture(BlockSide.sideOf(i));
         }

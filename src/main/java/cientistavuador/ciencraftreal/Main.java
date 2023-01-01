@@ -32,11 +32,11 @@ import static org.lwjgl.glfw.GLFW.*;
 import org.lwjgl.glfw.GLFWFramebufferSizeCallbackI;
 import org.lwjgl.opengl.GL;
 import static org.lwjgl.opengl.GL33C.*;
-import org.lwjgl.system.MemoryUtil;
-import static org.lwjgl.system.MemoryUtil.NULL;
+import static org.lwjgl.system.MemoryUtil.*;
 
 /**
  * Main class
+ *
  * @author Cien
  */
 public class Main {
@@ -44,14 +44,14 @@ public class Main {
     static {
         org.lwjgl.system.Configuration.LIBRARY_PATH.set("natives");
     }
-    
+
     public static class OpenGLErrorException extends RuntimeException {
-        
+
         private static final long serialVersionUID = 1L;
         private final int error;
-        
+
         public OpenGLErrorException(int error) {
-            super("OpenGL Error "+error);
+            super("OpenGL Error " + error);
             this.error = error;
         }
 
@@ -59,16 +59,18 @@ public class Main {
             return error;
         }
     }
-    
+
     public static class GLFWErrorException extends RuntimeException {
+
         private static final long serialVersionUID = 1L;
-        
+
         public GLFWErrorException(String error) {
             super(error);
         }
     }
-    
+
     public static boolean THROW_GL_GLFW_ERRORS = true;
+
     public static void checkGLError() {
         int error = glGetError();
         if (error != 0) {
@@ -80,49 +82,50 @@ public class Main {
             }
         }
     }
-    
+
     public static int WIDTH = 800;
     public static int HEIGHT = 600;
-    public static double TPF = 1/60d;
+    public static double TPF = 1 / 60d;
     public static int FPS = 60;
     public static long WINDOW_POINTER = NULL;
-    
+    public static long FRAME = 0;
+
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
         glfwSetErrorCallback((error, description) -> {
-            GLFWErrorException exception = new GLFWErrorException("GLFW Error "+error+": "+MemoryUtil.memASCIISafe(description));
+            GLFWErrorException exception = new GLFWErrorException("GLFW Error " + error + ": " + memASCIISafe(description));
             if (THROW_GL_GLFW_ERRORS) {
                 throw exception;
             } else {
                 exception.printStackTrace(System.err);
             }
         });
-        
+
         if (!glfwInit()) {
             throw new IllegalStateException("Could not initialize GLFW!");
         }
-        
+
         //glfwWindowHint(GLFW_SAMPLES, 16); //MSAA 16x
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-        
+
         WINDOW_POINTER = glfwCreateWindow(Main.WIDTH, Main.HEIGHT, "CienCraft - FPS: 60", NULL, NULL);
         if (WINDOW_POINTER == NULL) {
             throw new IllegalStateException("Could not create a OpenGL 3.3 Context Window! Update your drivers or buy a new GPU.");
         }
         glfwMakeContextCurrent(WINDOW_POINTER);
-        
-        glfwSwapInterval(1);
-        
+
+        glfwSwapInterval(0);
+
         if (glfwRawMouseMotionSupported()) {
             glfwSetInputMode(WINDOW_POINTER, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
         }
-        
+
         GL.createCapabilities();
-        
+
         //glEnable(GL_MULTISAMPLE);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -132,13 +135,17 @@ public class Main {
         glDepthFunc(GL_LEQUAL);
         glEnable(GL_CULL_FACE);
         glCullFace(GL_BACK);
-        
+        glLineWidth(1f);
+
         Main.checkGLError();
         
+        //GLPool.init(); //static initialize
         BlockTextures.init();  //static initialize
         Blocks.init(); //static initialize
         Game.get(); //static initialize
         
+        Main.checkGLError();
+
         GLFWFramebufferSizeCallbackI frameBufferSizecb = (window, width, height) -> {
             glViewport(0, 0, width, height);
             Main.WIDTH = width;
@@ -148,45 +155,55 @@ public class Main {
         };
         frameBufferSizecb.invoke(WINDOW_POINTER, Main.WIDTH, Main.HEIGHT);
         glfwSetFramebufferSizeCallback(WINDOW_POINTER, frameBufferSizecb);
-        
+
         glfwSetCursorPosCallback(WINDOW_POINTER, (window, x, y) -> {
             Game.get().mouseCursorMoved(x, y);
         });
         
+        glfwSetKeyCallback(WINDOW_POINTER, (window, key, scancode, action, mods) -> {
+            Game.get().keyCallback(window, key, scancode, action, mods);
+        });
+        
+        glfwSetMouseButtonCallback(WINDOW_POINTER, (window, button, action, mods) -> {
+            Game.get().mouseCallback(window, button, action, mods);
+        });
+
         Game.get().start();
-        
+
         Main.checkGLError();
-        
+
         int frames = 0;
         long nextFpsUpdate = System.currentTimeMillis() + 1000;
-        
+
         while (!glfwWindowShouldClose(WINDOW_POINTER)) {
             long timeFrameBegin = System.nanoTime();
-            
+
             glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
             glfwPollEvents();
-            
+
             Game.get().loop();
-            
+
             glFlush();
-            
+
             Main.checkGLError();
-            
+
             glfwSwapBuffers(WINDOW_POINTER);
-            
+
             frames++;
             if (System.currentTimeMillis() >= nextFpsUpdate) {
                 Main.FPS = frames;
                 frames = 0;
                 nextFpsUpdate = System.currentTimeMillis() + 1000;
-                
-                glfwSetWindowTitle(WINDOW_POINTER, "CienCraft - FPS: "+Main.FPS);
+
+                glfwSetWindowTitle(WINDOW_POINTER, "CienCraft - FPS: " + Main.FPS);
             }
-            
-            Main.TPF = (System.nanoTime()-timeFrameBegin) / 1E9d;
+            Main.FRAME++;
+            Main.TPF = (System.nanoTime() - timeFrameBegin) / 1E9d;
         }
-        
+
         glfwTerminate();
+        
+        System.exit(0);
     }
-    
+
 }

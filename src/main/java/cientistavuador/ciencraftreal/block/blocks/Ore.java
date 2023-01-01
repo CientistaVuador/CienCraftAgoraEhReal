@@ -24,19 +24,18 @@
  *
  * For more information, please refer to <https://unlicense.org>
  */
-package cientistavuador.ciencraftreal.chunk;
+package cientistavuador.ciencraftreal.block.blocks;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import cientistavuador.ciencraftreal.block.SimpleBlock;
 
 /**
  *
  * @author Cien
  */
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface MultiThreaded {
+public abstract class Ore extends SimpleBlock {
+
+    public Ore(String name, int texture) {
+        super(name, texture);
+    }
     
 }

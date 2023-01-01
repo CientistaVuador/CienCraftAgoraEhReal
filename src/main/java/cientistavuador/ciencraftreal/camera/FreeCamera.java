@@ -33,9 +33,9 @@ import static org.lwjgl.glfw.GLFW.*;
  *
  * @author Shinoa Hiragi
  */
-public class FreeCamera extends Camera {
+public class FreeCamera extends PerspectiveCamera {
     
-    public static final float DEFAULT_SENSITIVITY = 8f;
+    public static final float DEFAULT_SENSITIVITY = 0.1f;
     public static final float DEFAULT_RUN_SPEED = 13f;
     public static final float DEFAULT_SPEED = 4.5f;
         
@@ -100,8 +100,8 @@ public class FreeCamera extends Camera {
             double y = lastY - my;
             
             super.setRotation(
-                    super.getRotation().x() + (float) ((y * sensitivity) * Main.TPF),
-                    super.getRotation().y() + (float) ((x * sensitivity) * -Main.TPF),
+                    super.getRotation().x() + (float) (y * sensitivity),
+                    super.getRotation().y() + (float) (x * -sensitivity),
                     0
             );
             

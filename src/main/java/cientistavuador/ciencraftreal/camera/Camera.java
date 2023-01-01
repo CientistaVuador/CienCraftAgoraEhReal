@@ -26,172 +26,58 @@
  */
 package cientistavuador.ciencraftreal.camera;
 
-import cientistavuador.ciencraftreal.Main;
-import org.joml.Matrix4f;
 import org.joml.Matrix4fc;
-import org.joml.Vector2f;
 import org.joml.Vector2fc;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
 /**
- * A Somewhat simple 3D Camera
- * @author Shinoa Hiragi
+ *
  * @author Cien
  */
-public class Camera {
+public interface Camera {
 
-    public static final float DEFAULT_NEAR_PLANE = 0.1f;
-    public static final float DEFAULT_FAR_PLANE = 1000f;
-    public static final float DEFAULT_FOV = 70f;
-    public static final float DEFAULT_PITCH = 0f;
-    public static final float DEFAULT_YAW = -90f;
-    public static final Vector3fc DEFAULT_WORLD_UP = new Vector3f(0, 1, 0);
-    public static final Vector3fc DEFAULT_POSITION = new Vector3f(0, 0, 2);
-    
-    //Camera fields
-    private final Vector2f dimensions = new Vector2f(Main.WIDTH, Main.HEIGHT);
-    
-    private float nearPlane = DEFAULT_NEAR_PLANE;
-    private float farPlane = DEFAULT_FAR_PLANE;
-    private float fov = DEFAULT_FOV;
-    
-    //Camera axises
-    private final Vector3f front = new Vector3f(0, 0, 1);
-    private final Vector3f up = new Vector3f(0, 1, 0);
-    private final Vector3f right = new Vector3f(1, 0, 0);
-    
-    //Position and Rotation
-    private final Vector3f position = new Vector3f(DEFAULT_POSITION);
-    private final Vector3f rotation = new Vector3f(DEFAULT_PITCH, DEFAULT_YAW, 0);
-    
-    //Matrices
-    private final Matrix4f view = new Matrix4f();
-    private final Matrix4f projection = new Matrix4f();
-    
-    public Camera() {
-        updateProjection();
-        updateView();
-    }
+    float DEFAULT_FAR_PLANE = 1000f;
+    float DEFAULT_NEAR_PLANE = 0.1f;
+    float DEFAULT_PITCH = 0f;
+    Vector3fc DEFAULT_POSITION = new Vector3f(0, 0, 0);
+    Vector3fc DEFAULT_WORLD_UP = new Vector3f(0, 1, 0);
+    float DEFAULT_YAW = -90f;
 
-    public Matrix4fc getView() {
-        return view;
-    }
+    Vector2fc getDimensions();
 
-    public Matrix4fc getProjection() {
-        return projection;
-    }
+    float getFarPlane();
 
-    private void updateProjection() {
-        this.projection
-                .identity()
-                .perspective(
-                        (float) Math.toRadians(this.fov),
-                        (this.dimensions.x() / this.dimensions.y()),
-                        this.nearPlane,
-                        this.farPlane
-                );
-    }
-    
-    private void updateView() {
-        float pitchRadians = (float) Math.toRadians(this.rotation.x());
-        float yawRadians = (float) Math.toRadians(this.rotation.y());
-        
-        this.front.set(
-                Math.cos(pitchRadians) * Math.cos(yawRadians),
-                Math.sin(pitchRadians),
-                Math.cos(pitchRadians) * Math.sin(yawRadians)
-        ).normalize();
-        
-        this.right.set(DEFAULT_WORLD_UP).cross(this.front).normalize();
-        this.up.set(this.front).cross(this.right).normalize();
-        
-        this.view.identity().lookAt(
-                this.position.x(),
-                this.position.y(),
-                this.position.z(),
-                this.position.x() + this.front.x(),
-                this.position.y() + this.front.y(),
-                this.position.z() + this.front.z(),
-                this.up.x(), this.up.y(), this.up.z()
-        );
-    }
+    Vector3fc getFront();
 
-    public void setNearPlane(float nearPlane) {
-        this.nearPlane = nearPlane;
-        updateProjection();
-    }
+    float getNearPlane();
 
-    public void setFarPlane(float farPlane) {
-        this.farPlane = farPlane;
-        updateProjection();
-    }
+    Vector3fc getPosition();
 
-    public void setFov(float fov) {
-        this.fov = fov;
-        updateProjection();
-    }
+    Matrix4fc getProjection();
 
-    public void setDimensions(float width, float height) {
-        this.dimensions.set(width, height);
-        updateProjection();
-    }
-    
-    public void setDimensions(Vector2fc dimensions) {
-        setDimensions(dimensions.x(), dimensions.y());
-    }
+    Vector3fc getRight();
 
-    public void setPosition(float x, float y, float z) {
-        this.position.set(x, y, z);
-        updateView();
-    }
-    
-    public void setPosition(Vector3fc position) {
-        setPosition(position.x(), position.y(), position.z());
-    }
+    Vector3fc getRotation();
 
-    public void setRotation(float pitch, float yaw, float roll) {
-        this.rotation.set(pitch, yaw, roll);
-        updateView();
-    }
-    
-    public void setRotation(Vector3fc rotation) {
-        setRotation(rotation.x(), rotation.y(), rotation.z());
-    }
+    Vector3fc getUp();
 
-    public float getNearPlane() {
-        return nearPlane;
-    }
+    Matrix4fc getView();
 
-    public float getFarPlane() {
-        return farPlane;
-    }
+    void setDimensions(float width, float height);
 
-    public float getFov() {
-        return fov;
-    }
+    void setDimensions(Vector2fc dimensions);
 
-    public Vector2fc getDimensions() {
-        return dimensions;
-    }
+    void setFarPlane(float farPlane);
 
-    public Vector3fc getPosition() {
-        return position;
-    }
+    void setNearPlane(float nearPlane);
 
-    public Vector3fc getRotation() {
-        return rotation;
-    }
-    
-    public Vector3fc getFront() {
-        return front;
-    }
+    void setPosition(float x, float y, float z);
 
-    public Vector3fc getRight() {
-        return right;
-    }
+    void setPosition(Vector3fc position);
 
-    public Vector3fc getUp() {
-        return up;
-    }
+    void setRotation(float pitch, float yaw, float roll);
+
+    void setRotation(Vector3fc rotation);
+
 }
