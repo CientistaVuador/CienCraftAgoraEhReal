@@ -138,8 +138,11 @@ public class RenderableChunk {
                 return;
             }
             long nanoHere = System.nanoTime();
+            if (this.chunk.getRenderableChunk() != null) {
+                throw new RuntimeException("A RenderableChunk is already registered for that chunk.");
+            }
             this.initialized = true;
-            initialize();
+            this.chunk.setRenderableChunk(this);
             chunkUploadTimeCounter += (System.nanoTime() - nanoHere) / 1E9d;
         }
 
@@ -188,6 +191,10 @@ public class RenderableChunk {
         glDeleteBuffers(this.vbo);
 
         Main.checkGLError();
+    }
+    
+    protected void onVertexUpdate() {
+        initialize();
     }
 
 }

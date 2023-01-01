@@ -65,8 +65,10 @@ public class Chunk {
     private final int[] blocksInHeight = new int[CHUNK_HEIGHT];
     private int highestY = 0;
 
-    private final int[] zBlockLineVertexStartEnd = new int[CHUNK_SIZE * CHUNK_HEIGHT * 2];
+    private boolean markedForRegeneration = false;
     private float[] vertices = new float[0];
+    
+    private RenderableChunk renderableChunk = null;
 
     public Chunk(WorldCamera world, int chunkX, int chunkZ) {
         this.world = world;
@@ -79,7 +81,6 @@ public class Chunk {
         size += surface.length * Integer.BYTES;
         size += blocks.length * Byte.BYTES;
         size += blocksInHeight.length * Integer.BYTES;
-        size += zBlockLineVertexStartEnd.length * Integer.BYTES;
         size += vertices.length * Float.BYTES;
         return size;
     }
@@ -172,7 +173,6 @@ public class Chunk {
 
         for (int y = this.highestY; y >= 0; y--) {
             for (int x = 0; x < CHUNK_SIZE; x++) {
-                int zVertexCounter = 0;
                 for (int z = 0; z >= -(CHUNK_SIZE - 1); z--) {
                     Block block = getBlockImpl(x, y, z);
 
@@ -193,9 +193,7 @@ public class Chunk {
 
                     blockVerticesList.add(blockVertices);
                     blockVerticesLength += blockVertices.length;
-                    zVertexCounter += blockVertices.length;
                 }
-                setZBlockLineVertexStartEnd(x, y, blockVerticesLength - zVertexCounter, blockVerticesLength);
             }
         }
 
@@ -205,22 +203,12 @@ public class Chunk {
             System.arraycopy(blockVertices, 0, this.vertices, vertexCounter, blockVertices.length);
             vertexCounter += blockVertices.length;
         }
-
+        
+        if (this.renderableChunk != null) {
+            this.renderableChunk.onVertexUpdate();
+        }
     }
-
-    private int getZBlockLineVertexStart(int x, int y) {
-        return this.zBlockLineVertexStartEnd[(x + (y * CHUNK_SIZE)) * 2];
-    }
-
-    private int getZBlockLineVertexEnd(int x, int y) {
-        return this.zBlockLineVertexStartEnd[((x + (y * CHUNK_SIZE)) * 2) + 1];
-    }
-
-    private void setZBlockLineVertexStartEnd(int x, int y, int start, int end) {
-        this.zBlockLineVertexStartEnd[(x + (y * CHUNK_SIZE)) * 2] = start;
-        this.zBlockLineVertexStartEnd[((x + (y * CHUNK_SIZE)) * 2) + 1] = end;
-    }
-
+    
     private void setBlockImpl(int x, int y, int z, Block block) {
         int index = x + (-z * CHUNK_SIZE) + (y * CHUNK_SIZE * CHUNK_SIZE);
 
@@ -269,6 +257,11 @@ public class Chunk {
         this.surface[x + (-z * CHUNK_SIZE)] = value;
     }
 
+    public void setBlock(int x, int y, int z, Block block) {
+        setBlockImpl(x, y, z, block);
+        this.markedForRegeneration = true;
+    }
+    
     public Block getBlock(int x, int y, int z) {
         return getBlockImpl(x, y, z);
     }
@@ -297,4 +290,28 @@ public class Chunk {
         return this.surface[x + (-z * CHUNK_SIZE)];
     }
 
+    public RenderableChunk getRenderableChunk() {
+        return renderableChunk;
+    }
+
+    protected void setRenderableChunk(RenderableChunk renderableChunk) {
+        this.renderableChunk = renderableChunk;
+        renderableChunk.onVertexUpdate();
+    }
+    
+    public boolean markedForRegeneration() {
+        return this.markedForRegeneration;
+    }
+    
+    public void markForRegeneration() {
+        this.markedForRegeneration = true;
+    }
+    
+    public void updateVertices() {
+        if (this.markedForRegeneration) {
+            generateVertices();
+            this.markedForRegeneration = false;
+        }
+    }
+    
 }

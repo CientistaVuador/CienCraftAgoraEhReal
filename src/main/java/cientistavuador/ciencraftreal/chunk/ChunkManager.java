@@ -26,6 +26,7 @@
  */
 package cientistavuador.ciencraftreal.chunk;
 
+import cientistavuador.ciencraftreal.world.WorldCamera;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -89,6 +90,14 @@ public class ChunkManager {
                 if (!this.futureBlocksChunk.isDone()) {
                     return;
                 }
+                
+                WorldCamera camera = this.chunk.getWorld();
+                
+                camera.markForRegeneration(chunk.getChunkX() + 1, chunk.getChunkZ());
+                camera.markForRegeneration(chunk.getChunkX() - 1, chunk.getChunkZ());
+                camera.markForRegeneration(chunk.getChunkX(), chunk.getChunkZ() - 1);
+                camera.markForRegeneration(chunk.getChunkX(), chunk.getChunkZ() + 1);
+                
                 final Chunk c = this.futureBlocksChunk.get();
                 this.futureVerticesChunk = CompletableFuture.supplyAsync(() -> {
                     long nanoHere = System.nanoTime();
