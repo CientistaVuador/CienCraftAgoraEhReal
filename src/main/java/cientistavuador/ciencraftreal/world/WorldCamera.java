@@ -143,6 +143,15 @@ public class WorldCamera {
         finishUpdatePosition();
         updateChunks();
     }
+    
+    public void postUpdate() {
+        for (int i = 0; i < this.map.length; i++) {
+            ChunkManager manager = this.map[i];
+            if (manager.isFinished()) {
+                manager.getChunk().updateVertices();
+            }
+        }
+    }
 
     public void render() {
         for (int i = 0; i < VIEW_DISTANCE_NUMBER_OF_CHUNKS; i++) {
@@ -150,6 +159,78 @@ public class WorldCamera {
             if (m != null && m.isFinished()) {
                 m.getRenderableChunk().render(this.camera.getProjection(), this.camera.getView());
             }
+        }
+    }
+    
+    public void markForRegeneration(int chunkX, int chunkZ) {
+        int camChunkX = chunkX - this.chunkX;
+        int camChunkZ = chunkZ - this.chunkZ;
+        
+        markForRegenerationLocal(camChunkX, camChunkZ);
+    }
+    
+    private void markForRegenerationLocal(int camChunkX, int camChunkZ) {
+        camChunkX = camChunkX + VIEW_DISTANCE;
+        camChunkZ = -camChunkZ + VIEW_DISTANCE;
+        
+        int index = camChunkX + (camChunkZ * VIEW_DISTANCE_SIZE);
+        
+        if (index < 0 || index >= this.map.length) {
+            return;
+        }
+        
+        ChunkManager manager = this.map[camChunkX + (camChunkZ * VIEW_DISTANCE_SIZE)];
+        if (manager != null && manager.isFinished()) {
+            manager.getChunk().markForRegeneration();
+        }
+    }
+    
+    public void setWorldBlock(int x, int y, int z, Block block) {
+        if (y >= Chunk.CHUNK_HEIGHT || y < 0) {
+            return;
+        }
+        
+        int cX = (int) Math.floor((float)x / Chunk.CHUNK_SIZE);
+        int cZ = (int) Math.ceil((float)z / Chunk.CHUNK_SIZE);
+        
+        int camChunkX = cX - this.chunkX;
+        int camChunkZ = cZ - this.chunkZ;
+        
+        if (camChunkX < -VIEW_DISTANCE || camChunkX > VIEW_DISTANCE) {
+            return;
+        }
+        
+        if (camChunkZ < -VIEW_DISTANCE || camChunkZ > VIEW_DISTANCE) {
+            return;
+        }
+        
+        int chunkBlockX = x - (cX * Chunk.CHUNK_SIZE);
+        int chunkBlockZ = z - (cZ * Chunk.CHUNK_SIZE);
+        
+        if (chunkBlockX == 0) {
+            markForRegenerationLocal(camChunkX - 1, camChunkZ);
+        } else if (chunkBlockX == Chunk.CHUNK_SIZE - 1) {
+            markForRegenerationLocal(camChunkX + 1, camChunkZ);
+        }
+        
+        if (chunkBlockZ == 0) {
+            markForRegenerationLocal(camChunkX, camChunkZ + 1);
+        } else if (chunkBlockZ == Chunk.CHUNK_SIZE - 1) {
+            markForRegenerationLocal(camChunkX, camChunkZ - 1);
+        }
+        
+        camChunkX = camChunkX + VIEW_DISTANCE;
+        camChunkZ = -camChunkZ + VIEW_DISTANCE;
+        
+        ChunkManager manager = this.map[camChunkX + (camChunkZ * VIEW_DISTANCE_SIZE)];
+        
+        if (manager != null && manager.isBlocksFinished()) {
+            manager.getChunk().setBlock(
+                    chunkBlockX,
+                    y,
+                    chunkBlockZ,
+                    block
+            );
         }
     }
     
