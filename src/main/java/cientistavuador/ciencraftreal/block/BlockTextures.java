@@ -43,8 +43,8 @@ public class BlockTextures {
     public static final int COAL_ORE = BlockTextureLoader.push("vulpes_coal_ore.png");
     public static final int IRON_ORE = BlockTextureLoader.push("vulpes_iron_ore.png");
     
-    //FUTURE
-    //TODO
+    //1.0-DEV-HAPPY-2023
+    public static final int HAPPY_2023 = BlockTextureLoader.push("cien_happy_2023.png");
     
     public static final int GL_TEXTURE_ARRAY;
     

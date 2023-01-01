@@ -30,6 +30,7 @@ import cientistavuador.ciencraftreal.block.blocks.Bedrock;
 import cientistavuador.ciencraftreal.block.blocks.CoalOre;
 import cientistavuador.ciencraftreal.block.blocks.Dirt;
 import cientistavuador.ciencraftreal.block.blocks.Grass;
+import cientistavuador.ciencraftreal.block.blocks.Happy2023;
 import cientistavuador.ciencraftreal.block.blocks.IronOre;
 import cientistavuador.ciencraftreal.block.blocks.Stone;
 
@@ -50,6 +51,9 @@ public class Blocks {
     public static final CoalOre COAL_ORE = new CoalOre();
     public static final IronOre IRON_ORE = new IronOre();
     
+    //1.0-DEV-HAPPY-2023
+    public static final Happy2023 HAPPY_2023 = new Happy2023();
+    
     static {
         //0.5-DEV
         BlockRegister.register(GRASS);
@@ -60,6 +64,9 @@ public class Blocks {
         //0.6-DEV
         BlockRegister.register(COAL_ORE);
         BlockRegister.register(IRON_ORE);
+        
+        //1.0-DEV-HAPPY-2023
+        BlockRegister.register(HAPPY_2023);
     }
     
     public static void init() {
