@@ -53,7 +53,8 @@ public class Game {
     private final DebugBlock block = new DebugBlock();
     private final WorldCamera world = new WorldCamera(camera, 65487321654L);
     private final BlockOutline outline = new BlockOutline(world, camera);
-
+    private int currentBlockId = Blocks.HAPPY_2023.getId();
+    
     private Game() {
 
     }
@@ -78,6 +79,8 @@ public class Game {
         
         outline.update();
         outline.render();
+        
+        world.postUpdate();
     }
 
     public void mouseCursorMoved(double x, double y) {
@@ -104,7 +107,32 @@ public class Game {
             ));
         }
         if (key == GLFW_KEY_E && action == GLFW_PRESS) {
-            System.out.println(this.outline.getBlock()+" at "+outline.getCastPosX()+", "+outline.getCastPosY()+", "+outline.getCastPosZ());
+            System.out.println(this.outline.getBlock()+" at "+outline.getCastPos());
+        }
+        if (key == GLFW_KEY_R && action == GLFW_PRESS) {
+            this.currentBlockId++;
+            if (this.currentBlockId >= BlockRegister.numberOfRegisteredBlocks()) {
+                this.currentBlockId = 1;
+            }
+        }
+    }
+    
+    public void mouseCallback(long window, int button, int action, int mods) {
+        if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && outline.getBlock() != Blocks.AIR) {
+            this.world.setWorldBlock(
+                    outline.getCastPos().x(),
+                    outline.getCastPos().y(),
+                    outline.getCastPos().z(),
+                    Blocks.AIR
+            );
+        }
+        if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS && outline.getBlock() != Blocks.AIR) {
+            this.world.setWorldBlock(
+                    outline.getSidePos().x(),
+                    outline.getSidePos().y(),
+                    outline.getSidePos().z(),
+                    BlockRegister.getBlock(this.currentBlockId)
+            );
         }
     }
 }

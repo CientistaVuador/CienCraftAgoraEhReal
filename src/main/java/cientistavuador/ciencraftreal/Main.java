@@ -163,6 +163,10 @@ public class Main {
         glfwSetKeyCallback(WINDOW_POINTER, (window, key, scancode, action, mods) -> {
             Game.get().keyCallback(window, key, scancode, action, mods);
         });
+        
+        glfwSetMouseButtonCallback(WINDOW_POINTER, (window, button, action, mods) -> {
+            Game.get().mouseCallback(window, button, action, mods);
+        });
 
         Game.get().start();
 
