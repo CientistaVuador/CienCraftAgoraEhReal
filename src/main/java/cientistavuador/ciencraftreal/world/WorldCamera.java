@@ -185,6 +185,13 @@ public class WorldCamera {
         }
     }
     
+    public Chunk getChunk(int x, int z) {
+        x = x + VIEW_DISTANCE;
+        z = z + VIEW_DISTANCE;
+        
+        return this.map[x + (z * VIEW_DISTANCE_SIZE)].getChunk();
+    }
+    
     public void setWorldBlock(int x, int y, int z, Block block) {
         if (y >= Chunk.CHUNK_HEIGHT || y < 0) {
             return;
