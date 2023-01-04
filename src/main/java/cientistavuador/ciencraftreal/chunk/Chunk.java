@@ -247,6 +247,10 @@ public class Chunk {
             }
         }
     }
+    
+    public int getAmountOfBlocksInY(int y) {
+        return this.blocksInHeight[y];
+    }
 
     private Block getBlockImpl(int x, int y, int z) {
         int index = x + (-z * CHUNK_SIZE) + (y * CHUNK_SIZE * CHUNK_SIZE);
