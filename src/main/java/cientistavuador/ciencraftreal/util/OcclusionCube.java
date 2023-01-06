@@ -26,7 +26,12 @@
  */
 package cientistavuador.ciencraftreal.util;
 
+import cientistavuador.ciencraftreal.Main;
 import cientistavuador.ciencraftreal.camera.Camera;
+import org.joml.Matrix4d;
+import org.joml.Matrix4f;
+import org.joml.Vector3d;
+import org.joml.Vector3i;
 import static org.lwjgl.opengl.GL33C.*;
 
 /**
@@ -38,13 +43,14 @@ public class OcclusionCube {
             """
             #version 330 core
             
+            uniform mat4 model;
             uniform mat4 view;
             uniform mat4 projection;
             
             layout (location = 0) in vec3 vertexPos;
             
             void main() {
-                gl_Position = projection * view * vec4(vertexPos, 1.0);
+                gl_Position = projection * view * model * vec4(vertexPos, 1.0);
             }
             """;
     
@@ -52,10 +58,8 @@ public class OcclusionCube {
             """
             #version 330 core
             
-            layout (location = 0) out vec4 fragColor;
-            
             void main() {
-                fragColor = vec4(1.0, 0.0, 0.0, 1.0);
+                
             }
             """;
     
@@ -83,7 +87,12 @@ public class OcclusionCube {
         int ebo = glGenBuffers();
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, new int[] {
-            0, 2, 1, 1, 2, 3, 0, 1, 2, 1, 3, 2
+            0, 2, 1, 1, 2, 3, 0, 1, 2, 1, 3, 2,
+            4, 6, 5, 5, 6, 7, 4, 5, 6, 5, 7, 6,
+            2, 3, 6, 7, 6, 3, 2, 6, 3, 7, 3, 6,
+            0, 1, 4, 5, 4, 1, 0, 4, 1, 5, 1, 4,
+            0, 2, 4, 6, 4, 2, 0, 4, 2, 6, 2, 4,
+            1, 3, 5, 7, 5, 3, 1, 5, 3, 7, 3, 5,
         }, GL_STATIC_DRAW);
         
         glEnableVertexAttribArray(0);
@@ -94,21 +103,55 @@ public class OcclusionCube {
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     }
     
+    private final Matrix4f model = new Matrix4f();
+    private final int queryObject = glGenQueries();
+    
     public OcclusionCube() {
         
     }
+
+    public Matrix4f getModel() {
+        return this.model;
+    }
     
-    public void render(Camera camera) {
+    public void tryRendering(Camera camera) {
         glUseProgram(program);
         glBindVertexArray(vao);
         
+        UniformSetter.setMatrix4f("model", this.model);
         UniformSetter.setMatrix4f("view", camera.getView());
         UniformSetter.setMatrix4f("projection", camera.getProjection());
         
-        glDrawElements(GL_TRIANGLES, 3 * 2 * 2 * 1, GL_UNSIGNED_INT, 0);
+        glDepthMask(false);
+        glBeginQuery(GL_ANY_SAMPLES_PASSED, this.queryObject);
+        glDrawElements(GL_TRIANGLES, 3 * 2 * 2 * 6, GL_UNSIGNED_INT, 0);
+        glEndQuery(GL_ANY_SAMPLES_PASSED);
+        glDepthMask(true);
         
         glBindVertexArray(0);
         glUseProgram(0);
+    }
+    
+    public boolean resultAvailable() {
+        return glGetQueryObjecti(this.queryObject, GL_QUERY_RESULT_AVAILABLE) != 0;
+    }
+    
+    public boolean catchResult() {
+        return glGetQueryObjecti(this.queryObject, GL_QUERY_RESULT) != 0;
+    }
+    
+    public void beginRendering(Camera camera) {
+        this.tryRendering(camera);
+        
+        glBeginConditionalRender(this.queryObject, GL_QUERY_WAIT);
+    }
+    
+    public void endRendering() {
+        glEndConditionalRender();
+    }
+    
+    public void delete() {
+        glDeleteQueries(this.queryObject);
     }
     
 }
