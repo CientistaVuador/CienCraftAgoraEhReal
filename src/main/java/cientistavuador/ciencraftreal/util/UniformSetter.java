@@ -28,6 +28,8 @@ package cientistavuador.ciencraftreal.util;
 
 import java.nio.FloatBuffer;
 import org.joml.Matrix4fc;
+import org.joml.Vector3fc;
+import org.joml.Vector3ic;
 
 import static org.lwjgl.opengl.GL33C.*;
 import org.lwjgl.system.MemoryStack;
@@ -62,6 +64,22 @@ public class UniformSetter {
             
             glUniformMatrix4fv(getUniformLocation(name), false, buffer);
         }
+    }
+    
+    public static void setVector3f(String name, float x, float y, float z) {
+        glUniform3f(getUniformLocation(name), x, y, z);
+    }
+    
+    public static void setVector3f(String name, Vector3fc vec) {
+        setVector3f(name, vec.x(), vec.y(), vec.z());
+    }
+    
+    public static void setVector3i(String name, int x, int y, int z) {
+        glUniform3i(getUniformLocation(name), x, y, z);
+    }
+    
+    public static void setVector3i(String name, Vector3ic vec) {
+        setVector3i(name, vec.x(), vec.y(), vec.z());
     }
     
     private UniformSetter() {
