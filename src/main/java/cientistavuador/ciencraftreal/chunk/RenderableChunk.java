@@ -173,8 +173,6 @@ public class RenderableChunk {
         glBindVertexArray(0);
         glUseProgram(0);
         glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
-
-        Main.checkGLError();
     }
 
     public boolean isDeleted() {
