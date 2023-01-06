@@ -54,7 +54,7 @@ public class Game {
     private final WorldCamera world = new WorldCamera(camera, 65487321654L);
     private final BlockOutline outline = new BlockOutline(world, camera);
     private int currentBlockId = Blocks.HAPPY_2023.getId();
-    
+
     private Game() {
 
     }
@@ -90,7 +90,7 @@ public class Game {
     public void windowSizeChanged(int width, int height) {
         camera.setDimensions(width, height);
     }
-    
+
     public void keyCallback(long window, int key, int scancode, int action, int mods) {
         if (key == GLFW_KEY_F && action == GLFW_PRESS) {
             camera.setPosition(
@@ -107,7 +107,7 @@ public class Game {
             ));
         }
         if (key == GLFW_KEY_E && action == GLFW_PRESS) {
-            System.out.println(this.outline.getBlock()+" at "+outline.getCastPos());
+            System.out.println(this.outline.getBlock() + " at " + outline.getCastPos());
         }
         if (key == GLFW_KEY_R && action == GLFW_PRESS) {
             this.currentBlockId++;
@@ -116,7 +116,7 @@ public class Game {
             }
         }
     }
-    
+
     public void mouseCallback(long window, int button, int action, int mods) {
         if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && outline.getBlock() != Blocks.AIR) {
             this.world.setWorldBlock(
