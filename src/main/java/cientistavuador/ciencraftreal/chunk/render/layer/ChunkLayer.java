@@ -47,27 +47,27 @@ import static org.lwjgl.opengl.GL33C.*;
  * @author Cien
  */
 public class ChunkLayer {
+
     //pos, tex coords, tex id, ao, unused 
     public static final int VERTEX_SIZE_ELEMENTS = 3 + 2 + 1 + 1 + 1;
     public static final float TEX_COORDS_MAX = 10f;
-    
+
     public static final int HEIGHT = 32;
-    
+
     private final Chunk chunk;
     private final int y;
     private final Vector3d center;
-    
+
     private boolean useCachedElimination = false;
     private boolean eliminate = false;
-    private boolean markedForRegeneration = true;
-    
+
     private OcclusionCube occlusionCube = null;
     private Future<Map.Entry<short[], int[]>> futureVerticesIndices = null;
     private short[] vertices = null;
     private int[] indices = null;
     private int vao = 0;
     private int vbo = 0;
-    
+
     public ChunkLayer(Chunk chunk, int y) {
         this.chunk = chunk;
         this.y = y;
@@ -85,7 +85,7 @@ public class ChunkLayer {
     public int[] getIndices() {
         return indices;
     }
-    
+
     public Chunk getChunk() {
         return chunk;
     }
@@ -98,26 +98,17 @@ public class ChunkLayer {
         return center;
     }
 
-    public boolean isMarkedForRegeneration() {
-        return markedForRegeneration;
-    }
-    
-    public void markForRegeneration() {
-        this.markedForRegeneration = true;
-        this.useCachedElimination = false;
-    }
-    
     public boolean eliminationStage0() {
         if (this.useCachedElimination) {
             return this.eliminate;
         }
         this.useCachedElimination = true;
-        
+
         if (this.vertices != null && this.vertices.length == 0) {
             this.eliminate = true;
             return this.eliminate;
         }
-        
+
         if (this.chunk.getHighestY() < this.y) {
             this.eliminate = true;
             return this.eliminate;
@@ -131,12 +122,12 @@ public class ChunkLayer {
         this.eliminate = true;
         return this.eliminate;
     }
-    
+
     public boolean checkVerticesStage1(Camera camera) {
         if (this.occlusionCube != null) {
             return false;
         }
-        
+
         this.occlusionCube = new OcclusionCube();
         this.occlusionCube
                 .getModel()
@@ -146,25 +137,25 @@ public class ChunkLayer {
                         this.chunk.getChunkZ() * Chunk.CHUNK_SIZE
                 )
                 .scale(Chunk.CHUNK_SIZE, ChunkLayer.HEIGHT, Chunk.CHUNK_SIZE);
-        
+
         this.occlusionCube.tryRendering(camera);
         return true;
     }
-    
+
     public boolean prepareVerticesStage2() {
         if (!this.occlusionCube.catchResult()) {
             return false;
         }
-        
+
         this.futureVerticesIndices = CompletableFuture.supplyAsync(() -> {
             float[] verticesCreated = VerticesCreator.create(this);
             short[] compressedVertices = VerticesCompressor.compress(this, verticesCreated);
             return IndicesGenerator.generate(compressedVertices);
         });
-        
+
         return true;
     }
-    
+
     public boolean prepareVaoVboStage3() {
         Map.Entry<short[], int[]> result;
         try {
@@ -172,28 +163,47 @@ public class ChunkLayer {
         } catch (InterruptedException | ExecutionException ex) {
             throw new RuntimeException(ex);
         }
-        
+
         this.vertices = result.getKey();
         this.indices = result.getValue();
-        
+
         if (this.vertices.length == 0) {
             return false;
         }
-        
+
         //todo
-        
         return true;
     }
-    
+
     public void renderStage4(Camera camera) {
         //todo
     }
-    
+
     public void delete() {
-        occlusionCube.delete();
-        glDeleteVertexArrays(this.vao);
-        glDeleteBuffers(this.vbo);
+        if (this.occlusionCube != null) {
+            this.occlusionCube.delete();
+        }
+        if (this.vao != 0) {
+            glDeleteVertexArrays(this.vao);
+        }
+        if (this.vbo != 0) {
+            glDeleteBuffers(this.vbo);
+        }
+        if (this.futureVerticesIndices != null && !this.futureVerticesIndices.isDone()) {
+            try {
+                this.futureVerticesIndices.get();
+            } catch (InterruptedException | ExecutionException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+        
         this.useCachedElimination = false;
+        this.eliminate = false;
+
+        this.occlusionCube = null;
+        this.futureVerticesIndices = null;
+        this.vertices = null;
+        this.indices = null;
         this.vao = 0;
         this.vbo = 0;
     }
