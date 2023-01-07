@@ -36,8 +36,6 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
 import static org.lwjgl.opengl.GL33C.*;
@@ -98,7 +96,7 @@ public class ChunkLayer {
         return center;
     }
 
-    public boolean eliminationStage0() {
+    public boolean eliminationStage0(Camera camera) {
         if (this.useCachedElimination) {
             return this.eliminate;
         }

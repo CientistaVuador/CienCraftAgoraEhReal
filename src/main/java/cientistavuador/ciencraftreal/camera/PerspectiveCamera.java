@@ -27,6 +27,7 @@
 package cientistavuador.ciencraftreal.camera;
 
 import cientistavuador.ciencraftreal.Main;
+import org.joml.FrustumIntersection;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fc;
 import org.joml.Vector2f;
@@ -62,6 +63,10 @@ public class PerspectiveCamera implements Camera {
     //Matrices
     private final Matrix4f view = new Matrix4f();
     private final Matrix4f projection = new Matrix4f();
+    private final Matrix4f projectionView = new Matrix4f();
+    
+    //Frustum Intersection
+    private final FrustumIntersection frustumIntersection = new FrustumIntersection(projectionView);
     
     public PerspectiveCamera() {
         updateProjection();
@@ -87,6 +92,8 @@ public class PerspectiveCamera implements Camera {
                         this.nearPlane,
                         this.farPlane
                 );
+        
+        updateProjectionView();
     }
     
     private void updateView() {
@@ -111,6 +118,13 @@ public class PerspectiveCamera implements Camera {
                 this.position.z() + this.front.z(),
                 this.up.x(), this.up.y(), this.up.z()
         );
+        
+        updateProjectionView();
+    }
+    
+    private void updateProjectionView() {
+        this.projectionView.identity().set(this.projection).mul(this.view);
+        this.frustumIntersection.set(this.projectionView);
     }
 
     @Override
@@ -205,5 +219,15 @@ public class PerspectiveCamera implements Camera {
     @Override
     public Vector3fc getUp() {
         return up;
+    }
+
+    @Override
+    public Matrix4fc getProjectionView() {
+        return projectionView;
+    }
+
+    @Override
+    public FrustumIntersection getFrustumIntersection() {
+        return frustumIntersection;
     }
 }

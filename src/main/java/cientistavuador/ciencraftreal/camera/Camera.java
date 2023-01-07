@@ -26,6 +26,7 @@
  */
 package cientistavuador.ciencraftreal.camera;
 
+import org.joml.FrustumIntersection;
 import org.joml.Matrix4fc;
 import org.joml.Vector2fc;
 import org.joml.Vector3f;
@@ -63,6 +64,10 @@ public interface Camera {
     Vector3fc getUp();
 
     Matrix4fc getView();
+    
+    Matrix4fc getProjectionView();
+    
+    FrustumIntersection getFrustumIntersection();
 
     void setDimensions(float width, float height);
 
