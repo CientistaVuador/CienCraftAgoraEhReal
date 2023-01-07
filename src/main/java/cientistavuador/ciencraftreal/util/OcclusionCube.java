@@ -26,12 +26,8 @@
  */
 package cientistavuador.ciencraftreal.util;
 
-import cientistavuador.ciencraftreal.Main;
 import cientistavuador.ciencraftreal.camera.Camera;
-import org.joml.Matrix4d;
 import org.joml.Matrix4f;
-import org.joml.Vector3d;
-import org.joml.Vector3i;
 import static org.lwjgl.opengl.GL33C.*;
 
 /**
