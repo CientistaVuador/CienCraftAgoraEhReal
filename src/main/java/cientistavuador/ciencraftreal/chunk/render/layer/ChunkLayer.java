@@ -26,15 +26,31 @@
  */
 package cientistavuador.ciencraftreal.chunk.render.layer;
 
+import cientistavuador.ciencraftreal.camera.Camera;
 import cientistavuador.ciencraftreal.chunk.Chunk;
+import cientistavuador.ciencraftreal.chunk.render.layer.vertices.IndicesGenerator;
+import cientistavuador.ciencraftreal.chunk.render.layer.vertices.VerticesCompressor;
+import cientistavuador.ciencraftreal.chunk.render.layer.vertices.VerticesCreator;
+import cientistavuador.ciencraftreal.util.OcclusionCube;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
+import static org.lwjgl.opengl.GL33C.*;
 
 /**
  *
  * @author Cien
  */
 public class ChunkLayer {
+    //pos, tex coords, tex id, ao, unused 
+    public static final int VERTEX_SIZE_ELEMENTS = 3 + 2 + 1 + 1 + 1;
+    public static final float TEX_COORDS_MAX = 10f;
+    
     public static final int HEIGHT = 32;
     
     private final Chunk chunk;
@@ -44,6 +60,13 @@ public class ChunkLayer {
     private boolean useCachedElimination = false;
     private boolean eliminate = false;
     private boolean markedForRegeneration = true;
+    
+    private OcclusionCube occlusionCube = null;
+    private Future<Map.Entry<short[], int[]>> futureVerticesIndices = null;
+    private short[] vertices = null;
+    private int[] indices = null;
+    private int vao = 0;
+    private int vbo = 0;
     
     public ChunkLayer(Chunk chunk, int y) {
         this.chunk = chunk;
@@ -55,6 +78,14 @@ public class ChunkLayer {
         );
     }
 
+    public short[] getVertices() {
+        return vertices;
+    }
+
+    public int[] getIndices() {
+        return indices;
+    }
+    
     public Chunk getChunk() {
         return chunk;
     }
@@ -82,6 +113,11 @@ public class ChunkLayer {
         }
         this.useCachedElimination = true;
         
+        if (this.vertices != null && this.vertices.length == 0) {
+            this.eliminate = true;
+            return this.eliminate;
+        }
+        
         if (this.chunk.getHighestY() < this.y) {
             this.eliminate = true;
             return this.eliminate;
@@ -96,19 +132,69 @@ public class ChunkLayer {
         return this.eliminate;
     }
     
-    public void prepareVerticesStage1() {
-        //todo
+    public boolean checkVerticesStage1(Camera camera) {
+        if (this.occlusionCube != null) {
+            return true;
+        }
+        
+        this.occlusionCube = new OcclusionCube();
+        this.occlusionCube
+                .getModel()
+                .scale(Chunk.CHUNK_SIZE, ChunkLayer.HEIGHT, Chunk.CHUNK_SIZE)
+                .translate(
+                        this.chunk.getChunkX() * Chunk.CHUNK_SIZE,
+                        this.y,
+                        this.chunk.getChunkZ() * Chunk.CHUNK_SIZE
+                );
+        
+        this.occlusionCube.tryRendering(camera);
+        return false;
     }
     
-    public void prepareRenderStage2() {
-        //todo
+    public boolean prepareVerticesStage2() {
+        if (!this.occlusionCube.catchResult()) {
+            return false;
+        }
+        
+        this.futureVerticesIndices = CompletableFuture.supplyAsync(() -> {
+            float[] verticesCreated = VerticesCreator.create(this);
+            short[] compressedVertices = VerticesCompressor.compress(this, verticesCreated);
+            return IndicesGenerator.generate(compressedVertices);
+        });
+        
+        return true;
     }
     
-    public void renderStage3() {
+    public boolean prepareVaoVboStage3() {
+        Map.Entry<short[], int[]> result;
+        try {
+            result = this.futureVerticesIndices.get();
+        } catch (InterruptedException | ExecutionException ex) {
+            throw new RuntimeException(ex);
+        }
+        
+        this.vertices = result.getKey();
+        this.indices = result.getValue();
+        
+        if (this.vertices.length == 0) {
+            return false;
+        }
+        
+        //todo
+        
+        return true;
+    }
+    
+    public void renderStage4(Camera camera) {
         //todo
     }
     
     public void delete() {
-        //todo
+        occlusionCube.delete();
+        glDeleteVertexArrays(this.vao);
+        glDeleteBuffers(this.vbo);
+        this.useCachedElimination = false;
+        this.vao = 0;
+        this.vbo = 0;
     }
 }
