@@ -76,10 +76,10 @@ public class Game {
 
         world.update();
         world.render();
-        
+
         outline.update();
         outline.render();
-        
+
         world.postUpdate();
     }
 
