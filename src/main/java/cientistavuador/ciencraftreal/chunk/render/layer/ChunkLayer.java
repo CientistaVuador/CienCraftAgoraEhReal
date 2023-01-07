@@ -134,7 +134,7 @@ public class ChunkLayer {
     
     public boolean checkVerticesStage1(Camera camera) {
         if (this.occlusionCube != null) {
-            return true;
+            return false;
         }
         
         this.occlusionCube = new OcclusionCube();
@@ -148,7 +148,7 @@ public class ChunkLayer {
                 );
         
         this.occlusionCube.tryRendering(camera);
-        return false;
+        return true;
     }
     
     public boolean prepareVerticesStage2() {
