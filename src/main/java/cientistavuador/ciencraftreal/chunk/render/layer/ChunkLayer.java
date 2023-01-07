@@ -140,12 +140,12 @@ public class ChunkLayer {
         this.occlusionCube = new OcclusionCube();
         this.occlusionCube
                 .getModel()
-                .scale(Chunk.CHUNK_SIZE, ChunkLayer.HEIGHT, Chunk.CHUNK_SIZE)
                 .translate(
                         this.chunk.getChunkX() * Chunk.CHUNK_SIZE,
                         this.y,
                         this.chunk.getChunkZ() * Chunk.CHUNK_SIZE
-                );
+                )
+                .scale(Chunk.CHUNK_SIZE, ChunkLayer.HEIGHT, Chunk.CHUNK_SIZE);
         
         this.occlusionCube.tryRendering(camera);
         return true;
