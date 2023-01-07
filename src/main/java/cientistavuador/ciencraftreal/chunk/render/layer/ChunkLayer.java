@@ -96,7 +96,15 @@ public class ChunkLayer {
         return center;
     }
 
-    public boolean eliminationStage0(Camera camera) {
+    public boolean cullingStage0(Camera camera) {
+        if (doPreElimination()) {
+            return false;
+        }
+        //todo frustum culling
+        return true;
+    }
+    
+    private boolean doPreElimination() {
         if (this.useCachedElimination) {
             return this.eliminate;
         }
