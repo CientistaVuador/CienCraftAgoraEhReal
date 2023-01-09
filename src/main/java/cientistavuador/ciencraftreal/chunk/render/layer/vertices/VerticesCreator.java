@@ -45,8 +45,8 @@ public class VerticesCreator {
         
         ArrayDeque<float[]> blockVerticesQueue = new ArrayDeque<>(64);
         int size = 0;
-
-        for (int y = (yPos + (ChunkLayer.HEIGHT-1)); y >= yPos; y--) {
+        
+        for (int y = (yPos + (ChunkLayer.HEIGHT - 1)); y >= yPos; y--) {
             for (int x = 0; x < CHUNK_SIZE; x++) {
                 for (int z = 0; z >= -(CHUNK_SIZE - 1); z--) {
                     Block block = chunk.getBlock(x, y, z);
