@@ -82,6 +82,10 @@ public class UniformSetter {
         setVector3i(name, vec.x(), vec.y(), vec.z());
     }
     
+    public static void setInt(String name, int value) {
+        glUniform1i(getUniformLocation(name), value);
+    }
+    
     private UniformSetter() {
         
     }
