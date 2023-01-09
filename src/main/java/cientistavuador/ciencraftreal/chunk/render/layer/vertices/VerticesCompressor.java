@@ -37,7 +37,14 @@ import cientistavuador.ciencraftreal.chunk.render.layer.ChunkLayer;
 public class VerticesCompressor {
 
     private static short floatToShort(float f) {
-        return (short) (int) (f * (-Short.MIN_VALUE * 2));
+        return (short) (int) (f * ((Short.MAX_VALUE * 2) + 1));
+    }
+    
+    private static short floatToShortSigned(float f) {
+        if (f < 0) {
+            return (short) (int) (f * Short.MIN_VALUE);
+        }
+        return (short) (int) (f * Short.MAX_VALUE);
     }
 
     public static short[] compress(ChunkLayer layer, float[] vertices) {
@@ -79,7 +86,7 @@ public class VerticesCompressor {
                     }
                     if (j < 5) {
                         value /= ChunkLayer.TEX_COORDS_MAX;
-                        output = floatToShort(value);
+                        output = floatToShortSigned(value);
                         break processValue;
                     }
                     if (j < 6) {
