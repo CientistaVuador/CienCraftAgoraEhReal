@@ -31,6 +31,8 @@ import cientistavuador.ciencraftreal.block.Blocks;
 import cientistavuador.ciencraftreal.debug.Triangle;
 import cientistavuador.ciencraftreal.camera.FreeCamera;
 import cientistavuador.ciencraftreal.chunk.Chunk;
+import cientistavuador.ciencraftreal.chunk.render.layer.ChunkLayer;
+import cientistavuador.ciencraftreal.chunk.render.layer.ChunkLayers;
 import cientistavuador.ciencraftreal.debug.DebugBlock;
 import cientistavuador.ciencraftreal.util.BlockOutline;
 import cientistavuador.ciencraftreal.world.WorldCamera;
@@ -54,6 +56,8 @@ public class Game {
     private final WorldCamera world = new WorldCamera(camera, 65487321654L);
     private final BlockOutline outline = new BlockOutline(world, camera);
     private int currentBlockId = Blocks.HAPPY_2023.getId();
+    private final Chunk chunk = new Chunk(world, 0, 0);
+    private final ChunkLayers layers = new ChunkLayers(chunk);
 
     private Game() {
 
@@ -61,6 +65,8 @@ public class Game {
 
     public void start() {
         camera.setPosition(0, Chunk.GENERATOR_DESIRED_MAX_HEIGHT, 0);
+        
+        chunk.generateBlocks();
     }
 
     public void loop() {
@@ -75,12 +81,41 @@ public class Game {
         }
 
         world.update();
-        world.render();
+        //world.render();
 
         outline.update();
         outline.render();
 
         world.postUpdate();
+        
+        for (int i = (layers.length()-1); i >= 0; i--) {
+            ChunkLayer layer = layers.layerAt(i);
+            
+            boolean next;
+            
+            next = layer.cullingStage0(camera);
+            
+            if (!next) {
+                continue;
+            }
+            
+            next = layer.checkVerticesStage1(camera);
+            
+            if (next) {
+                next = layer.prepareVerticesStage2();
+                Main.checkGLError();
+                if (!next) {
+                    continue;
+                }
+                next = layer.prepareVaoVboStage3();
+                Main.checkGLError();
+                if (!next) {
+                    continue;
+                }
+            }
+            
+            layer.renderStage4(camera);
+        }
     }
 
     public void mouseCursorMoved(double x, double y) {
