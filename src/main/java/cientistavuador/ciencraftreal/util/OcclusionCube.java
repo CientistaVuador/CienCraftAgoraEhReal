@@ -28,6 +28,8 @@ package cientistavuador.ciencraftreal.util;
 
 import cientistavuador.ciencraftreal.camera.Camera;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
+import org.joml.Vector3fc;
 import static org.lwjgl.opengl.GL33C.*;
 
 /**
@@ -39,14 +41,16 @@ public class OcclusionCube {
             """
             #version 330 core
             
-            uniform mat4 model;
+            uniform vec3 position;
+            uniform vec3 size;
+            
             uniform mat4 view;
             uniform mat4 projection;
             
             layout (location = 0) in vec3 vertexPos;
             
             void main() {
-                gl_Position = projection * view * model * vec4(vertexPos, 1.0);
+                gl_Position = projection * view * vec4((vertexPos * size) + position, 1.0);
             }
             """;
     
@@ -99,22 +103,47 @@ public class OcclusionCube {
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     }
     
-    private final Matrix4f model = new Matrix4f();
     private final int queryObject = glGenQueries();
+    
+    private final Vector3f position = new Vector3f(0, 0, 0);
+    private final Vector3f size = new Vector3f(1);
     
     public OcclusionCube() {
         
     }
 
-    public Matrix4f getModel() {
-        return this.model;
+    public Vector3f getPosition() {
+        return position;
+    }
+
+    public Vector3f getSize() {
+        return size;
     }
     
-    public void tryRendering(Camera camera) {
+    public boolean isInside(Vector3fc pos) {
+        float xMin = this.position.x();
+        float yMin = this.position.y();
+        float zMin = this.position.z() - this.size.z();
+        float xMax = this.position.x() + this.size.x();
+        float yMax = this.position.y() + this.size.y();
+        float zMax = this.position.z();
+        
+        return pos.x() <= xMax && pos.x() >= xMin &&
+                pos.y() <= yMax && pos.y() >= yMin &&
+                pos.z() <= zMax && pos.z() >= zMin;
+                
+    }
+    
+    public boolean isInside(Camera cam) {
+        return isInside(cam.getPosition());
+    }
+
+    public void render(Camera camera) {
         glUseProgram(program);
         glBindVertexArray(vao);
         
-        UniformSetter.setMatrix4f("model", this.model);
+        UniformSetter.setVector3f("position", this.position);
+        UniformSetter.setVector3f("size", this.size);
         UniformSetter.setMatrix4f("view", camera.getView());
         UniformSetter.setMatrix4f("projection", camera.getProjection());
         
@@ -128,21 +157,19 @@ public class OcclusionCube {
         glUseProgram(0);
     }
     
-    public boolean resultAvailable() {
+    public boolean queryResultAvailable() {
         return glGetQueryObjecti(this.queryObject, GL_QUERY_RESULT_AVAILABLE) != 0;
     }
     
-    public boolean catchResult() {
+    public boolean queryResult() {
         return glGetQueryObjecti(this.queryObject, GL_QUERY_RESULT) != 0;
     }
     
-    public void beginRendering(Camera camera) {
-        this.tryRendering(camera);
-        
+    public void beginConditionalRender(Camera camera) {
         glBeginConditionalRender(this.queryObject, GL_QUERY_WAIT);
     }
     
-    public void endRendering() {
+    public void endConditionalRender() {
         glEndConditionalRender();
     }
     
