@@ -123,7 +123,7 @@ public class PerspectiveCamera implements Camera {
     }
     
     private void updateProjectionView() {
-        this.projectionView.identity().set(this.projection).mul(this.view);
+        this.projection.mul(this.view, this.projectionView);
         this.frustumIntersection.set(this.projectionView);
     }
 
