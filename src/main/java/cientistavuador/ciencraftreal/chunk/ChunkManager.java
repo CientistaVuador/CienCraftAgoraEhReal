@@ -87,18 +87,22 @@ public class ChunkManager {
 
         if (this.futureVerticesChunk == null) {
             try {
-                if (!this.futureBlocksChunk.isDone()) {
-                    return;
-                }
+                //if (!this.futureBlocksChunk.isDone()) {
+                //    return;
+                //}
                 
                 WorldCamera camera = this.chunk.getWorld();
                 
-                camera.markForRegeneration(chunk.getChunkX() + 1, chunk.getChunkZ());
-                camera.markForRegeneration(chunk.getChunkX() - 1, chunk.getChunkZ());
-                camera.markForRegeneration(chunk.getChunkX(), chunk.getChunkZ() - 1);
-                camera.markForRegeneration(chunk.getChunkX(), chunk.getChunkZ() + 1);
+                //camera.markForRegeneration(chunk.getChunkX() + 1, chunk.getChunkZ());
+                //camera.markForRegeneration(chunk.getChunkX() - 1, chunk.getChunkZ());
+                //camera.markForRegeneration(chunk.getChunkX(), chunk.getChunkZ() - 1);
+                //camera.markForRegeneration(chunk.getChunkX(), chunk.getChunkZ() + 1);
                 
                 final Chunk c = this.futureBlocksChunk.get();
+                if (2 == 2) {
+                    this.blocksFinished = true;
+                    return;
+                }
                 this.futureVerticesChunk = CompletableFuture.supplyAsync(() -> {
                     long nanoHere = System.nanoTime();
                     c.generateVertices();

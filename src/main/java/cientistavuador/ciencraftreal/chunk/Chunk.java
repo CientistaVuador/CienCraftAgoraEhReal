@@ -29,6 +29,7 @@ package cientistavuador.ciencraftreal.chunk;
 import cientistavuador.ciencraftreal.block.Block;
 import cientistavuador.ciencraftreal.block.BlockRegister;
 import cientistavuador.ciencraftreal.block.Blocks;
+import cientistavuador.ciencraftreal.chunk.render.layer.ChunkLayers;
 import cientistavuador.ciencraftreal.noise.OpenSimplex2;
 import cientistavuador.ciencraftreal.world.WorldCamera;
 import java.util.ArrayList;
@@ -63,6 +64,8 @@ public class Chunk {
 
     private final byte[] blocks = new byte[CHUNK_SIZE * CHUNK_SIZE * CHUNK_HEIGHT];
     private final int[] blocksInHeight = new int[CHUNK_HEIGHT];
+    private final ChunkLayers layers;
+    
     private int highestY = 0;
 
     private boolean markedForRegeneration = false;
@@ -74,6 +77,7 @@ public class Chunk {
         this.world = world;
         this.chunkX = chunkX;
         this.chunkZ = chunkZ;
+        this.layers = new ChunkLayers(this);
     }
 
     public int getTotalApproximateSizeInBytes() {
@@ -316,6 +320,10 @@ public class Chunk {
             generateVertices();
             this.markedForRegeneration = false;
         }
+    }
+
+    public ChunkLayers getLayers() {
+        return layers;
     }
     
 }
