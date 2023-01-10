@@ -192,6 +192,18 @@ public class WorldCamera {
         return this.map[x + (z * VIEW_DISTANCE_SIZE)].getChunk();
     }
     
+    public int length() {
+        return this.map.length;
+    }
+    
+    public Chunk chunkAtIndex(int i) {
+        ChunkManager manager = this.map[i];
+        if (!manager.isBlocksFinished()) {
+            return null;
+        }
+        return manager.getChunk();
+    }
+    
     public void setWorldBlock(int x, int y, int z, Block block) {
         if (y >= Chunk.CHUNK_HEIGHT || y < 0) {
             return;
