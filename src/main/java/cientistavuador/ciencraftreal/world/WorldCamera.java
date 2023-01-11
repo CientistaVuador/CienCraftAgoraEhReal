@@ -39,7 +39,7 @@ import java.util.Arrays;
  */
 public class WorldCamera {
 
-    public static final int VIEW_DISTANCE = 11;
+    public static final int VIEW_DISTANCE = 5;
     public static final int VIEW_DISTANCE_SIZE = (VIEW_DISTANCE * 2) + 1;
     public static final int VIEW_DISTANCE_NUMBER_OF_CHUNKS = VIEW_DISTANCE_SIZE * VIEW_DISTANCE_SIZE;
 
