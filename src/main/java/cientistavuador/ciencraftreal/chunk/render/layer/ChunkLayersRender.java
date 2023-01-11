@@ -26,10 +26,144 @@
  */
 package cientistavuador.ciencraftreal.chunk.render.layer;
 
+import cientistavuador.ciencraftreal.camera.Camera;
+import cientistavuador.ciencraftreal.chunk.Chunk;
+import cientistavuador.ciencraftreal.debug.DebugCounter;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import org.joml.Vector3f;
+import org.joml.Vector3fc;
+
 /**
  *
  * @author Cien
  */
 public class ChunkLayersRender {
+    
+    public static final float DESIRED_PROCESSING_TIME_PER_RENDER = 1f/60f;
+    
+    private static class DistancedChunkLayer {
+        private final ChunkLayer layer;
+        private final Camera camera;
+        private final float distance;
+        
+        public DistancedChunkLayer(ChunkLayer layer, Camera camera) {
+            this.layer = layer;
+            this.camera = camera;
+            Vector3fc cameraPos = camera.getPosition();
+            this.distance = (float) layer.getCenter().distance(
+                    cameraPos.x(),
+                    cameraPos.y(),
+                    cameraPos.z()
+            );
+        }
+
+        public ChunkLayer getLayer() {
+            return layer;
+        }
+
+        public Camera getCamera() {
+            return camera;
+        }
+
+        public float getDistance() {
+            return distance;
+        }
+    }
+    
+    public static void render(Camera camera, ChunkLayers[] chunks) {
+        List<DistancedChunkLayer> layerList = new ArrayList<>(64);
+        
+        for (int i = 0; i < chunks.length; i++) {
+            ChunkLayers layers = chunks[i];
+            
+            for (int j = 0; j < layers.length(); j++) {
+                ChunkLayer layer = layers.layerAt(j);
+                
+                if (layer.cullingStage0(camera)) {
+                    layerList.add(new DistancedChunkLayer(layer, camera));
+                }
+            }
+        }
+        
+        if (layerList.isEmpty()) {
+            return;
+        }
+        
+        layerList.sort((o1, o2) -> {
+            if (o1.getDistance() > o2.getDistance()) {
+                return 1;
+            }
+            if (o1.getDistance() < o2.getDistance()) {
+                return -1;
+            }
+            return 0;
+        });
+        
+        List<ChunkLayer> toProcess = new ArrayList<>();
+        
+        for (DistancedChunkLayer e:layerList) {
+            ChunkLayer layer = e.getLayer();
+            
+            if (!layer.checkVerticesStage1(camera)) {
+                layer.renderStage5(camera);
+                continue;
+            }
+            toProcess.add(layer);
+        }
+        
+        if (toProcess.isEmpty()) {
+            return;
+        }
+        
+        double time = 0.0;
+        ChunkLayer[] buffer = new ChunkLayer[Runtime.getRuntime().availableProcessors()];
+        int packLength = toProcess.size() / buffer.length;
+        if (toProcess.size() % buffer.length != 0) {
+            packLength++;
+        }
+        for (int i = 0; i < packLength; i++) {
+            int packIndex = i*buffer.length;
+            int bufferLength = toProcess.size() - packIndex;
+            if (bufferLength >= buffer.length) {
+                bufferLength = buffer.length;
+            }
+            
+            for (int j = 0; j < bufferLength; j++) {
+                buffer[j] = toProcess.get(j + packIndex);
+            }
+            
+            long here = System.nanoTime();
+            //stage 2
+            for (int j = 0; j < bufferLength; j++) {
+                buffer[j].occlusionStage2(camera);
+            }
+            //stage 3
+            for (int j = 0; j < bufferLength; j++) {
+                boolean result = buffer[j].prepareVerticesStage3();
+                if (!result) {
+                    buffer[j] = null;
+                }
+            }
+            //stage 4
+            for (int j = 0; j < bufferLength; j++) {
+                if (buffer[j] == null) {
+                    continue;
+                }
+                buffer[j].prepareVaoVboStage4();
+            }
+            time += (System.nanoTime() - here) / 1E9d;
+            if (time >= DESIRED_PROCESSING_TIME_PER_RENDER) {
+                break;
+            }
+        }
+        
+    }
+    
+    private ChunkLayersRender() {
+        
+    }
     
 }
