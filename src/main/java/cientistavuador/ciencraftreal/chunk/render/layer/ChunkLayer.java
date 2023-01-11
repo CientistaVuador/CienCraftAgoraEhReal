@@ -142,6 +142,10 @@ public class ChunkLayer {
             return false;
         }
 
+        return true;
+    }
+
+    public boolean occlusionStage2(Camera camera) {
         if (this.occlusionCube == null) {
             this.occlusionCube = new OcclusionCube();
             this.occlusionCube.getSize().set(
@@ -159,8 +163,8 @@ public class ChunkLayer {
         this.occlusionCube.render(camera);
         return true;
     }
-
-    public boolean prepareVerticesStage2() {
+    
+    public boolean prepareVerticesStage3() {
         if (!this.occlusionCube.queryResult()) {
             return false;
         }
@@ -174,7 +178,7 @@ public class ChunkLayer {
         return true;
     }
 
-    public boolean prepareVaoVboStage3() {
+    public boolean prepareVaoVboStage4() {
         Map.Entry<short[], int[]> result;
         try {
             result = this.futureVerticesIndices.get();
@@ -225,7 +229,7 @@ public class ChunkLayer {
         return true;
     }
 
-    public void renderStage4(Camera camera) {
+    public void renderStage5(Camera camera) {
         boolean inside = this.occlusionCube.isInside(camera);
         
         if (!inside) {
