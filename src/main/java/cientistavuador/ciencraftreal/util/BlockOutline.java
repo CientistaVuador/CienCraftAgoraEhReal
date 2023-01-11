@@ -73,7 +73,7 @@ public class BlockOutline {
             layout (location = 0) in vec3 vertexPosition;
             
             void main() {
-                gl_Position = projection * view * vec4(vertexPosition + blockPosition, 1.0);
+                gl_Position = projection * view * vec4((vertexPosition * 1.01) + blockPosition + vec3(0.5, 0.5, -0.5), 1.0);
             }
             """;
 
@@ -96,32 +96,33 @@ public class BlockOutline {
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
         glBufferData(GL_ARRAY_BUFFER, new float[]{
             //sides
-            0f, 0f, 0f,
-            0f, 1f, 0f,
-            1f, 0f, 0f,
-            1f, 1f, 0f,
-            0f, 0f, -1f,
-            0f, 1f, -1f,
-            1f, 0f, -1f,
-            1f, 1f, -1f,
+            -0.5f, -0.5f, 0.5f,
+            -0.5f, 0.5f, 0.5f,
+            0.5f, -0.5f, 0.5f,
+            0.5f, 0.5f, 0.5f,
+            -0.5f, -0.5f, -0.5f,
+            -0.5f, 0.5f, -0.5f,
+            0.5f, -0.5f, -0.5f,
+            0.5f, 0.5f, -0.5f,
             //top
-            0f, 1f, 0f,
-            0f, 1f, -1f,
-            1f, 1f, 0f,
-            1f, 1f, -1f,
-            0f, 1f, 0f,
-            1f, 1f, 0f,
-            0f, 1f, -1f,
-            1f, 1f, -1f,
+            -0.5f, 0.5f, 0.5f,
+            -0.5f, 0.5f, -0.5f,
+            0.5f, 0.5f, 0.5f,
+            0.5f, 0.5f, -0.5f,
+            -0.5f, 0.5f, 0.5f,
+            0.5f, 0.5f, 0.5f,
+            -0.5f, 0.5f, -0.5f,
+            0.5f, 0.5f, -0.5f,
             //bottom
-            0f, 0f, 0f,
-            0f, 0f, -1f,
-            1f, 0f, 0f,
-            1f, 0f, -1f,
-            0f, 0f, 0f,
-            1f, 0f, 0f,
-            0f, 0f, -1f,
-            1f, 0f, -1f,}, GL_STATIC_DRAW);
+            -0.5f, -0.5f, 0.5f,
+            -0.5f, -0.5f, -0.5f,
+            0.5f, -0.5f, 0.5f,
+            0.5f, -0.5f, -0.5f,
+            -0.5f, -0.5f, 0.5f,
+            0.5f, -0.5f, 0.5f,
+            -0.5f, -0.5f, -0.5f,
+            0.5f, -0.5f, -0.5f
+        }, GL_STATIC_DRAW);
 
         glBindVertexArray(vao);
 
