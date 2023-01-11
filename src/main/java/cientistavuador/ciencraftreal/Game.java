@@ -31,12 +31,14 @@ import cientistavuador.ciencraftreal.block.Blocks;
 import cientistavuador.ciencraftreal.debug.Triangle;
 import cientistavuador.ciencraftreal.camera.FreeCamera;
 import cientistavuador.ciencraftreal.chunk.Chunk;
-import cientistavuador.ciencraftreal.chunk.render.layer.ChunkLayer;
 import cientistavuador.ciencraftreal.chunk.render.layer.ChunkLayers;
+import cientistavuador.ciencraftreal.chunk.render.layer.ChunkLayersRender;
 import cientistavuador.ciencraftreal.debug.DebugBlock;
 import cientistavuador.ciencraftreal.debug.DebugCounter;
 import cientistavuador.ciencraftreal.util.BlockOutline;
 import cientistavuador.ciencraftreal.world.WorldCamera;
+import java.util.ArrayList;
+import java.util.List;
 import static org.lwjgl.glfw.GLFW.*;
 
 /**
@@ -70,8 +72,6 @@ public class Game {
         chunk.generateBlocks();
     }
 
-    DebugCounter counter = new DebugCounter("Layer Rendering");
-    
     public void loop() {
         camera.updateMovement();
         triangle.render(camera.getProjection(), camera.getView());
@@ -91,49 +91,16 @@ public class Game {
 
         world.postUpdate();
         
+        List<ChunkLayers> layers = new ArrayList<>();
+        
         for (int i = 0; i < world.length(); i++) {
-            Chunk chunk = world.chunkAtIndex(i);
-            
-            if (chunk == null) {
-                continue;
-            }
-            
-            ChunkLayers layers = chunk.getLayers();
-            
-            for (int j = 0; j < layers.length(); j++) {
-                ChunkLayer layer = layers.layerAt(j);
-                
-                boolean next;
-                
-                counter.markStart("culling");
-                next = layer.cullingStage0(camera);
-                counter.markEnd("culling");
-                if (!next) {
-                    continue;
-                }
-                counter.markStart("checking");
-                next = layer.checkVerticesStage1(camera);
-                counter.markEnd("checking");
-                if (!next) {
-                    counter.markStart("rendering");
-                    layer.renderStage4(camera);
-                    counter.markEnd("rendering");
-                    continue;
-                }
-                
-                counter.markStart("preparing");
-                next = layer.prepareVerticesStage2();
-                counter.markEnd("preparing");
-                if (!next) {
-                    continue;
-                }
-                counter.markStart("vao/vbo");
-                layer.prepareVaoVboStage3();
-                counter.markEnd("vao/vbo");
+            Chunk c = world.chunkAtIndex(i);
+            if (c != null) {
+                layers.add(c.getLayers());
             }
         }
         
-        counter.print();
+        ChunkLayersRender.render(camera, layers.toArray(ChunkLayers[]::new));
     }
 
     public void mouseCursorMoved(double x, double y) {
