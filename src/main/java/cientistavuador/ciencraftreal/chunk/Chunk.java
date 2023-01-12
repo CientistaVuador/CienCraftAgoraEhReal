@@ -42,15 +42,6 @@ import java.util.Random;
  */
 public class Chunk {
 
-    public static final int GENERATOR_SMOOTHNESS = 80;
-    public static final int GENERATOR_DESIRED_MAX_HEIGHT = 74;
-    public static final int GENERATOR_DESIRED_MIN_HEIGHT = 64;
-
-    public static final int GENERATOR_CAVE_SMOOTHNESS_Y = 20;
-    public static final int GENERATOR_CAVE_SMOOTHNESS_XZ = 40;
-    public static final float GENERATOR_CAVE_CUTOFF = 0.2f;
-    public static final float GENERATOR_CAVE_CUTOFF_SURFACE = 0.65f;
-
     public static final int CHUNK_SIZE = 32;
     public static final int CHUNK_HEIGHT = 256;
 
@@ -60,159 +51,36 @@ public class Chunk {
     private final int chunkX;
     private final int chunkZ;
 
-    private final int[] surface = new int[CHUNK_SIZE * CHUNK_SIZE];
-
     private final byte[] blocks = new byte[CHUNK_SIZE * CHUNK_SIZE * CHUNK_HEIGHT];
     private final int[] blocksInHeight = new int[CHUNK_HEIGHT];
     private final ChunkLayers layers;
     
     private int highestY = 0;
 
-    private boolean markedForRegeneration = false;
-    private float[] vertices = new float[0];
-    
-    private RenderableChunk renderableChunk = null;
-
     public Chunk(WorldCamera world, int chunkX, int chunkZ) {
         this.world = world;
         this.chunkX = chunkX;
         this.chunkZ = chunkZ;
         this.layers = new ChunkLayers(this);
-    }
-
-    public int getTotalApproximateSizeInBytes() {
-        int size = 0;
-        size += surface.length * Integer.BYTES;
-        size += blocks.length * Byte.BYTES;
-        size += blocksInHeight.length * Integer.BYTES;
-        size += vertices.length * Float.BYTES;
-        return size;
+        generateBlocks();
     }
     
-    public int getVerticesSizeInBytes() {
-        return this.vertices.length * Float.BYTES;
-    }
-    
-    public void generateBlocks() {
-        long seed = this.world.getSeed();
-
-        for (int z = 0; z < CHUNK_SIZE; z++) {
-            for (int x = 0; x < CHUNK_SIZE; x++) {
-                float worldX = (x + (chunkX * CHUNK_SIZE)) + 0.5f;
-                float worldZ = (-z + (chunkZ * CHUNK_SIZE)) - 0.5f;
-
-                worldX /= GENERATOR_SMOOTHNESS;
-                worldZ /= GENERATOR_SMOOTHNESS;
-
-                float value = OpenSimplex2.noise2(seed, worldX, worldZ);
-                value = (value + 1f) / 2f;
-
-                int height = (int) (value * (GENERATOR_DESIRED_MAX_HEIGHT - GENERATOR_DESIRED_MIN_HEIGHT)) + GENERATOR_DESIRED_MIN_HEIGHT;
-
-                if (height > this.highestY) {
-                    this.highestY = height;
-                }
-
-                setSurfaceY(x, -z, height);
-            }
-        }
-
-        Random random = new Random(seed);
-
-        long caveSeed = random.nextLong();
-        long bedrockSeed = random.nextLong();
-
-        for (int y = this.highestY; y >= 0; y--) {
-            for (int z = 0; z >= -(CHUNK_SIZE - 1); z--) {
+    private void generateBlocks() {
+        for (int y = 0; y < CHUNK_HEIGHT; y++) {
+            for (int z = 0; z < CHUNK_SIZE; z++) {
                 for (int x = 0; x < CHUNK_SIZE; x++) {
-                    float worldX = (x + (chunkX * CHUNK_SIZE)) + 0.5f;
-                    float worldY = (y + 0.5f);
-                    float worldZ = (z + (chunkZ * CHUNK_SIZE)) - 0.5f;
-
-                    int surfaceHeight = getSurfaceY(x, z);
-
-                    if (y <= surfaceHeight) {
-                        setBlockImpl(x, y, z, Blocks.STONE);
-                    }
-
-                    int distanceFromSurface = (y - surfaceHeight);
-
-                    if (distanceFromSurface <= 0 && distanceFromSurface >= -3) {
-                        if (distanceFromSurface == 0) {
-                            setBlockImpl(x, y, z, Blocks.GRASS);
-                        } else {
-                            setBlockImpl(x, y, z, Blocks.DIRT);
-                        }
-                    }
-
-                    float cutoff
-                            = (y / ((float) surfaceHeight))
-                            * (GENERATOR_CAVE_CUTOFF_SURFACE - GENERATOR_CAVE_CUTOFF)
-                            + GENERATOR_CAVE_CUTOFF;
-
-                    if (y > 3 && OpenSimplex2.noise3_ImproveXY(caveSeed, worldX / GENERATOR_CAVE_SMOOTHNESS_XZ, worldY / GENERATOR_CAVE_SMOOTHNESS_Y, worldZ / GENERATOR_CAVE_SMOOTHNESS_XZ) > cutoff) {
-                        setBlockImpl(x, y, z, Blocks.AIR);
-                    }
-
-                    if (y == 0) {
-                        setBlockImpl(x, y, z, Blocks.BEDROCK);
-                    }
-                    if (y == 1 && OpenSimplex2.noise2(bedrockSeed, worldX, worldZ) > -0.5) {
-                        setBlockImpl(x, y, z, Blocks.BEDROCK);
-                    }
-                    if (y == 2 && OpenSimplex2.noise2(bedrockSeed, worldX + 1f, worldZ - 1f) > 0) {
-                        setBlockImpl(x, y, z, Blocks.BEDROCK);
-                    }
-                    if (y == 3 && OpenSimplex2.noise2(bedrockSeed, worldX + 2f, worldZ - 2f) > 0.5) {
-                        setBlockImpl(x, y, z, Blocks.BEDROCK);
+                    switch (y) {
+                        case 0 -> setBlockImpl(x, y, -z, Blocks.BEDROCK);
+                        case 1 -> setBlockImpl(x, y, -z, Blocks.IRON_ORE);
+                        case 2 -> setBlockImpl(x, y, -z, Blocks.COAL_ORE);
+                        case 3 -> setBlockImpl(x, y, -z, Blocks.DIRT);
+                        case 4 -> setBlockImpl(x, y, -z, Blocks.GRASS);
                     }
                 }
             }
         }
     }
 
-    public void generateVertices() {
-        List<float[]> blockVerticesList = new ArrayList<>(64);
-        int blockVerticesLength = 0;
-
-        for (int y = this.highestY; y >= 0; y--) {
-            for (int x = 0; x < CHUNK_SIZE; x++) {
-                for (int z = 0; z >= -(CHUNK_SIZE - 1); z--) {
-                    Block block = getBlockImpl(x, y, z);
-
-                    if (block == Blocks.AIR) {
-                        continue;
-                    }
-
-                    float[] blockVertices = block.generateVertices(
-                            this,
-                            x,
-                            y,
-                            z
-                    );
-
-                    if (blockVertices == null || blockVertices.length == 0) {
-                        continue;
-                    }
-
-                    blockVerticesList.add(blockVertices);
-                    blockVerticesLength += blockVertices.length;
-                }
-            }
-        }
-
-        this.vertices = new float[blockVerticesLength];
-        int vertexCounter = 0;
-        for (float[] blockVertices : blockVerticesList) {
-            System.arraycopy(blockVertices, 0, this.vertices, vertexCounter, blockVertices.length);
-            vertexCounter += blockVertices.length;
-        }
-        
-        if (this.renderableChunk != null) {
-            this.renderableChunk.onVertexUpdate();
-        }
-    }
-    
     private void setBlockImpl(int x, int y, int z, Block block) {
         int index = x + (-z * CHUNK_SIZE) + (y * CHUNK_SIZE * CHUNK_SIZE);
 
@@ -250,32 +118,29 @@ public class Chunk {
                 }
             }
         }
+        
+        this.layers.layerAtY(y).delete();
     }
     
-    public int getAmountOfBlocksInY(int y) {
-        return this.blocksInHeight[y];
+    public void setBlock(int x, int y, int z, Block block) {
+        setBlockImpl(x, y, z, block);
     }
-
+    
     private Block getBlockImpl(int x, int y, int z) {
         int index = x + (-z * CHUNK_SIZE) + (y * CHUNK_SIZE * CHUNK_SIZE);
         return BlockRegister.getBlock(Byte.toUnsignedInt(this.blocks[index]));
-    }
-
-    private void setSurfaceY(int x, int z, int value) {
-        this.surface[x + (-z * CHUNK_SIZE)] = value;
-    }
-
-    public void setBlock(int x, int y, int z, Block block) {
-        setBlockImpl(x, y, z, block);
-        this.markedForRegeneration = true;
     }
     
     public Block getBlock(int x, int y, int z) {
         return getBlockImpl(x, y, z);
     }
-
-    public float[] getVertices() {
-        return vertices.clone();
+    
+    public int getAmountOfBlocksInY(int y) {
+        return this.blocksInHeight[y];
+    }
+    
+    public int getHighestY() {
+        return highestY;
     }
 
     public WorldCamera getWorld() {
@@ -289,39 +154,7 @@ public class Chunk {
     public int getChunkZ() {
         return chunkZ;
     }
-
-    public int getHighestY() {
-        return highestY;
-    }
-
-    public int getSurfaceY(int x, int z) {
-        return this.surface[x + (-z * CHUNK_SIZE)];
-    }
-
-    public RenderableChunk getRenderableChunk() {
-        return renderableChunk;
-    }
-
-    protected void setRenderableChunk(RenderableChunk renderableChunk) {
-        this.renderableChunk = renderableChunk;
-        renderableChunk.onVertexUpdate();
-    }
     
-    public boolean markedForRegeneration() {
-        return this.markedForRegeneration;
-    }
-    
-    public void markForRegeneration() {
-        this.markedForRegeneration = true;
-    }
-    
-    public void updateVertices() {
-        if (this.markedForRegeneration) {
-            generateVertices();
-            this.markedForRegeneration = false;
-        }
-    }
-
     public ChunkLayers getLayers() {
         return layers;
     }

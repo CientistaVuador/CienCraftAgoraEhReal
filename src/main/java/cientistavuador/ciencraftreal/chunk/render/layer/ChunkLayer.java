@@ -60,6 +60,7 @@ public class ChunkLayer {
 
     private boolean useCachedElimination = false;
     private boolean eliminate = false;
+    private boolean deleted = true;
 
     private OcclusionCube occlusionCube = null;
     private Future<Map.Entry<short[], int[]>> futureVerticesIndices = null;
@@ -100,6 +101,7 @@ public class ChunkLayer {
     }
 
     public boolean cullingStage0(Camera camera) {
+        this.deleted = false;
         if (doPreElimination()) {
             return false;
         }
@@ -258,7 +260,14 @@ public class ChunkLayer {
         glUseProgram(0);
     }
 
+    public boolean isDeleted() {
+        return deleted;
+    }
+    
     public void delete() {
+        if (this.deleted) {
+            return;
+        }
         if (this.occlusionCube != null) {
             this.occlusionCube.delete();
         }
@@ -289,5 +298,6 @@ public class ChunkLayer {
         this.vao = 0;
         this.vbo = 0;
         this.ebo = 0;
+        this.deleted = true;
     }
 }

@@ -24,47 +24,27 @@
  *
  * For more information, please refer to <https://unlicense.org>
  */
-package cientistavuador.ciencraftreal.chunk.render.layer;
+package cientistavuador.ciencraftreal.chunk.biome.biomes;
 
 import cientistavuador.ciencraftreal.chunk.Chunk;
+import cientistavuador.ciencraftreal.chunk.biome.Biome;
+import cientistavuador.ciencraftreal.chunk.biome.BiomeDefinition;
+import cientistavuador.ciencraftreal.chunk.biome.BiomeGenerator;
+import cientistavuador.ciencraftreal.chunk.biome.BiomeMap;
 
 /**
  *
  * @author Cien
  */
-public class ChunkLayers {
-
-    private final Chunk chunk;
-    private final ChunkLayer[] layers = new ChunkLayer[Chunk.CHUNK_HEIGHT / ChunkLayer.HEIGHT];
+public class GrassPlains extends Biome {
     
-    public ChunkLayers(Chunk chunk) {
-        this.chunk = chunk;
-        for (int i = 0; i < this.layers.length; i++) {
-            layers[i] = new ChunkLayer(chunk, i * ChunkLayer.HEIGHT);
-        }
-    }
-    
-    public Chunk getChunk() {
-        return chunk;
-    }
-    
-    public int length() {
-        return this.layers.length;
-    }
-    
-    public ChunkLayer layerAt(int index) {
-        return this.layers[index];
-    }
-    
-    public ChunkLayer layerAtY(int y) {
-        y /= ChunkLayer.HEIGHT;
-        return layerAt(y);
-    }
-
-    public void delete() {
-        for (int i = 0; i < this.layers.length; i++) {
-            this.layers[i].delete();
-        }
+    public GrassPlains() {
+        super("grass_plains", new BiomeDefinition(), new BiomeGenerator() {
+            @Override
+            public void generateColumn(BiomeMap map, float temperature, float humidity, Chunk chunk, int chunkBlockX, int chunkBlockZ) {
+                //todo
+            }
+        });
     }
     
 }

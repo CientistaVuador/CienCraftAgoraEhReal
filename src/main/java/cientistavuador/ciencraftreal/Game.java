@@ -59,17 +59,13 @@ public class Game {
     private final WorldCamera world = new WorldCamera(camera, 65487321654L);
     private final BlockOutline outline = new BlockOutline(world, camera);
     private int currentBlockId = Blocks.HAPPY_2023.getId();
-    private final Chunk chunk = new Chunk(world, 0, 0);
-    private final ChunkLayers layers = new ChunkLayers(chunk);
 
     private Game() {
 
     }
 
     public void start() {
-        camera.setPosition(0, Chunk.GENERATOR_DESIRED_MAX_HEIGHT, 0);
-        
-        chunk.generateBlocks();
+        camera.setPosition(0, 7, 0);
     }
 
     public void loop() {
@@ -84,23 +80,10 @@ public class Game {
         }
 
         world.update();
-        //world.render();
+        world.render();
 
         outline.update();
         outline.render();
-
-        world.postUpdate();
-        
-        List<ChunkLayers> layers = new ArrayList<>();
-        
-        for (int i = 0; i < world.length(); i++) {
-            Chunk c = world.chunkAtIndex(i);
-            if (c != null) {
-                layers.add(c.getLayers());
-            }
-        }
-        
-        ChunkLayersRender.render(camera, layers.toArray(ChunkLayers[]::new));
     }
 
     public void mouseCursorMoved(double x, double y) {
