@@ -118,6 +118,8 @@ public class ChunkLayersRender {
             return;
         }
         
+        ArrayDeque<ChunkLayer> finishedProcessing = new ArrayDeque<>(64);
+        
         double time = 0.0;
         ChunkLayer[] buffer = new ChunkLayer[Runtime.getRuntime().availableProcessors()];
         int packLength = toProcess.size() / buffer.length;
@@ -154,12 +156,22 @@ public class ChunkLayersRender {
                 }
                 buffer[j].prepareVaoVboStage4();
             }
+            for (int j = 0; j < bufferLength; j++) {
+                if (buffer[j] == null) {
+                    continue;
+                }
+                finishedProcessing.add(buffer[j]);
+            }
             time += (System.nanoTime() - here) / 1E9d;
             if (time >= DESIRED_PROCESSING_TIME_PER_RENDER) {
                 break;
             }
         }
         
+        ChunkLayer f;
+        while ((f = finishedProcessing.poll()) != null) {
+            f.renderStage5(camera);
+        }
     }
     
     private ChunkLayersRender() {

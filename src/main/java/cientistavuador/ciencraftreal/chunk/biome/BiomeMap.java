@@ -77,6 +77,10 @@ public class BiomeMap {
         return register.getBiome(this.biomeMap[(int) (Math.floor(humidity) + (Math.floor(temperature) * MAP_SIZE))]);
     }
     
+    public float biomeDefinitionAt(float humidity, float temperature, int definition) {
+        return 0f;
+    }
+    
     public int fill(float humidityStart, float temperatureStart, float humidityEnd, float temperatureEnd, Biome biome) {
         checkHumidity(humidityStart);
         checkTemperature(temperatureStart);

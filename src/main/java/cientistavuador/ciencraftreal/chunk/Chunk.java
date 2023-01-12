@@ -30,11 +30,7 @@ import cientistavuador.ciencraftreal.block.Block;
 import cientistavuador.ciencraftreal.block.BlockRegister;
 import cientistavuador.ciencraftreal.block.Blocks;
 import cientistavuador.ciencraftreal.chunk.render.layer.ChunkLayers;
-import cientistavuador.ciencraftreal.noise.OpenSimplex2;
 import cientistavuador.ciencraftreal.world.WorldCamera;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
 
 /**
  *
@@ -83,7 +79,7 @@ public class Chunk {
 
     private void setBlockImpl(int x, int y, int z, Block block) {
         int index = x + (-z * CHUNK_SIZE) + (y * CHUNK_SIZE * CHUNK_SIZE);
-
+        
         boolean removing = (Blocks.AIR == block);
         byte blockAtIndex = this.blocks[index];
 
@@ -120,6 +116,12 @@ public class Chunk {
         }
         
         this.layers.layerAtY(y).delete();
+        if (y < (CHUNK_HEIGHT-1)) {
+            this.layers.layerAtY(y+1).delete();
+        }
+        if (y > 0) {
+            this.layers.layerAtY(y-1).delete();
+        }
     }
     
     public void setBlock(int x, int y, int z, Block block) {

@@ -33,5 +33,5 @@ import cientistavuador.ciencraftreal.chunk.Chunk;
  * @author Cien
  */
 public interface BiomeGenerator {
-    public void generateColumn(BiomeMap map, float temperature, float humidity, Chunk chunk, int chunkBlockX, int chunkBlockZ);
+    public void generateColumn(Chunk chunk, int chunkBlockX, int chunkBlockZ);
 }

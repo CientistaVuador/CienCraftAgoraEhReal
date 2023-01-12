@@ -24,23 +24,20 @@
  *
  * For more information, please refer to <https://unlicense.org>
  */
-package cientistavuador.ciencraftreal.chunk.biome.biomes;
+package cientistavuador.ciencraftreal.chunk.biome.biomes.generators;
 
 import cientistavuador.ciencraftreal.chunk.Chunk;
-import cientistavuador.ciencraftreal.chunk.biome.Biome;
-import cientistavuador.ciencraftreal.chunk.biome.BiomeDefinition;
 import cientistavuador.ciencraftreal.chunk.biome.BiomeGenerator;
-import cientistavuador.ciencraftreal.chunk.biome.BiomeMap;
-import cientistavuador.ciencraftreal.chunk.biome.biomes.generators.GrassPlainsGenerator;
 
 /**
  *
  * @author Cien
  */
-public class GrassPlains extends Biome {
-    
-    public GrassPlains() {
-        super("grass_plains", new BiomeDefinition(), new GrassPlainsGenerator());
+public class GrassPlainsGenerator implements BiomeGenerator {
+
+    @Override
+    public void generateColumn(Chunk chunk, int chunkBlockX, int chunkBlockZ) {
+        //todo
     }
     
 }
