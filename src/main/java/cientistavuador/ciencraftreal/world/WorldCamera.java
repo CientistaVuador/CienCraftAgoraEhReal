@@ -38,8 +38,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -144,6 +142,13 @@ public class WorldCamera {
                 try {
                     Object result = e.get();
                     if (result instanceof Chunk f) {
+                        int chunkX = f.getChunkX();
+                        int chunkZ = f.getChunkZ();
+                        
+                        deleteLayersIfPossible(chunkX + 1, chunkZ);
+                        deleteLayersIfPossible(chunkX - 1, chunkZ);
+                        deleteLayersIfPossible(chunkX, chunkZ + 1);
+                        deleteLayersIfPossible(chunkX, chunkZ - 1);
                         this.map[i] = f;
                     } else {
                         throw new RuntimeException("what");
@@ -152,6 +157,13 @@ public class WorldCamera {
                     throw new RuntimeException(ex);
                 }
             }
+        }
+    }
+    
+    private void deleteLayersIfPossible(int chunkX, int chunkZ) {
+        Chunk c = getChunk(chunkX, chunkZ);
+        if (c != null) {
+            c.getLayers().delete();
         }
     }
 
@@ -170,7 +182,11 @@ public class WorldCamera {
         chunkX = chunkX + VIEW_DISTANCE;
         chunkZ = -chunkZ + VIEW_DISTANCE;
         
-        Object m = this.map[chunkX + (chunkZ * VIEW_DISTANCE_SIZE)];
+        int index = chunkX + (chunkZ * VIEW_DISTANCE_SIZE);
+        if (index < 0 || index >= this.map.length) {
+            return null;
+        }
+        Object m = this.map[index];
         if (m instanceof Chunk e) {
             return e;
         }
