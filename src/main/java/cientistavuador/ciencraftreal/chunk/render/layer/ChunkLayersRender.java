@@ -156,6 +156,7 @@ public class ChunkLayersRender {
                 }
                 buffer[j].prepareVaoVboStage4();
             }
+            //add to queue
             for (int j = 0; j < bufferLength; j++) {
                 if (buffer[j] == null) {
                     continue;
@@ -168,6 +169,7 @@ public class ChunkLayersRender {
             }
         }
         
+        //process the queue
         ChunkLayer f;
         while ((f = finishedProcessing.poll()) != null) {
             f.renderStage5(camera);
