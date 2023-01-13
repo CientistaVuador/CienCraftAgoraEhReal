@@ -30,15 +30,9 @@ import cientistavuador.ciencraftreal.block.BlockRegister;
 import cientistavuador.ciencraftreal.block.Blocks;
 import cientistavuador.ciencraftreal.debug.Triangle;
 import cientistavuador.ciencraftreal.camera.FreeCamera;
-import cientistavuador.ciencraftreal.chunk.Chunk;
-import cientistavuador.ciencraftreal.chunk.render.layer.ChunkLayers;
-import cientistavuador.ciencraftreal.chunk.render.layer.ChunkLayersRender;
 import cientistavuador.ciencraftreal.debug.DebugBlock;
-import cientistavuador.ciencraftreal.debug.DebugCounter;
 import cientistavuador.ciencraftreal.util.BlockOutline;
 import cientistavuador.ciencraftreal.world.WorldCamera;
-import java.util.ArrayList;
-import java.util.List;
 import static org.lwjgl.glfw.GLFW.*;
 
 /**
@@ -84,6 +78,8 @@ public class Game {
 
         outline.update();
         outline.render();
+        
+        Main.WINDOW_TITLE += " (Selected: "+BlockRegister.getBlock(this.currentBlockId).getName()+")";
     }
 
     public void mouseCursorMoved(double x, double y) {

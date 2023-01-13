@@ -83,6 +83,7 @@ public class Main {
         }
     }
 
+    public static String WINDOW_TITLE = "CienCraft - FPS: 60";
     public static int WIDTH = 800;
     public static int HEIGHT = 600;
     public static double TPF = 1 / 60d;
@@ -112,7 +113,7 @@ public class Main {
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-        WINDOW_POINTER = glfwCreateWindow(Main.WIDTH, Main.HEIGHT, "CienCraft - FPS: 60", NULL, NULL);
+        WINDOW_POINTER = glfwCreateWindow(Main.WIDTH, Main.HEIGHT, Main.WINDOW_TITLE, NULL, NULL);
         if (WINDOW_POINTER == NULL) {
             throw new IllegalStateException("Could not create a OpenGL 3.3 Context Window! Update your drivers or buy a new GPU.");
         }
@@ -174,13 +175,16 @@ public class Main {
 
         int frames = 0;
         long nextFpsUpdate = System.currentTimeMillis() + 1000;
+        long nextTitleUpdate = System.currentTimeMillis() + 100;
 
         while (!glfwWindowShouldClose(WINDOW_POINTER)) {
             long timeFrameBegin = System.nanoTime();
-
+            
             glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
             glfwPollEvents();
 
+            Main.WINDOW_TITLE = "CienCraft - FPS: " + Main.FPS;
+            
             Game.get().loop();
 
             glFlush();
@@ -194,11 +198,17 @@ public class Main {
                 Main.FPS = frames;
                 frames = 0;
                 nextFpsUpdate = System.currentTimeMillis() + 1000;
-
-                glfwSetWindowTitle(WINDOW_POINTER, "CienCraft - FPS: " + Main.FPS);
             }
+            
+            if (System.currentTimeMillis() >= nextTitleUpdate) {
+                nextTitleUpdate = System.currentTimeMillis() + 100;
+                glfwSetWindowTitle(WINDOW_POINTER, Main.WINDOW_TITLE);
+            }
+            
             Main.FRAME++;
             Main.TPF = (System.nanoTime() - timeFrameBegin) / 1E9d;
+            
+            
         }
 
         glfwTerminate();
