@@ -154,8 +154,9 @@ public class ChunkLayersRender {
                 if (buffer[j] == null) {
                     continue;
                 }
-                buffer[j].prepareVaoVboStage4();
-                finishedProcessing.add(buffer[j]);
+                if (buffer[j].prepareVaoVboStage4()) {
+                    finishedProcessing.add(buffer[j]);
+                }
             }
             time += (System.nanoTime() - here) / 1E9d;
             if (time >= DESIRED_PROCESSING_TIME_PER_RENDER) {
