@@ -28,10 +28,13 @@ package cientistavuador.ciencraftreal;
 
 import cientistavuador.ciencraftreal.block.BlockTextures;
 import cientistavuador.ciencraftreal.block.Blocks;
+import java.io.PrintStream;
 import static org.lwjgl.glfw.GLFW.*;
 import org.lwjgl.glfw.GLFWFramebufferSizeCallbackI;
 import org.lwjgl.opengl.GL;
 import static org.lwjgl.opengl.GL33C.*;
+import org.lwjgl.opengl.GLDebugMessageCallback;
+import static org.lwjgl.opengl.KHRDebug.*;
 import static org.lwjgl.system.MemoryUtil.*;
 
 /**
@@ -41,6 +44,8 @@ import static org.lwjgl.system.MemoryUtil.*;
  */
 public class Main {
 
+    public static final boolean DEBUG_ENABLED = true;
+    
     static {
         org.lwjgl.system.Configuration.LIBRARY_PATH.set("natives");
     }
@@ -90,7 +95,42 @@ public class Main {
     public static int FPS = 60;
     public static long WINDOW_POINTER = NULL;
     public static long FRAME = 0;
+    private static GLDebugMessageCallback DEBUG_CALLBACK = null;
 
+    private static String debugSource(int source) {
+        return switch (source) {
+            case GL_DEBUG_SOURCE_API -> "API";
+            case GL_DEBUG_SOURCE_WINDOW_SYSTEM -> "WINDOW SYSTEM";
+            case GL_DEBUG_SOURCE_SHADER_COMPILER -> "SHADER COMPILER";
+            case GL_DEBUG_SOURCE_THIRD_PARTY -> "THIRD PARTY";
+            case GL_DEBUG_SOURCE_APPLICATION -> "APPLICATION";
+            case GL_DEBUG_SOURCE_OTHER -> "OTHER";
+            default -> "UNKNOWN";
+        };
+    }
+
+    private static String debugType(int type) {
+        return switch (type) {
+            case GL_DEBUG_TYPE_ERROR -> "ERROR";
+            case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR -> "DEPRECATED BEHAVIOR";
+            case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR -> "UNDEFINED BEHAVIOR";
+            case GL_DEBUG_TYPE_PORTABILITY -> "PORTABILITY";
+            case GL_DEBUG_TYPE_PERFORMANCE -> "PERFORMANCE";
+            case GL_DEBUG_TYPE_OTHER -> "OTHER";
+            case GL_DEBUG_TYPE_MARKER -> "MARKER";
+            default -> "UNKNOWN";
+        };
+    }
+
+    private static String debugSeverity(int severity) {
+        return switch (severity) {
+            case GL_DEBUG_SEVERITY_HIGH -> "HIGH";
+            case GL_DEBUG_SEVERITY_MEDIUM -> "MEDIUM";
+            case GL_DEBUG_SEVERITY_LOW -> "LOW";
+            default -> "UNKNOWN";
+        };
+    }
+    
     /**
      * @param args the command line arguments
      */
@@ -127,6 +167,41 @@ public class Main {
 
         GL.createCapabilities();
 
+        if (DEBUG_ENABLED) {
+            debug: {
+                if (!GL.getCapabilities().GL_KHR_debug) {
+                    System.err.println("[GL-DEBUG] Debug was enabled but KHR_debug is not supported.");
+                    break debug;
+                }
+                
+                glEnable(GL_DEBUG_OUTPUT);
+                
+                DEBUG_CALLBACK = new GLDebugMessageCallback() {
+                    @Override
+                    public void invoke(int source, int type, int id, int severity, int length, long message, long userParam) {
+                        if (severity == GL_DEBUG_SEVERITY_NOTIFICATION) {
+                            return;
+                        }
+                        
+                        String msg = memASCII(message, length);
+                        
+                        PrintStream out = System.out;
+                        if (severity == GL_DEBUG_SEVERITY_HIGH) {
+                            out = System.err;
+                        }
+                        
+                        out.println("[GL-DEBUG]");
+                        out.println("    Severity: "+debugSeverity(severity));
+                        out.println("    Source: "+debugSource(source));
+                        out.println("    Type: "+debugType(type));
+                        out.println("    ID: "+id);
+                        out.println("    Message: "+msg);
+                    }
+                };
+                glDebugMessageCallback(DEBUG_CALLBACK, NULL);
+            }
+        }
+        
         //glEnable(GL_MULTISAMPLE);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -210,7 +285,10 @@ public class Main {
             
             
         }
-
+        if (DEBUG_ENABLED) {
+            DEBUG_CALLBACK.free();
+        }
+        
         glfwTerminate();
         
         System.exit(0);
