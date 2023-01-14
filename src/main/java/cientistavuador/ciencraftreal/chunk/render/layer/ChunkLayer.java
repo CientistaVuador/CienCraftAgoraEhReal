@@ -74,9 +74,9 @@ public class ChunkLayer {
         this.chunk = chunk;
         this.y = y;
         this.center = new Vector3d(
-                chunk.getChunkX() + (Chunk.CHUNK_SIZE / 2.0),
+                (chunk.getChunkX() * Chunk.CHUNK_SIZE) + (Chunk.CHUNK_SIZE / 2.0),
                 y + (HEIGHT / 2.0),
-                chunk.getChunkZ() - (Chunk.CHUNK_SIZE / 2.0)
+                (chunk.getChunkZ() * Chunk.CHUNK_SIZE) - (Chunk.CHUNK_SIZE / 2.0)
         );
     }
 
