@@ -239,8 +239,6 @@ public class BlockOutline {
         glLineWidth(1f);
         glBindVertexArray(0);
         glUseProgram(0);
-
-        Main.checkGLError();
     }
 
 }
