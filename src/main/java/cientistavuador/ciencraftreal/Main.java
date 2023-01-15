@@ -28,6 +28,7 @@ package cientistavuador.ciencraftreal;
 
 import cientistavuador.ciencraftreal.block.BlockTextures;
 import cientistavuador.ciencraftreal.block.Blocks;
+import cientistavuador.ciencraftreal.chunk.biome.Biomes;
 import java.io.PrintStream;
 import static org.lwjgl.glfw.GLFW.*;
 import org.lwjgl.glfw.GLFWFramebufferSizeCallbackI;
@@ -218,6 +219,7 @@ public class Main {
         //GLPool.init(); //static initialize
         BlockTextures.init();  //static initialize
         Blocks.init(); //static initialize
+        Biomes.init(); //static initialize
         Game.get(); //static initialize
         
         Main.checkGLError();
