@@ -34,10 +34,12 @@ import cientistavuador.ciencraftreal.chunk.biome.biomes.generators.GrassPlainsGe
  *
  * @author Cien
  */
-public class GrassPlains extends Biome {
+public class GrassMountains extends Biome {
     
-    public GrassPlains() {
-        super("grass_plains", new BiomeDefinition(), new GrassPlainsGenerator());
+    public GrassMountains() {
+        super("grass_mountains", new BiomeDefinition() {{
+            set(GENERATOR_DESIRED_MAX_HEIGHT, 150f);
+        }}, new GrassPlainsGenerator());
     }
     
 }
