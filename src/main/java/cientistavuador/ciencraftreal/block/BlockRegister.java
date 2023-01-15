@@ -26,38 +26,43 @@
  */
 package cientistavuador.ciencraftreal.block;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+
 /**
  *
  * @author Cien
  */
 public class BlockRegister {
-    
+
     public static final int MAX_AMOUNT_OF_BLOCKS = 256;
-    
+
     private static final SimpleBlock[] blocks = new SimpleBlock[MAX_AMOUNT_OF_BLOCKS];
     private static int currentId = 1;
-    
+
     public static SimpleBlock getBlock(int id) {
         if (id >= currentId) {
             throw new IndexOutOfBoundsException(id);
         }
         return blocks[id];
     }
-    
+
     public static int register(SimpleBlock block) {
         if (currentId >= blocks.length) {
             throw new RuntimeException("Out of Blocks IDs space!");
         }
         blocks[currentId] = block;
-        block.setBlockID(currentId);
+        block.setId(currentId);
         return currentId++;
     }
-    
+
     public static int numberOfRegisteredBlocks() {
         return currentId;
     }
-    
+
     private BlockRegister() {
-        
+
     }
 }

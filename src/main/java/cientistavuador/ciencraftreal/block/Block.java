@@ -38,6 +38,7 @@ public interface Block {
     
     String getName();
     int getId();
+    void setId(int id);
     float[] generateVertices(Chunk chunk, int chunkBlockX, int chunkBlockY, int chunkBlockZ);
     BlockTransparency getBlockTransparency();
 }

@@ -71,10 +71,6 @@ public abstract class SimpleBlock implements Block {
         sideTextures[BlockSide.TOP.index()] = topTexture;
         sideTextures[BlockSide.BOTTOM.index()] = bottomTexture;
     }
-
-    protected final void setBlockID(int id) {
-        this.blockId = id;
-    }
     
     protected final void setBlockSideTexture(BlockSide side, int texture) {
         if (side == null) {
@@ -91,6 +87,11 @@ public abstract class SimpleBlock implements Block {
     @Override
     public BlockTransparency getBlockTransparency() {
         return BlockTransparency.SOLID;
+    }
+    
+    @Override
+    public void setId(int id) {
+        this.blockId = id;
     }
 
     @Override
