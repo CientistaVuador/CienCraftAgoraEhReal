@@ -27,13 +27,9 @@
 package cientistavuador.ciencraftreal.chunk.render.layer;
 
 import cientistavuador.ciencraftreal.camera.Camera;
-import cientistavuador.ciencraftreal.chunk.Chunk;
-import cientistavuador.ciencraftreal.debug.DebugCounter;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
 /**

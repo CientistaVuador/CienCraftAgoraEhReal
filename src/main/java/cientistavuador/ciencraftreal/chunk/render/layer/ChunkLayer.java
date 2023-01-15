@@ -124,7 +124,6 @@ public class ChunkLayer {
             this.eliminate = true;
             return this.eliminate;
         }
-
         if (this.chunk.getHighestY() < this.y) {
             this.eliminate = true;
             return this.eliminate;
@@ -232,6 +231,10 @@ public class ChunkLayer {
     }
 
     public void renderStage5(Camera camera) {
+        if (this.vertices.length == 0) {
+            return;
+        }
+        
         boolean inside = this.occlusionCube.isInside(camera);
         
         if (!inside) {
@@ -244,7 +247,7 @@ public class ChunkLayer {
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D_ARRAY, BlockTextures.GL_TEXTURE_ARRAY);
-
+        
         glBindVertexArray(this.vao);
 
         if (!inside) {
