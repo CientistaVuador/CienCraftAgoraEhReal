@@ -26,7 +26,10 @@
  */
 package cientistavuador.ciencraftreal.chunk.biome.biomes.generators;
 
+import cientistavuador.ciencraftreal.block.Blocks;
 import cientistavuador.ciencraftreal.chunk.Chunk;
+import cientistavuador.ciencraftreal.chunk.biome.Biome;
+import cientistavuador.ciencraftreal.chunk.biome.BiomeDefinition;
 import cientistavuador.ciencraftreal.chunk.biome.BiomeGenerator;
 
 /**
@@ -37,7 +40,12 @@ public class GrassPlainsGenerator implements BiomeGenerator {
 
     @Override
     public void generateColumn(Chunk chunk, int chunkBlockX, int chunkBlockZ) {
-        //todo
+        Biome biome = chunk.getBiome(chunkBlockX, chunkBlockZ);
+        int yStart = (int) biome.getDefinition().get(BiomeDefinition.GENERATOR_DESIRED_MAX_HEIGHT);
+        
+        for (int y = yStart; y >= 0; y--) {
+            chunk.setBlock(chunkBlockX, y, chunkBlockZ, Blocks.STONE);
+        }
     }
     
 }
