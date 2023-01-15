@@ -30,6 +30,7 @@ import cientistavuador.ciencraftreal.block.Block;
 import cientistavuador.ciencraftreal.block.Blocks;
 import cientistavuador.ciencraftreal.camera.Camera;
 import cientistavuador.ciencraftreal.chunk.Chunk;
+import cientistavuador.ciencraftreal.chunk.biome.Biome;
 import cientistavuador.ciencraftreal.chunk.biome.BiomeMap;
 import cientistavuador.ciencraftreal.chunk.render.layer.ChunkLayers;
 import cientistavuador.ciencraftreal.chunk.render.layer.ChunkLayersRender;
@@ -329,6 +330,29 @@ public class WorldCamera {
         return Blocks.AIR;
     }
 
+    public Biome getBiome(int x, int z) {
+        int cX = (int) Math.floor((float) x / Chunk.CHUNK_SIZE);
+        int cZ = (int) Math.ceil((float) z / Chunk.CHUNK_SIZE);
+
+        int camChunkX = cX - this.chunkX;
+        int camChunkZ = cZ - this.chunkZ;
+
+        if (camChunkX < -VIEW_DISTANCE || camChunkX > VIEW_DISTANCE) {
+            return null;
+        }
+
+        if (camChunkZ < -VIEW_DISTANCE || camChunkZ > VIEW_DISTANCE) {
+            return null;
+        }
+        
+        Chunk c = getLocalChunk(camChunkX, camChunkZ);
+        if (c != null) {
+            return c.getBiome(x - (cX * Chunk.CHUNK_SIZE), z - (cZ * Chunk.CHUNK_SIZE));
+        }
+        
+        return null;
+    }
+    
     public void render() {
         List<ChunkLayers> layers = new ArrayList<>();
         
