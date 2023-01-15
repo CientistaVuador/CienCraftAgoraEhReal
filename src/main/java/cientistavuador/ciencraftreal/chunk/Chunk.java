@@ -29,6 +29,8 @@ package cientistavuador.ciencraftreal.chunk;
 import cientistavuador.ciencraftreal.block.Block;
 import cientistavuador.ciencraftreal.block.BlockRegister;
 import cientistavuador.ciencraftreal.block.Blocks;
+import cientistavuador.ciencraftreal.chunk.biome.Biome;
+import cientistavuador.ciencraftreal.chunk.biome.Biomes;
 import cientistavuador.ciencraftreal.chunk.render.layer.ChunkLayers;
 import cientistavuador.ciencraftreal.world.WorldCamera;
 
@@ -49,7 +51,7 @@ public class Chunk {
 
     private final byte[] blocks = new byte[CHUNK_SIZE * CHUNK_SIZE * CHUNK_HEIGHT];
     private final int[] blocksInHeight = new int[CHUNK_HEIGHT];
-    private final float[] umidityTemperatureMap = new float[CHUNK_SIZE * CHUNK_SIZE * 2];
+    private final float[] humidityTemperatureMap = new float[CHUNK_SIZE * CHUNK_SIZE * 2];
     private final byte[] biomeMap = new byte[CHUNK_SIZE * CHUNK_SIZE];
     private final ChunkLayers layers;
     
@@ -67,25 +69,41 @@ public class Chunk {
     private void generateBiomes() {
         for (int z = 0; z < CHUNK_SIZE; z++) {
             for (int x = 0; x < CHUNK_SIZE; x++) {
+                double blockX = (x + (this.chunkX * Chunk.CHUNK_SIZE)) + 0.5;
+                double blockZ = (-z + (this.chunkZ * Chunk.CHUNK_SIZE)) - 0.5;
                 
+                float humidity = this.world.getHumidity(blockX, blockZ);
+                float temperature = this.world.getTemperature(blockX, blockZ);
+                
+                Biome biome = Biomes.DEFAULT_MAP.biomeAt(humidity, temperature);
+                
+                this.humidityTemperatureMap[((x + (z * Chunk.CHUNK_SIZE)) * 2) + 0] = humidity;
+                this.humidityTemperatureMap[((x + (z * Chunk.CHUNK_SIZE)) * 2) + 1] = temperature;
+                this.biomeMap[x + (z * Chunk.CHUNK_SIZE)] = (byte) biome.getId();
             }
         }
     }
     
     private void generateBlocks() {
-        for (int y = 0; y < CHUNK_HEIGHT; y++) {
-            for (int z = 0; z < CHUNK_SIZE; z++) {
-                for (int x = 0; x < CHUNK_SIZE; x++) {
-                    switch (y) {
-                        case 0 -> setBlockImpl(x, y, -z, Blocks.BEDROCK);
-                        case 1 -> setBlockImpl(x, y, -z, Blocks.IRON_ORE);
-                        case 2 -> setBlockImpl(x, y, -z, Blocks.COAL_ORE);
-                        case 3 -> setBlockImpl(x, y, -z, Blocks.DIRT);
-                        case 4 -> setBlockImpl(x, y, -z, Blocks.GRASS);
-                    }
-                }
+        for (int z = 0; z < CHUNK_SIZE; z++) {
+            for (int x = 0; x < CHUNK_SIZE; x++) {
+                //todo: fix constructor leak
+                getBiomeImpl(x, -z).getGenerator().generateColumn(this, x, -z);
             }
         }
+        /*for (int y = 0; y < CHUNK_HEIGHT; y++) {
+        for (int z = 0; z < CHUNK_SIZE; z++) {
+        for (int x = 0; x < CHUNK_SIZE; x++) {
+        switch (y) {
+        case 0 -> setBlockImpl(x, y, -z, Blocks.BEDROCK);
+        case 1 -> setBlockImpl(x, y, -z, Blocks.IRON_ORE);
+        case 2 -> setBlockImpl(x, y, -z, Blocks.COAL_ORE);
+        case 3 -> setBlockImpl(x, y, -z, Blocks.DIRT);
+        case 4 -> setBlockImpl(x, y, -z, Blocks.GRASS);
+        }
+        }
+        }
+        }*/
     }
 
     private void setBlockImpl(int x, int y, int z, Block block) {
@@ -170,6 +188,22 @@ public class Chunk {
     
     public ChunkLayers getLayers() {
         return layers;
+    }
+    
+    public float getHumidity(int x, int z) {
+        return this.humidityTemperatureMap[((x + (-z * Chunk.CHUNK_SIZE)) * 2) + 0];
+    }
+    
+    public float getTemperature(int x, int z) {
+        return this.humidityTemperatureMap[((x + (-z * Chunk.CHUNK_SIZE)) * 2) + 1];
+    }
+    
+    private Biome getBiomeImpl(int x, int z) {
+        return Biomes.DEFAULT_REGISTER.getBiome(Byte.toUnsignedInt(this.biomeMap[x + (-z * Chunk.CHUNK_SIZE)]));
+    }
+    
+    public Biome getBiome(int x, int z) {
+        return getBiomeImpl(x, z);
     }
     
 }
