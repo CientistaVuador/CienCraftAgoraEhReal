@@ -28,6 +28,7 @@ package cientistavuador.ciencraftreal;
 
 import cientistavuador.ciencraftreal.block.BlockRegister;
 import cientistavuador.ciencraftreal.block.Blocks;
+import cientistavuador.ciencraftreal.block.SimpleBlock;
 import cientistavuador.ciencraftreal.debug.Triangle;
 import cientistavuador.ciencraftreal.camera.FreeCamera;
 import cientistavuador.ciencraftreal.chunk.biome.Biome;
@@ -70,7 +71,9 @@ public class Game {
 
         for (int i = 1; i < BlockRegister.numberOfRegisteredBlocks(); i++) {
             block.getModel().identity().translate(1 + (i * 1), 0, 0);
-            block.copySideTextures(BlockRegister.getBlock(i));
+            if (BlockRegister.getBlock(i) instanceof SimpleBlock e) {
+                block.copySideTextures(e);
+            }
             block.render(camera.getProjection(), camera.getView());
         }
 
