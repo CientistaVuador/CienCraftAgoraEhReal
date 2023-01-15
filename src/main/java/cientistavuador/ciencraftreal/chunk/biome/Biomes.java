@@ -26,6 +26,7 @@
  */
 package cientistavuador.ciencraftreal.chunk.biome;
 
+import cientistavuador.ciencraftreal.chunk.biome.biomes.GrassMountains;
 import cientistavuador.ciencraftreal.chunk.biome.biomes.GrassPlains;
 
 /**
@@ -38,10 +39,18 @@ public class Biomes {
     public static final BiomeMap DEFAULT_MAP = new BiomeMap(DEFAULT_REGISTER);
     
     public static final GrassPlains PLAINS = new GrassPlains();
+    public static final GrassMountains MOUNTAINS = new GrassMountains();
     
     static {
         DEFAULT_REGISTER.register(PLAINS);
+        DEFAULT_REGISTER.register(MOUNTAINS);
+        
         DEFAULT_MAP.fill(BiomeMap.HUMIDITY_MIN, BiomeMap.TEMPERATURE_MIN, BiomeMap.HUMIDITY_MAX, BiomeMap.TEMPERATURE_MAX, PLAINS);
+        DEFAULT_MAP.fill(BiomeMap.HUMIDITY_MIN, BiomeMap.TEMPERATURE_MIN, BiomeMap.HUMIDITY_MAX, 0f, MOUNTAINS);
+    }
+    
+    public static void init() {
+        
     }
     
     private Biomes() {

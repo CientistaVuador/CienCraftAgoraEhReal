@@ -42,7 +42,7 @@ public class BiomeRegister {
     }
     
     public void register(Biome biome) {
-        if (biome.getId() != -1) {
+        if (biome.id != -1) {
             throw new IllegalArgumentException("Already registered!");
         }
         if (index == MAX_AMOUNT_OF_BIOMES) {
