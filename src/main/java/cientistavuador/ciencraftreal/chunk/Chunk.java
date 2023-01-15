@@ -49,6 +49,8 @@ public class Chunk {
 
     private final byte[] blocks = new byte[CHUNK_SIZE * CHUNK_SIZE * CHUNK_HEIGHT];
     private final int[] blocksInHeight = new int[CHUNK_HEIGHT];
+    private final float[] umidityTemperatureMap = new float[CHUNK_SIZE * CHUNK_SIZE * 2];
+    private final byte[] biomeMap = new byte[CHUNK_SIZE * CHUNK_SIZE];
     private final ChunkLayers layers;
     
     private int highestY = 0;
@@ -58,7 +60,16 @@ public class Chunk {
         this.chunkX = chunkX;
         this.chunkZ = chunkZ;
         this.layers = new ChunkLayers(this);
+        generateBiomes();
         generateBlocks();
+    }
+    
+    private void generateBiomes() {
+        for (int z = 0; z < CHUNK_SIZE; z++) {
+            for (int x = 0; x < CHUNK_SIZE; x++) {
+                
+            }
+        }
     }
     
     private void generateBlocks() {

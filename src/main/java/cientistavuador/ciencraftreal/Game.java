@@ -80,6 +80,8 @@ public class Game {
         outline.render();
         
         Main.WINDOW_TITLE += " (Selected: "+BlockRegister.getBlock(this.currentBlockId).getName()+")";
+        Main.WINDOW_TITLE += " (Temperature: "+world.getTemperature(this.camera.getPosition().x(), this.camera.getPosition().z())+"C )";
+        Main.WINDOW_TITLE += " (Humidity: "+world.getHumidity(this.camera.getPosition().x(), this.camera.getPosition().z())+"% )";
     }
 
     public void mouseCursorMoved(double x, double y) {

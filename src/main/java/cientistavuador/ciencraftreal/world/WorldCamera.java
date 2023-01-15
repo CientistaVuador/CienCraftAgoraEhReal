@@ -30,11 +30,14 @@ import cientistavuador.ciencraftreal.block.Block;
 import cientistavuador.ciencraftreal.block.Blocks;
 import cientistavuador.ciencraftreal.camera.Camera;
 import cientistavuador.ciencraftreal.chunk.Chunk;
+import cientistavuador.ciencraftreal.chunk.biome.BiomeMap;
 import cientistavuador.ciencraftreal.chunk.render.layer.ChunkLayers;
 import cientistavuador.ciencraftreal.chunk.render.layer.ChunkLayersRender;
+import cientistavuador.ciencraftreal.noise.OpenSimplex2;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -45,6 +48,8 @@ import java.util.concurrent.Future;
  */
 public class WorldCamera {
 
+    public static final int HUMIDITY_TEMPERATURE_SCALE = 4000;
+    
     public static final int VIEW_DISTANCE = 5;
     public static final int VIEW_DISTANCE_SIZE = (VIEW_DISTANCE * 2) + 1;
     public static final int VIEW_DISTANCE_NUMBER_OF_CHUNKS = VIEW_DISTANCE_SIZE * VIEW_DISTANCE_SIZE;
@@ -52,6 +57,8 @@ public class WorldCamera {
     private final Object[] map = new Object[VIEW_DISTANCE_NUMBER_OF_CHUNKS];
 
     private final long seed;
+    private final long temperatureSeed;
+    private final long humiditySeed;
     private final Camera camera;
     private int oldChunkX = 0;
     private int oldChunkZ = 0;
@@ -61,8 +68,42 @@ public class WorldCamera {
     public WorldCamera(Camera camera, long seed) {
         this.camera = camera;
         this.seed = seed;
+        
+        Random random = new Random(seed);
+        this.temperatureSeed = random.nextLong();
+        this.humiditySeed = random.nextLong();
     }
 
+    public long getTemperatureSeed() {
+        return temperatureSeed;
+    }
+
+    public long getHumiditySeed() {
+        return humiditySeed;
+    }
+    
+    public float getTemperature(double x, double z) {
+        float value = OpenSimplex2.noise2(this.temperatureSeed,
+                x / HUMIDITY_TEMPERATURE_SCALE,
+                z / HUMIDITY_TEMPERATURE_SCALE
+        );
+        value = (value + 1f) / 2f;
+        value *= (BiomeMap.TEMPERATURE_MAX - BiomeMap.TEMPERATURE_MIN);
+        value += BiomeMap.TEMPERATURE_MIN;
+        return value;
+    }
+    
+    public float getHumidity(double x, double z) {
+        float value = OpenSimplex2.noise2(this.humiditySeed,
+                x / HUMIDITY_TEMPERATURE_SCALE,
+                z / HUMIDITY_TEMPERATURE_SCALE
+        );
+        value = (value + 1f) / 2f;
+        value *= (BiomeMap.HUMIDITY_MAX - BiomeMap.HUMIDITY_MIN);
+        value += BiomeMap.HUMIDITY_MIN;
+        return value;
+    }
+    
     private void updatePosition() {
         int camChunkX = (int) Math.floor(camera.getPosition().x() / Chunk.CHUNK_SIZE);
         int camChunkZ = (int) Math.ceil(camera.getPosition().z() / Chunk.CHUNK_SIZE);
