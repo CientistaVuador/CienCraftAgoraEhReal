@@ -31,6 +31,7 @@ import cientistavuador.ciencraftreal.chunk.Chunk;
 import cientistavuador.ciencraftreal.chunk.biome.Biome;
 import cientistavuador.ciencraftreal.chunk.biome.BiomeDefinition;
 import cientistavuador.ciencraftreal.chunk.biome.BiomeGenerator;
+import cientistavuador.ciencraftreal.chunk.biome.Biomes;
 
 /**
  *
@@ -40,8 +41,9 @@ public class GrassPlainsGenerator implements BiomeGenerator {
 
     @Override
     public void generateColumn(Chunk chunk, int chunkBlockX, int chunkBlockZ) {
-        Biome biome = chunk.getBiome(chunkBlockX, chunkBlockZ);
-        int yStart = (int) biome.getDefinition().get(BiomeDefinition.GENERATOR_DESIRED_MAX_HEIGHT);
+        float humidity = chunk.getHumidity(chunkBlockX, chunkBlockZ);
+        float temperature = chunk.getTemperature(chunkBlockX, chunkBlockZ);
+        int yStart = (int) Biomes.DEFAULT_MAP.getBiomeDefinitionAt(humidity, temperature, BiomeDefinition.GENERATOR_DESIRED_MAX_HEIGHT);
         
         for (int y = yStart; y >= 0; y--) {
             chunk.setBlock(chunkBlockX, y, chunkBlockZ, Blocks.STONE);
