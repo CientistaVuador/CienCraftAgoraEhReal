@@ -32,6 +32,8 @@ package cientistavuador.ciencraftreal.chunk.biome;
  */
 public class BiomeDefinition {
     
+    public static final int LENGTH = 7;
+    
     public static final int GENERATOR_SMOOTHNESS = 0;
     public static final int GENERATOR_DESIRED_MAX_HEIGHT = 1;
     public static final int GENERATOR_DESIRED_MIN_HEIGHT = 2;

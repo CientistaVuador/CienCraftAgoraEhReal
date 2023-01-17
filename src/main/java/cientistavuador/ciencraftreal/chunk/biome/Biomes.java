@@ -47,6 +47,8 @@ public class Biomes {
         
         DEFAULT_MAP.fill(BiomeMap.HUMIDITY_MIN, BiomeMap.TEMPERATURE_MIN, BiomeMap.HUMIDITY_MAX, BiomeMap.TEMPERATURE_MAX, PLAINS);
         DEFAULT_MAP.fill(BiomeMap.HUMIDITY_MIN, BiomeMap.TEMPERATURE_MIN, BiomeMap.HUMIDITY_MAX, 0f, MOUNTAINS);
+        
+        DEFAULT_MAP.createDefinitionMaps();
     }
     
     public static void init() {

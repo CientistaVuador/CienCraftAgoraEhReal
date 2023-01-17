@@ -26,7 +26,7 @@
  */
 package cientistavuador.ciencraftreal.chunk.biome;
 
-import java.util.Objects;
+import cientistavuador.ciencraftreal.chunk.biome.definitionmap.BiomeDefinitionMaps;
 
 /**
  *
@@ -42,6 +42,7 @@ public class BiomeMap {
     
     private final BiomeRegister register;
     private final byte[] biomeMap = new byte[MAP_SIZE * MAP_SIZE];
+    private BiomeDefinitionMaps maps = null;
     
     public BiomeMap(BiomeRegister register) {
         this.register = register;
@@ -51,43 +52,29 @@ public class BiomeMap {
         return register;
     }
     
-    private void checkHumidity(float value) {
-        if (value > HUMIDITY_MAX) {
-            throw new IllegalArgumentException("Humidity "+value+" out of bounds for "+HUMIDITY_MAX);
-        }
-        if (value < HUMIDITY_MIN) {
-            throw new IllegalArgumentException("Humidity "+value+" out of bounds for "+HUMIDITY_MIN);
-        }
+    public void createDefinitionMaps() {
+        this.maps = new BiomeDefinitionMaps(this);
     }
     
-    private void checkTemperature(float value) {
-        if (value > TEMPERATURE_MAX) {
-            throw new IllegalArgumentException("Temperature "+value+" out of bounds for "+TEMPERATURE_MAX);
-        }
-        if (value < TEMPERATURE_MIN) {
-            throw new IllegalArgumentException("Temperature "+value+" out of bounds for "+TEMPERATURE_MIN);
-        }
+    public int length() {
+        return this.biomeMap.length;
     }
     
-    public Biome biomeAt(float humidity, float temperature) {
-        checkHumidity(humidity);
-        checkTemperature(temperature);
+    public Biome getBiomeAtIndex(int i) {
+        return register.getBiome(this.biomeMap[i]);
+    }
+    
+    public Biome getBiomeAt(float humidity, float temperature) {
         humidity = ((humidity - HUMIDITY_MIN) / (HUMIDITY_MAX - HUMIDITY_MIN)) * MAP_SIZE;
         temperature = ((temperature - TEMPERATURE_MIN) / (TEMPERATURE_MAX - TEMPERATURE_MIN)) * MAP_SIZE;
         return register.getBiome(this.biomeMap[(int) (Math.floor(humidity) + (Math.floor(temperature) * MAP_SIZE))]);
     }
     
-    public float biomeDefinitionAt(float humidity, float temperature, int definition) {
-        return 0f;
+    public float getBiomeDefinitionAt(float humidity, float temperature, int field) {
+        return this.maps.getFieldMap(field).valueAt(humidity, temperature);
     }
     
     public int fill(float humidityStart, float temperatureStart, float humidityEnd, float temperatureEnd, Biome biome) {
-        checkHumidity(humidityStart);
-        checkTemperature(temperatureStart);
-        checkHumidity(humidityEnd);
-        checkTemperature(temperatureEnd);
-        Objects.requireNonNull(biome);
-        
         humidityStart -= HUMIDITY_MIN;
         humidityEnd -= HUMIDITY_MIN;
         temperatureStart -= TEMPERATURE_MIN;
