@@ -75,7 +75,7 @@ public class Chunk {
                 float humidity = this.world.getHumidity(blockX, blockZ);
                 float temperature = this.world.getTemperature(blockX, blockZ);
                 
-                Biome biome = Biomes.DEFAULT_MAP.biomeAt(humidity, temperature);
+                Biome biome = Biomes.DEFAULT_MAP.getBiomeAt(humidity, temperature);
                 
                 this.humidityTemperatureMap[((x + (z * Chunk.CHUNK_SIZE)) * 2) + 0] = humidity;
                 this.humidityTemperatureMap[((x + (z * Chunk.CHUNK_SIZE)) * 2) + 1] = temperature;
