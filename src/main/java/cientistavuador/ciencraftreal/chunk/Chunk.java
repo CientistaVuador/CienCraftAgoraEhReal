@@ -41,7 +41,7 @@ import cientistavuador.ciencraftreal.world.WorldCamera;
 public class Chunk {
 
     public static final int CHUNK_SIZE = 32;
-    public static final int CHUNK_HEIGHT = 256;
+    public static final int CHUNK_HEIGHT = 128;
 
     public static final int RENDER_VERTEX_SIZE = 3 + 2 + 1;
 
@@ -62,8 +62,8 @@ public class Chunk {
         this.chunkX = chunkX;
         this.chunkZ = chunkZ;
         this.layers = new ChunkLayers(this);
-        generateBiomes();
-        generateBlocks();
+        //generateBiomes();
+        //generateBlocks();
     }
     
     private void generateBiomes() {

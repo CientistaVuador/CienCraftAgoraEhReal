@@ -32,6 +32,8 @@ import cientistavuador.ciencraftreal.camera.Camera;
 import cientistavuador.ciencraftreal.chunk.Chunk;
 import cientistavuador.ciencraftreal.chunk.biome.Biome;
 import cientistavuador.ciencraftreal.chunk.biome.BiomeMap;
+import cientistavuador.ciencraftreal.chunk.generation.ChunkGenerator;
+import cientistavuador.ciencraftreal.chunk.generation.ChunkGeneratorFactory;
 import cientistavuador.ciencraftreal.chunk.render.layer.ChunkLayers;
 import cientistavuador.ciencraftreal.chunk.render.layer.ChunkLayersRender;
 import cientistavuador.ciencraftreal.noise.OpenSimplex2;
@@ -65,16 +67,22 @@ public class WorldCamera {
     private int oldChunkZ = 0;
     private int chunkX = 0;
     private int chunkZ = 0;
+    private final ChunkGeneratorFactory chunkGeneratorFactory;
 
-    public WorldCamera(Camera camera, long seed) {
+    public WorldCamera(Camera camera, long seed, ChunkGeneratorFactory chunkGeneratorFactory) {
         this.camera = camera;
         this.seed = seed;
         
         Random random = new Random(seed);
         this.temperatureSeed = random.nextLong();
         this.humiditySeed = random.nextLong();
+        this.chunkGeneratorFactory = chunkGeneratorFactory;
     }
 
+    public ChunkGeneratorFactory getChunkGeneratorFactory() {
+        return chunkGeneratorFactory;
+    }
+    
     public long getTemperatureSeed() {
         return temperatureSeed;
     }
@@ -176,7 +184,12 @@ public class WorldCamera {
 
             Object m = this.map[i];
             if (m == null) {
-                this.map[i] = CompletableFuture.supplyAsync(() -> new Chunk(this, this.chunkX + x, this.chunkZ + z));
+                this.map[i] = CompletableFuture.supplyAsync(() -> {
+                    Chunk chunk = new Chunk(this, this.chunkX + x, this.chunkZ + z);
+                    ChunkGenerator generator = this.chunkGeneratorFactory.create(chunk);
+                    generator.generate();
+                    return chunk;
+                });
             } else if (m instanceof Future<?> e) {
                 if (!e.isDone()) {
                     continue;

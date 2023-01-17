@@ -32,6 +32,7 @@ import cientistavuador.ciencraftreal.block.SimpleBlock;
 import cientistavuador.ciencraftreal.debug.Triangle;
 import cientistavuador.ciencraftreal.camera.FreeCamera;
 import cientistavuador.ciencraftreal.chunk.biome.Biome;
+import cientistavuador.ciencraftreal.chunk.generation.WorldChunkGeneratorFactory;
 import cientistavuador.ciencraftreal.debug.DebugBlock;
 import cientistavuador.ciencraftreal.util.BlockOutline;
 import cientistavuador.ciencraftreal.world.WorldCamera;
@@ -52,7 +53,7 @@ public class Game {
     private final Triangle triangle = new Triangle();
     private final FreeCamera camera = new FreeCamera();
     private final DebugBlock block = new DebugBlock();
-    private final WorldCamera world = new WorldCamera(camera, 65487321654L);
+    private final WorldCamera world = new WorldCamera(camera, 65487321654L, new WorldChunkGeneratorFactory());
     private final BlockOutline outline = new BlockOutline(world, camera);
     private int currentBlockId = Blocks.HAPPY_2023.getId();
 
@@ -61,7 +62,7 @@ public class Game {
     }
 
     public void start() {
-        camera.setPosition(0, 7, 0);
+        camera.setPosition(0, 80, 0);
     }
 
     public void loop() {

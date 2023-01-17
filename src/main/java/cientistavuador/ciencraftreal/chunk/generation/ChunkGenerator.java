@@ -24,23 +24,12 @@
  *
  * For more information, please refer to <https://unlicense.org>
  */
-package cientistavuador.ciencraftreal.chunk.biome.biomes;
-
-import cientistavuador.ciencraftreal.chunk.biome.Biome;
-import cientistavuador.ciencraftreal.chunk.biome.BiomeDefinition;
-import cientistavuador.ciencraftreal.chunk.biome.biomes.generators.GrassPlainsGenerator;
+package cientistavuador.ciencraftreal.chunk.generation;
 
 /**
  *
  * @author Cien
  */
-public class GrassMountains extends Biome {
-    
-    public GrassMountains() {
-        super("grass_mountains", new BiomeDefinition() {{
-            set(GENERATOR_DESIRED_MAX_HEIGHT, 100f);
-            set(GENERATOR_DESIRED_MIN_HEIGHT, 74f);
-        }}, new GrassPlainsGenerator());
-    }
-    
+public interface ChunkGenerator {
+    public void generate();
 }

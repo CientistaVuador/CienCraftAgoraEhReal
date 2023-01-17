@@ -69,6 +69,11 @@ public class Blocks {
         BlockRegister.register(HAPPY_2023);
     }
     
+    public static final Block[] ORES = new Block[] {
+        COAL_ORE,
+        IRON_ORE
+    };
+    
     public static void init() {
         
     }
