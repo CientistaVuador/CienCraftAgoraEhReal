@@ -27,6 +27,7 @@
 package cientistavuador.ciencraftreal.chunk.generation;
 
 import cientistavuador.ciencraftreal.block.Block;
+import cientistavuador.ciencraftreal.block.BlockRegister;
 import cientistavuador.ciencraftreal.block.Blocks;
 import cientistavuador.ciencraftreal.chunk.Chunk;
 import cientistavuador.ciencraftreal.noise.OpenSimplex2;
@@ -41,23 +42,31 @@ public class WorldChunkGenerator implements ChunkGenerator {
     public static final int MAX_HEIGHT = 74;
     public static final int MIN_HEIGHT = 64;
     public static final int SMOOTHNESS = 80;
-    
-    public static final int ORE_TYPE_AREA = 1000;
+
+    public static final int ORE_TYPE_AREA = 500;
     public static final int ORE_SIZE = 400;
-    public static final float ORE_CHANCE = 0.2f;
+    public static final float ORE_CHANCE = 0.1f;
 
     private final Chunk chunk;
     private final int[] surfaceMap = new int[Chunk.CHUNK_SIZE * Chunk.CHUNK_SIZE];
     private final int[] oreMap = new int[Chunk.CHUNK_SIZE * Chunk.CHUNK_SIZE];
+    private final int[] oreClueMap = new int[Chunk.CHUNK_SIZE * Chunk.CHUNK_SIZE];
     private final long bedrockSeed;
     private final long oreSeed;
     private final Random treeRandom;
+    private final Random oreClueRandom;
 
     public WorldChunkGenerator(Chunk chunk) {
         this.chunk = chunk;
-        this.bedrockSeed = new Random(chunk.getWorld().getSeed()).nextLong();
-        this.oreSeed = new Random(this.bedrockSeed).nextLong();
-        this.treeRandom = new Random(this.oreSeed);
+        
+        Random seedGenerator = new Random(chunk.getWorld().getSeed());
+        this.bedrockSeed = seedGenerator.nextLong();
+        this.oreSeed = seedGenerator.nextLong();
+        
+        long chunkSeed = (((long)this.chunk.getChunkX()) << 32) + this.chunk.getChunkZ();
+        seedGenerator.setSeed(chunk.getWorld().getSeed() ^ chunkSeed);
+        this.treeRandom = new Random(seedGenerator.nextLong());
+        this.oreClueRandom = new Random(seedGenerator.nextLong());
     }
 
     public Chunk getChunk() {
@@ -79,7 +88,8 @@ public class WorldChunkGenerator implements ChunkGenerator {
                 }
             }
         }
-        
+
+        generateOreClues();
         generateTrees();
     }
 
@@ -169,35 +179,49 @@ public class WorldChunkGenerator implements ChunkGenerator {
     }
 
     private void generateOres(int x, int y, int z) {
-        if (y < 10 || y > 50) {
-            return;
-        }
-        Block oreType = Blocks.ORES[this.oreMap[x + (-z * Chunk.CHUNK_SIZE)]];
+        if (y >= 10 && y <= 50) {
+            Block oreType = Blocks.ORES[this.oreMap[x + (-z * Chunk.CHUNK_SIZE)]];
 
-        float value = OpenSimplex2.noise3_ImproveXZ(this.oreSeed,
-                ((x + 0.5) + this.chunk.getChunkX() * Chunk.CHUNK_SIZE) / ORE_SIZE,
-                (y + 0.5) / ORE_SIZE,
-                ((z - 0.5) + this.chunk.getChunkZ() * Chunk.CHUNK_SIZE) / ORE_SIZE
-        );
-        value = (value + 1f) * 0.5f;
-        
-        if (value > (1f - ORE_CHANCE)) {
-            this.chunk.setBlock(x, y, z, oreType);
-        }
-    }
-    
-    private void generateTrees() {
-        for (int x = 1; x < (Chunk.CHUNK_SIZE-1); x++) {
-            for (int z = 1; z < (Chunk.CHUNK_SIZE-1); z++) {
-                if (this.treeRandom.nextFloat() > 0.75f) {
-                    int surface = this.surfaceMap[x + (z * Chunk.CHUNK_SIZE)];
-                    
-                    placeTree(x, surface, -z);
-                }
+            float value = OpenSimplex2.noise3_ImproveXZ(this.oreSeed,
+                    ((x + 0.5) + this.chunk.getChunkX() * Chunk.CHUNK_SIZE) / ORE_SIZE,
+                    (y + 0.5) / ORE_SIZE,
+                    ((z - 0.5) + this.chunk.getChunkZ() * Chunk.CHUNK_SIZE) / ORE_SIZE
+            );
+            value = (value + 1f) * 0.5f;
+
+            if (value > (1f - ORE_CHANCE)) {
+                this.chunk.setBlock(x, y, z, oreType);
+                this.oreClueMap[x + (-z * Chunk.CHUNK_SIZE)] = oreType.getId();
             }
         }
     }
     
+    private void generateOreClues() {
+        for (int x = 0; x < Chunk.CHUNK_SIZE; x++) {
+            for (int z = 0; z < Chunk.CHUNK_SIZE; z++) {
+                int ore = this.oreClueMap[x + (z * Chunk.CHUNK_SIZE)];
+                
+                if (ore != 0 && this.oreClueRandom.nextInt(200) == 0) {
+                    int surface = this.surfaceMap[x + (z * Chunk.CHUNK_SIZE)];
+                    
+                    this.chunk.setBlock(x, surface, -z, BlockRegister.getBlock(ore));
+                }
+            }
+        }
+    }
+
+    private void generateTrees() {
+        for (int x = 1; x < (Chunk.CHUNK_SIZE - 1); x++) {
+            for (int z = 1; z < (Chunk.CHUNK_SIZE - 1); z++) {
+                if (this.treeRandom.nextFloat() > 0.75f) {
+                    int surface = this.surfaceMap[x + (z * Chunk.CHUNK_SIZE)];
+
+                    //placeTree(x, surface, -z);
+                }
+            }
+        }
+    }
+
     private void placeTree(int x, int y, int z) {
         for (int i = 0; i < 5; i++) {
             this.chunk.setBlock(x, y + i, z, Blocks.WOOD);
