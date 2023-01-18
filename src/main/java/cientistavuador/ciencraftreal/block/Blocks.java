@@ -32,7 +32,9 @@ import cientistavuador.ciencraftreal.block.blocks.Dirt;
 import cientistavuador.ciencraftreal.block.blocks.Grass;
 import cientistavuador.ciencraftreal.block.blocks.Happy2023;
 import cientistavuador.ciencraftreal.block.blocks.IronOre;
+import cientistavuador.ciencraftreal.block.blocks.Leaves;
 import cientistavuador.ciencraftreal.block.blocks.Stone;
+import cientistavuador.ciencraftreal.block.blocks.Wood;
 
 /**
  * @author Shinoa Hiragi
@@ -54,6 +56,10 @@ public class Blocks {
     //1.0-DEV-HAPPY-2023
     public static final Happy2023 HAPPY_2023 = new Happy2023();
     
+    //2.0-DEV
+    public static final Wood WOOD = new Wood();
+    public static final Leaves LEAVES = new Leaves();
+    
     static {
         //0.5-DEV
         BlockRegister.register(GRASS);
@@ -67,6 +73,10 @@ public class Blocks {
         
         //1.0-DEV-HAPPY-2023
         BlockRegister.register(HAPPY_2023);
+        
+        //2.0-DEV
+        BlockRegister.register(WOOD);
+        BlockRegister.register(LEAVES);
     }
     
     public static final Block[] ORES = new Block[] {

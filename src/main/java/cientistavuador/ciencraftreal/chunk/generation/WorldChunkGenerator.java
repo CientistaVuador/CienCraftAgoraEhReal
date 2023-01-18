@@ -187,11 +187,21 @@ public class WorldChunkGenerator implements ChunkGenerator {
     }
     
     private void generateTrees() {
-        
+        for (int x = 1; x < (Chunk.CHUNK_SIZE-1); x++) {
+            for (int z = 1; z < (Chunk.CHUNK_SIZE-1); z++) {
+                if (this.treeRandom.nextFloat() > 0.75f) {
+                    int surface = this.surfaceMap[x + (z * Chunk.CHUNK_SIZE)];
+                    
+                    placeTree(x, surface, -z);
+                }
+            }
+        }
     }
     
     private void placeTree(int x, int y, int z) {
-        
+        for (int i = 0; i < 5; i++) {
+            this.chunk.setBlock(x, y + i, z, Blocks.WOOD);
+        }
     }
 
 }

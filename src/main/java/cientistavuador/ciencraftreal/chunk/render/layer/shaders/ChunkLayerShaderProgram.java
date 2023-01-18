@@ -86,7 +86,11 @@ public class ChunkLayerShaderProgram {
             layout (location = 0) out vec4 out_Color;
             
             void main() {
-                out_Color = texture(textures, vec3(inoutTexCoords, float(inoutTextureID)));
+                vec4 color = texture(textures, vec3(inoutTexCoords, float(inoutTextureID)));
+                if (color.a < 0.5) {
+                    discard;
+                }
+                out_Color = vec4(color.rgb, 1.0);
             }
             """;
     

@@ -147,28 +147,28 @@ public class ChunkLayer {
     }
 
     public boolean occlusionStage2(Camera camera) {
-        if (this.occlusionCube == null) {
-            this.occlusionCube = new OcclusionCube();
-            this.occlusionCube.getSize().set(
-                    Chunk.CHUNK_SIZE,
-                    ChunkLayer.HEIGHT,
-                    Chunk.CHUNK_SIZE
-            );
-            this.occlusionCube.getPosition().set(
-                    this.chunk.getChunkX() * Chunk.CHUNK_SIZE,
-                    this.y,
-                    this.chunk.getChunkZ() * Chunk.CHUNK_SIZE
-            );
-        }
+        /*if (this.occlusionCube == null) {
+        this.occlusionCube = new OcclusionCube();
+        this.occlusionCube.getSize().set(
+        Chunk.CHUNK_SIZE,
+        ChunkLayer.HEIGHT,
+        Chunk.CHUNK_SIZE
+        );
+        this.occlusionCube.getPosition().set(
+        this.chunk.getChunkX() * Chunk.CHUNK_SIZE,
+        this.y,
+        this.chunk.getChunkZ() * Chunk.CHUNK_SIZE
+        );
+        }*/
 
-        this.occlusionCube.render(camera);
+        //this.occlusionCube.render(camera);
         return true;
     }
     
     public boolean prepareVerticesStage3() {
-        if (!this.occlusionCube.queryResult()) {
-            return false;
-        }
+        //if (!this.occlusionCube.queryResult()) {
+        //    return false;
+        //}
 
         this.futureVerticesIndices = CompletableFuture.supplyAsync(() -> {
             float[] verticesCreated = VerticesCreator.create(this);
@@ -235,11 +235,11 @@ public class ChunkLayer {
             return;
         }
         
-        boolean inside = this.occlusionCube.isInside(camera);
+        /*boolean inside = this.occlusionCube.isInside(camera);
         
         if (!inside) {
-            this.occlusionCube.render(camera);
-        }
+        this.occlusionCube.render(camera);
+        }*/
 
         glUseProgram(ChunkLayerShaderProgram.SHADER_PROGRAM);
 
@@ -250,13 +250,13 @@ public class ChunkLayer {
         
         glBindVertexArray(this.vao);
 
-        if (!inside) {
-            this.occlusionCube.beginConditionalRender(camera);
-        }
+        /*if (!inside) {
+        this.occlusionCube.beginConditionalRender(camera);
+        }*/
         glDrawElements(GL_TRIANGLES, this.indices.length, GL_UNSIGNED_INT, 0);
-        if (!inside) {
-            this.occlusionCube.endConditionalRender();
-        }
+        /*if (!inside) {
+        this.occlusionCube.endConditionalRender();
+        }*/
 
         glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
         glBindVertexArray(0);

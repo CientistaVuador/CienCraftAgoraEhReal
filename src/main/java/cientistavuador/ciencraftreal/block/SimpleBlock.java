@@ -215,13 +215,22 @@ public abstract class SimpleBlock implements Block {
         
         boolean needsOutOfBoundsCheck = (chunkBlockX < 0 || chunkBlockX >= Chunk.CHUNK_SIZE) || (chunkBlockZ > 0 || chunkBlockZ <= -Chunk.CHUNK_SIZE);
         
+        Block block;
         if (needsOutOfBoundsCheck) {
             chunkBlockX += chunk.getChunkX() * Chunk.CHUNK_SIZE;
             chunkBlockZ += chunk.getChunkZ() * Chunk.CHUNK_SIZE;
-            return chunk.getWorld().getWorldBlock(chunkBlockX, chunkBlockY, chunkBlockZ) != Blocks.AIR;
+            block = chunk.getWorld().getWorldBlock(chunkBlockX, chunkBlockY, chunkBlockZ);
+        } else {
+            block = chunk.getBlock(chunkBlockX, chunkBlockY, chunkBlockZ);
         }
-
-        return chunk.getBlock(chunkBlockX, chunkBlockY, chunkBlockZ) != Blocks.AIR;
+        
+        if (block == Blocks.AIR) {
+            return false;
+        }
+        if (BlockTransparency.FOLIAGE.equals(block.getBlockTransparency())) {
+            return false;
+        }
+        return true;
     }
 
     @Override

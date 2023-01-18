@@ -46,6 +46,11 @@ public class BlockTextures {
     //1.0-DEV-HAPPY-2023
     public static final int HAPPY_2023 = BlockTextureLoader.push("cien_happy_2023.png");
     
+    //2.0-DEV
+    public static final int LEAVES = BlockTextureLoader.push("vulpes_leaves.png");
+    public static final int TREE = BlockTextureLoader.push("vulpes_tree.png");
+    public static final int TREE_TOP = BlockTextureLoader.push("vulpes_tree_top.png");
+    
     public static final int GL_TEXTURE_ARRAY;
     
     static {
