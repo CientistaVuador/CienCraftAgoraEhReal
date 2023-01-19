@@ -48,14 +48,17 @@ public class WorldChunkGenerator implements ChunkGenerator {
     public static final float ORE_CHANCE = 0.1f;
 
     public static final int BIOME_SIZE = 2000;
+    public static final int TREE_AREA_SIZE = 250;
 
     private final Chunk chunk;
     private final int[] surfaceMap = new int[Chunk.CHUNK_SIZE * Chunk.CHUNK_SIZE];
     private final int[] oreMap = new int[Chunk.CHUNK_SIZE * Chunk.CHUNK_SIZE];
     private final int[] oreClueMap = new int[Chunk.CHUNK_SIZE * Chunk.CHUNK_SIZE];
+    private final int[] biomeMap = new int[Chunk.CHUNK_SIZE * Chunk.CHUNK_SIZE];
     private final long bedrockSeed;
     private final long oreSeed;
     private final long biomeSeed;
+    private final long treeSeed;
     private final Random treeRandom;
     private final Random oreClueRandom;
 
@@ -66,6 +69,7 @@ public class WorldChunkGenerator implements ChunkGenerator {
         this.bedrockSeed = seedGenerator.nextLong();
         this.oreSeed = seedGenerator.nextLong();
         this.biomeSeed = seedGenerator.nextLong();
+        this.treeSeed = seedGenerator.nextLong();
 
         long chunkSeed = (((long) this.chunk.getChunkX()) << 32) + this.chunk.getChunkZ();
         seedGenerator.setSeed(chunk.getWorld().getSeed() ^ chunkSeed);
@@ -79,6 +83,7 @@ public class WorldChunkGenerator implements ChunkGenerator {
 
     @Override
     public void generate() {
+        generateBiomeMap();
         generateOreMap();
         generateSurface();
 
@@ -96,19 +101,19 @@ public class WorldChunkGenerator implements ChunkGenerator {
         generateTrees();
     }
 
-    private void generateSurface() {
-        long seed = this.chunk.getWorld().getSeed();
+    private void generateBiomeMap() {
         for (int x = 0; x < Chunk.CHUNK_SIZE; x++) {
             for (int z = 0; z < Chunk.CHUNK_SIZE; z++) {
-                float value = OpenSimplex2.noise2(
-                        seed,
-                        ((x + 0.5) + this.chunk.getChunkX() * Chunk.CHUNK_SIZE) / SMOOTHNESS,
-                        ((-z - 0.5) + this.chunk.getChunkZ() * Chunk.CHUNK_SIZE) / SMOOTHNESS
+                float value = OpenSimplex2.noise2(this.biomeSeed,
+                        ((x + 0.5) + this.chunk.getChunkX() * Chunk.CHUNK_SIZE) / BIOME_SIZE,
+                        ((-z - 0.5) + this.chunk.getChunkZ() * Chunk.CHUNK_SIZE) / BIOME_SIZE
                 );
                 value = (value + 1f) * 0.5f;
-                this.surfaceMap[x + (z * Chunk.CHUNK_SIZE)] = (int) (value * (MAX_HEIGHT - MIN_HEIGHT) + MIN_HEIGHT);
+
+                this.biomeMap[x + (z * Chunk.CHUNK_SIZE)] = (int) Math.floor(value * 3);
             }
         }
+
     }
 
     private void generateOreMap() {
@@ -120,6 +125,21 @@ public class WorldChunkGenerator implements ChunkGenerator {
                 );
                 value = (value + 1f) * 0.5f;
                 this.oreMap[x + (z * Chunk.CHUNK_SIZE)] = (int) Math.floor(value * Blocks.ORES.length);
+            }
+        }
+    }
+
+    private void generateSurface() {
+        long seed = this.chunk.getWorld().getSeed();
+        for (int x = 0; x < Chunk.CHUNK_SIZE; x++) {
+            for (int z = 0; z < Chunk.CHUNK_SIZE; z++) {
+                float value = OpenSimplex2.noise2(
+                        seed,
+                        ((x + 0.5) + this.chunk.getChunkX() * Chunk.CHUNK_SIZE) / SMOOTHNESS,
+                        ((-z - 0.5) + this.chunk.getChunkZ() * Chunk.CHUNK_SIZE) / SMOOTHNESS
+                );
+                value = (value + 1f) * 0.5f;
+                this.surfaceMap[x + (z * Chunk.CHUNK_SIZE)] = (int) (value * (MAX_HEIGHT - MIN_HEIGHT) + MIN_HEIGHT);
             }
         }
     }
@@ -147,14 +167,8 @@ public class WorldChunkGenerator implements ChunkGenerator {
             Block top;
             Block under;
 
-            float value = OpenSimplex2.noise2(this.biomeSeed,
-                    ((x + 0.5) + this.chunk.getChunkX() * Chunk.CHUNK_SIZE) / BIOME_SIZE,
-                    ((z - 0.5) + this.chunk.getChunkZ() * Chunk.CHUNK_SIZE) / BIOME_SIZE
-            );
-            value = (value + 1f) * 0.5f;
-            
-            int biomeType = (int) Math.floor(value * 3);
-            
+            int biomeType = this.biomeMap[x + (-z * Chunk.CHUNK_SIZE)];
+
             switch (biomeType) {
                 //high forest
                 case 1 -> {
@@ -245,12 +259,44 @@ public class WorldChunkGenerator implements ChunkGenerator {
     }
 
     private void generateTrees() {
-        for (int x = 1; x < (Chunk.CHUNK_SIZE - 1); x++) {
-            for (int z = 1; z < (Chunk.CHUNK_SIZE - 1); z++) {
-                if (this.treeRandom.nextFloat() > 0.75f) {
-                    int surface = this.surfaceMap[x + (z * Chunk.CHUNK_SIZE)];
+        for (int xHalf = 0; xHalf < (Chunk.CHUNK_SIZE / 2); xHalf++) {
+            for (int zHalf = 0; zHalf < (Chunk.CHUNK_SIZE / 2); zHalf++) {
+                int x = xHalf * 2;
+                int z = zHalf * 2;
 
-                    //placeTree(x, surface, -z);
+                int biomeType = this.biomeMap[x + (z * Chunk.CHUNK_SIZE)];
+
+                int chance;
+                switch (biomeType) {
+                    case 1 ->
+                        chance = 40;
+                    case 2 ->
+                        chance = 400;
+                    default ->
+                        chance = 10;
+                }
+
+                if (this.treeRandom.nextInt(chance) == 0) {
+                    int surface = this.surfaceMap[x + (z * Chunk.CHUNK_SIZE)];
+                    Block surfaceBlock = this.chunk.getBlock(x, surface, -z);
+
+                    float value = OpenSimplex2.noise2(this.treeSeed,
+                            ((x + 0.5) + this.chunk.getChunkX() * Chunk.CHUNK_SIZE) / TREE_AREA_SIZE,
+                            ((-z - 0.5) + this.chunk.getChunkZ() * Chunk.CHUNK_SIZE) / TREE_AREA_SIZE
+                    );
+                    value = (value + 1f) * 0.5f;
+
+                    if (surfaceBlock == Blocks.GRASS && value > 0.5f) {
+                        this.chunk.setBlock(x, surface, -z, Blocks.DIRT);
+                        placeTree(x, surface + 1, -z);
+                    }
+                    if (surfaceBlock == Blocks.SAND && value > 0.90f) {
+                        placeDeadTree(x, surface + 1, -z);
+                    }
+                    if (surfaceBlock == Blocks.MYCELIUM && value > 0.70f) {
+                        this.chunk.setBlock(x, surface, -z, Blocks.DIRT);
+                        placeLongTree(x, surface + 1, -z);
+                    }
                 }
             }
         }
@@ -259,6 +305,17 @@ public class WorldChunkGenerator implements ChunkGenerator {
     private void placeTree(int x, int y, int z) {
         for (int i = 0; i < 5; i++) {
             this.chunk.setBlock(x, y + i, z, Blocks.WOOD);
+        }
+    }
+
+    private void placeLongTree(int x, int y, int z) {
+        placeTree(x, y, z);
+    }
+
+    private void placeDeadTree(int x, int y, int z) {
+        int size = this.treeRandom.nextInt(4) + 1;
+        for (int i = 0; i < size; i++) {
+            this.chunk.setBlock(x, y + i, z, Blocks.DEAD_WOOD);
         }
     }
 
