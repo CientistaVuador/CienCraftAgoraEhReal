@@ -50,6 +50,11 @@ public class BlockTextures {
     public static final int LEAVES = BlockTextureLoader.push("vulpes_leaves.png");
     public static final int TREE = BlockTextureLoader.push("vulpes_tree.png");
     public static final int TREE_TOP = BlockTextureLoader.push("vulpes_tree_top.png");
+    public static final int DEAD_TREE = BlockTextureLoader.push("vulpes_dead_tree.png");
+    public static final int DEAD_TREE_TOP = BlockTextureLoader.push("vulpes_dead_tree_top.png");
+    public static final int MYCELIUM = BlockTextureLoader.push("vulpes_dirt_with_mycelium.png");
+    public static final int MYCELIUM_TOP = BlockTextureLoader.push("vulpes_mycelium.png");
+    public static final int SAND = BlockTextureLoader.push("vulpes_sand.png");
     
     public static final int GL_TEXTURE_ARRAY;
     

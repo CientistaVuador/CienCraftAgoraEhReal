@@ -28,11 +28,14 @@ package cientistavuador.ciencraftreal.block;
 
 import cientistavuador.ciencraftreal.block.blocks.Bedrock;
 import cientistavuador.ciencraftreal.block.blocks.CoalOre;
+import cientistavuador.ciencraftreal.block.blocks.DeadWood;
 import cientistavuador.ciencraftreal.block.blocks.Dirt;
 import cientistavuador.ciencraftreal.block.blocks.Grass;
 import cientistavuador.ciencraftreal.block.blocks.Happy2023;
 import cientistavuador.ciencraftreal.block.blocks.IronOre;
 import cientistavuador.ciencraftreal.block.blocks.Leaves;
+import cientistavuador.ciencraftreal.block.blocks.Mycelium;
+import cientistavuador.ciencraftreal.block.blocks.Sand;
 import cientistavuador.ciencraftreal.block.blocks.Stone;
 import cientistavuador.ciencraftreal.block.blocks.Wood;
 
@@ -59,6 +62,9 @@ public class Blocks {
     //2.0-DEV
     public static final Wood WOOD = new Wood();
     public static final Leaves LEAVES = new Leaves();
+    public static final DeadWood DEAD_WOOD = new DeadWood();
+    public static final Mycelium MYCELIUM = new Mycelium();
+    public static final Sand SAND = new Sand();
     
     static {
         //0.5-DEV
@@ -77,6 +83,9 @@ public class Blocks {
         //2.0-DEV
         BlockRegister.register(WOOD);
         BlockRegister.register(LEAVES);
+        BlockRegister.register(DEAD_WOOD);
+        BlockRegister.register(MYCELIUM);
+        BlockRegister.register(SAND);
     }
     
     public static final Block[] ORES = new Block[] {
