@@ -47,23 +47,27 @@ public class WorldChunkGenerator implements ChunkGenerator {
     public static final int ORE_SIZE = 400;
     public static final float ORE_CHANCE = 0.1f;
 
+    public static final int BIOME_SIZE = 2000;
+
     private final Chunk chunk;
     private final int[] surfaceMap = new int[Chunk.CHUNK_SIZE * Chunk.CHUNK_SIZE];
     private final int[] oreMap = new int[Chunk.CHUNK_SIZE * Chunk.CHUNK_SIZE];
     private final int[] oreClueMap = new int[Chunk.CHUNK_SIZE * Chunk.CHUNK_SIZE];
     private final long bedrockSeed;
     private final long oreSeed;
+    private final long biomeSeed;
     private final Random treeRandom;
     private final Random oreClueRandom;
 
     public WorldChunkGenerator(Chunk chunk) {
         this.chunk = chunk;
-        
+
         Random seedGenerator = new Random(chunk.getWorld().getSeed());
         this.bedrockSeed = seedGenerator.nextLong();
         this.oreSeed = seedGenerator.nextLong();
-        
-        long chunkSeed = (((long)this.chunk.getChunkX()) << 32) + this.chunk.getChunkZ();
+        this.biomeSeed = seedGenerator.nextLong();
+
+        long chunkSeed = (((long) this.chunk.getChunkX()) << 32) + this.chunk.getChunkZ();
         seedGenerator.setSeed(chunk.getWorld().getSeed() ^ chunkSeed);
         this.treeRandom = new Random(seedGenerator.nextLong());
         this.oreClueRandom = new Random(seedGenerator.nextLong());
@@ -88,7 +92,6 @@ public class WorldChunkGenerator implements ChunkGenerator {
                 }
             }
         }
-
         generateOreClues();
         generateTrees();
     }
@@ -140,11 +143,42 @@ public class WorldChunkGenerator implements ChunkGenerator {
 
         int distance = (surface - y);
 
-        switch (distance) {
-            case 0 ->
-                this.chunk.setBlock(x, y, z, Blocks.GRASS);
-            case 1, 2, 3 ->
-                this.chunk.setBlock(x, y, z, Blocks.DIRT);
+        if (distance < 4) {
+            Block top;
+            Block under;
+
+            float value = OpenSimplex2.noise2(this.biomeSeed,
+                    ((x + 0.5) + this.chunk.getChunkX() * Chunk.CHUNK_SIZE) / BIOME_SIZE,
+                    ((z - 0.5) + this.chunk.getChunkZ() * Chunk.CHUNK_SIZE) / BIOME_SIZE
+            );
+            value = (value + 1f) * 0.5f;
+            
+            int biomeType = (int) Math.floor(value * 3);
+            
+            switch (biomeType) {
+                //high forest
+                case 1 -> {
+                    top = Blocks.MYCELIUM;
+                    under = Blocks.DIRT;
+                }
+                //desert
+                case 2 -> {
+                    top = Blocks.SAND;
+                    under = Blocks.SAND;
+                }
+                //low forest
+                default -> {
+                    top = Blocks.GRASS;
+                    under = Blocks.DIRT;
+                }
+            }
+
+            switch (distance) {
+                case 0 ->
+                    this.chunk.setBlock(x, y, z, top);
+                case 1, 2, 3 ->
+                    this.chunk.setBlock(x, y, z, under);
+            }
         }
     }
 
@@ -195,15 +229,15 @@ public class WorldChunkGenerator implements ChunkGenerator {
             }
         }
     }
-    
+
     private void generateOreClues() {
         for (int x = 0; x < Chunk.CHUNK_SIZE; x++) {
             for (int z = 0; z < Chunk.CHUNK_SIZE; z++) {
                 int ore = this.oreClueMap[x + (z * Chunk.CHUNK_SIZE)];
-                
+
                 if (ore != 0 && this.oreClueRandom.nextInt(200) == 0) {
                     int surface = this.surfaceMap[x + (z * Chunk.CHUNK_SIZE)];
-                    
+
                     this.chunk.setBlock(x, surface, -z, BlockRegister.getBlock(ore));
                 }
             }
