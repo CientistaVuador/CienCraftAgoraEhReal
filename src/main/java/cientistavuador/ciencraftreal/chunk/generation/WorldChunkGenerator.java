@@ -41,6 +41,7 @@ public class WorldChunkGenerator implements ChunkGenerator {
 
     public static final int MAX_HEIGHT = 74;
     public static final int MIN_HEIGHT = 64;
+    public static final int NEGATIVE_MIN_HEIGHT = 60;
     public static final int SMOOTHNESS = 80;
 
     public static final int ORE_TYPE_AREA = 500;
@@ -59,6 +60,7 @@ public class WorldChunkGenerator implements ChunkGenerator {
     private final long oreSeed;
     private final long biomeSeed;
     private final long treeSeed;
+    private final long negativeSeed;
     private final Random treeRandom;
     private final Random oreClueRandom;
 
@@ -70,6 +72,7 @@ public class WorldChunkGenerator implements ChunkGenerator {
         this.oreSeed = seedGenerator.nextLong();
         this.biomeSeed = seedGenerator.nextLong();
         this.treeSeed = seedGenerator.nextLong();
+        this.negativeSeed = seedGenerator.nextLong();
 
         long chunkSeed = (((long) this.chunk.getChunkX()) << 32) + this.chunk.getChunkZ();
         seedGenerator.setSeed(chunk.getWorld().getSeed() ^ chunkSeed);
@@ -97,6 +100,8 @@ public class WorldChunkGenerator implements ChunkGenerator {
                 }
             }
         }
+
+        generateNegativeTerrain();
         generateOreClues();
         generateTrees();
     }
@@ -244,6 +249,52 @@ public class WorldChunkGenerator implements ChunkGenerator {
         }
     }
 
+    private void generateNegativeTerrain() {
+        for (int x = 0; x < Chunk.CHUNK_SIZE; x++) {
+            for (int z = 0; z < Chunk.CHUNK_SIZE; z++) {
+                float value = OpenSimplex2.noise2(this.negativeSeed,
+                        ((x + 0.5) + this.chunk.getChunkX() * Chunk.CHUNK_SIZE) / (SMOOTHNESS * 2),
+                        ((-z - 0.5) + this.chunk.getChunkZ() * Chunk.CHUNK_SIZE) / (SMOOTHNESS * 2)
+                );
+                value = (value + 1f) * 0.5f;
+                value = value * value * value;
+
+                int negativeSurface = (int) Math.floor(value * (MAX_HEIGHT - NEGATIVE_MIN_HEIGHT));
+                int surface = this.surfaceMap[x + (z * Chunk.CHUNK_SIZE)];
+                negativeSurface = MAX_HEIGHT - negativeSurface;
+
+                if (negativeSurface >= surface) {
+                    continue;
+                }
+
+                for (int y = MAX_HEIGHT; y > negativeSurface; y--) {
+                    this.chunk.setBlock(x, y, -z, Blocks.AIR);
+                }
+                this.surfaceMap[x + (z * Chunk.CHUNK_SIZE)] = negativeSurface;
+
+                genSoil:
+                {
+                    if (negativeSurface >= MIN_HEIGHT + 2) {
+                        generateSoil(x, negativeSurface, -z);
+                        break genSoil;
+                    }
+                    if (negativeSurface >= MIN_HEIGHT) {
+                        for (int i = 0; i < 2; i++) {
+                            this.chunk.setBlock(x, negativeSurface - i, -z, Blocks.SAND);
+                        }
+                        break genSoil;
+                    }
+                    if (negativeSurface < MIN_HEIGHT) {
+                        for (int y = MIN_HEIGHT; y > negativeSurface; y--) {
+                            this.chunk.setBlock(x, y, -z, Blocks.HAPPY_2023);
+                        }
+                        break genSoil;
+                    }
+                }
+            }
+        }
+    }
+
     private void generateOreClues() {
         for (int x = 0; x < Chunk.CHUNK_SIZE; x++) {
             for (int z = 0; z < Chunk.CHUNK_SIZE; z++) {
@@ -286,14 +337,14 @@ public class WorldChunkGenerator implements ChunkGenerator {
                     );
                     value = (value + 1f) * 0.5f;
 
-                    if (surfaceBlock == Blocks.GRASS && value > 0.5f) {
+                    if (biomeType == 0 && surfaceBlock == Blocks.GRASS && value > 0.5f) {
                         this.chunk.setBlock(x, surface, -z, Blocks.DIRT);
                         placeTree(x, surface + 1, -z);
                     }
-                    if (surfaceBlock == Blocks.SAND && value > 0.90f) {
+                    if (biomeType == 2 && surfaceBlock == Blocks.SAND && value > 0.90f) {
                         placeDeadTree(x, surface + 1, -z);
                     }
-                    if (surfaceBlock == Blocks.MYCELIUM && value > 0.70f) {
+                    if (biomeType == 1 && surfaceBlock == Blocks.MYCELIUM && value > 0.70f) {
                         this.chunk.setBlock(x, surface, -z, Blocks.DIRT);
                         placeLongTree(x, surface + 1, -z);
                     }
