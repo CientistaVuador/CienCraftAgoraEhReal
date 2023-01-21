@@ -55,6 +55,7 @@ public class BlockTextures {
     public static final int MYCELIUM = BlockTextureLoader.push("vulpes_dirt_with_mycelium.png");
     public static final int MYCELIUM_TOP = BlockTextureLoader.push("vulpes_mycelium.png");
     public static final int SAND = BlockTextureLoader.push("vulpes_sand.png");
+    public static final int WATER = BlockTextureLoader.push("cien_water.png");
     
     public static final int GL_TEXTURE_ARRAY;
     

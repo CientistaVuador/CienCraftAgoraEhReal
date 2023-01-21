@@ -101,6 +101,10 @@ public abstract class SimpleBlock implements Block {
         }
         return blockId;
     }
+    
+    protected boolean shouldHideFaceVerticesForBlock(Block block) {
+        return block != Blocks.AIR && !block.getBlockTransparency().isTransparent();
+    }
 
     @Override
     public float[] generateVertices(Chunk chunk, int chunkBlockX, int chunkBlockY, int chunkBlockZ) {
@@ -224,13 +228,7 @@ public abstract class SimpleBlock implements Block {
             block = chunk.getBlock(chunkBlockX, chunkBlockY, chunkBlockZ);
         }
         
-        if (block == Blocks.AIR) {
-            return false;
-        }
-        if (BlockTransparency.FOLIAGE.equals(block.getBlockTransparency())) {
-            return false;
-        }
-        return true;
+        return shouldHideFaceVerticesForBlock(block);
     }
 
     @Override

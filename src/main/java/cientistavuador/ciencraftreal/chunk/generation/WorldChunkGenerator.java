@@ -286,7 +286,7 @@ public class WorldChunkGenerator implements ChunkGenerator {
                     }
                     if (negativeSurface < MIN_HEIGHT) {
                         for (int y = MIN_HEIGHT; y > negativeSurface; y--) {
-                            this.chunk.setBlock(x, y, -z, Blocks.HAPPY_2023);
+                            this.chunk.setBlock(x, y, -z, Blocks.WATER);
                         }
                         break genSoil;
                     }

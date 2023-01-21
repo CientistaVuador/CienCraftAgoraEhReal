@@ -37,6 +37,7 @@ import cientistavuador.ciencraftreal.block.blocks.Leaves;
 import cientistavuador.ciencraftreal.block.blocks.Mycelium;
 import cientistavuador.ciencraftreal.block.blocks.Sand;
 import cientistavuador.ciencraftreal.block.blocks.Stone;
+import cientistavuador.ciencraftreal.block.blocks.Water;
 import cientistavuador.ciencraftreal.block.blocks.Wood;
 
 /**
@@ -65,6 +66,7 @@ public class Blocks {
     public static final DeadWood DEAD_WOOD = new DeadWood();
     public static final Mycelium MYCELIUM = new Mycelium();
     public static final Sand SAND = new Sand();
+    public static final Water WATER = new Water();
     
     static {
         //0.5-DEV
@@ -86,6 +88,7 @@ public class Blocks {
         BlockRegister.register(DEAD_WOOD);
         BlockRegister.register(MYCELIUM);
         BlockRegister.register(SAND);
+        BlockRegister.register(WATER);
     }
     
     public static final Block[] ORES = new Block[] {
