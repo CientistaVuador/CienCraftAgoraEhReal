@@ -114,7 +114,7 @@ public class ChunkLayersRender {
         
         //render alpha
         ChunkLayer e;
-        while ((e = alphaRendering.poll()) != null) {
+        while ((e = alphaRendering.pollLast()) != null) {
             e.renderAlphaStage6(camera);
         }
         
@@ -177,7 +177,7 @@ public class ChunkLayersRender {
         
         //render alpha
         ChunkLayer a;
-        while ((a = alphaRendering.poll()) != null) {
+        while ((a = alphaRendering.pollLast()) != null) {
             a.renderAlphaStage6(camera);
         }
     }
