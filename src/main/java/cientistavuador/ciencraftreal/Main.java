@@ -45,6 +45,7 @@ import static org.lwjgl.system.MemoryUtil.*;
  */
 public class Main {
 
+    public static final boolean USE_MSAA = true;
     public static final boolean DEBUG_ENABLED = true;
     
     static {
@@ -149,7 +150,9 @@ public class Main {
             throw new IllegalStateException("Could not initialize GLFW!");
         }
 
-        //glfwWindowHint(GLFW_SAMPLES, 16); //MSAA 16x
+        if (USE_MSAA) {
+            glfwWindowHint(GLFW_SAMPLES, 16); //MSAA 16x
+        }
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -203,7 +206,9 @@ public class Main {
             }
         }
         
-        //glEnable(GL_MULTISAMPLE);
+        if (USE_MSAA) {
+            glEnable(GL_MULTISAMPLE);
+        }
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glClearColor(0.2f, 0.4f, 0.6f, 1.0f);
@@ -213,7 +218,7 @@ public class Main {
         glEnable(GL_CULL_FACE);
         glCullFace(GL_BACK);
         glLineWidth(1f);
-
+        
         Main.checkGLError();
         
         //GLPool.init(); //static initialize
