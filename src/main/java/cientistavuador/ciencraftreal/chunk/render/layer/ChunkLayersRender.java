@@ -98,6 +98,7 @@ public class ChunkLayersRender {
             return 0;
         });
         
+        ArrayDeque<ChunkLayer> alphaRendering = new ArrayDeque<>(64);
         List<ChunkLayer> toProcess = new ArrayList<>();
         
         for (DistancedChunkLayer e:layerList) {
@@ -105,9 +106,16 @@ public class ChunkLayersRender {
             
             if (!layer.checkVerticesStage1(camera)) {
                 layer.renderStage5(camera);
+                alphaRendering.add(layer);
                 continue;
             }
             toProcess.add(layer);
+        }
+        
+        //render alpha
+        ChunkLayer e;
+        while ((e = alphaRendering.poll()) != null) {
+            e.renderAlphaStage6(camera);
         }
         
         if (toProcess.isEmpty()) {
@@ -164,6 +172,13 @@ public class ChunkLayersRender {
         ChunkLayer f;
         while ((f = finishedProcessing.poll()) != null) {
             f.renderStage5(camera);
+            alphaRendering.add(f);
+        }
+        
+        //render alpha
+        ChunkLayer a;
+        while ((a = alphaRendering.poll()) != null) {
+            a.renderAlphaStage6(camera);
         }
     }
     

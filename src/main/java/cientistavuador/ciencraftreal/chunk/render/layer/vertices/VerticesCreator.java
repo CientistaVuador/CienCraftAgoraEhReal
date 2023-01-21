@@ -27,6 +27,7 @@
 package cientistavuador.ciencraftreal.chunk.render.layer.vertices;
 
 import cientistavuador.ciencraftreal.block.Block;
+import cientistavuador.ciencraftreal.block.BlockTransparency;
 import cientistavuador.ciencraftreal.block.Blocks;
 import cientistavuador.ciencraftreal.chunk.Chunk;
 import static cientistavuador.ciencraftreal.chunk.Chunk.CHUNK_SIZE;
@@ -39,19 +40,27 @@ import java.util.ArrayDeque;
  */
 public class VerticesCreator {
 
-    public static float[] create(ChunkLayer layer) {
+    public static float[] create(ChunkLayer layer, boolean coloredGlassOnly) {
         Chunk chunk = layer.getChunk();
         int yPos = layer.getY();
-        
+
         ArrayDeque<float[]> blockVerticesQueue = new ArrayDeque<>(64);
         int size = 0;
-        
+
         for (int y = (yPos + (ChunkLayer.HEIGHT - 1)); y >= yPos; y--) {
             for (int x = 0; x < CHUNK_SIZE; x++) {
                 for (int z = 0; z >= -(CHUNK_SIZE - 1); z--) {
                     Block block = chunk.getBlock(x, y, z);
 
                     if (block == Blocks.AIR) {
+                        continue;
+                    }
+
+                    if (coloredGlassOnly && !BlockTransparency.COLORED_GLASS.equals(block.getBlockTransparency())) {
+                        continue;
+                    }
+
+                    if (!coloredGlassOnly && BlockTransparency.COLORED_GLASS.equals(block.getBlockTransparency())) {
                         continue;
                     }
 
@@ -71,20 +80,20 @@ public class VerticesCreator {
                 }
             }
         }
-        
+
         if (size == 0) {
             return new float[0];
         }
-        
+
         float[] resultVertices = new float[size];
         int index = 0;
-        
+
         float[] blockVertices;
         while ((blockVertices = blockVerticesQueue.poll()) != null) {
             System.arraycopy(blockVertices, 0, resultVertices, index, blockVertices.length);
             index += blockVertices.length;
         }
-        
+
         return resultVertices;
     }
 

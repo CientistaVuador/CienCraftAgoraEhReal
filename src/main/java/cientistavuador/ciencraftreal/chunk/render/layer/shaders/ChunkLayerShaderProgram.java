@@ -78,6 +78,7 @@ public class ChunkLayerShaderProgram {
             """
             #version 330 core
             
+            uniform bool useAlpha;
             uniform sampler2DArray textures;
             
             in vec2 inoutTexCoords;
@@ -87,21 +88,26 @@ public class ChunkLayerShaderProgram {
             
             void main() {
                 vec4 color = texture(textures, vec3(inoutTexCoords, float(inoutTextureID)));
-                if (color.a < 0.5) {
-                    discard;
+                vec4 output = color;
+                if (!useAlpha) {
+                    if (color.a < 0.5) {
+                        discard;
+                    }
+                    output.a = 1.0;
                 }
-                out_Color = vec4(color.rgb, 1.0);
+                out_Color = output;
             }
             """;
     
     public static final int SHADER_PROGRAM = ProgramCompiler.compile(VERTEX_SHADER, FRAGMENT_SHADER);
     
-    public static void sendUniforms(Camera camera, int chunkX, int blockY, int chunkZ) {
+    public static void sendUniforms(Camera camera, int chunkX, int blockY, int chunkZ, boolean useAlpha) {
         UniformSetter.setMatrix4f("projection", camera.getProjection());
         UniformSetter.setMatrix4f("view", camera.getView());
         
         UniformSetter.setVector3i("layerBlockPos", chunkX * Chunk.CHUNK_SIZE, blockY, chunkZ * Chunk.CHUNK_SIZE);
         UniformSetter.setInt("textures", 0);
+        UniformSetter.setInt("useAlpha", (useAlpha ? 1 : 0));
     }
     
     private ChunkLayerShaderProgram() {

@@ -33,7 +33,6 @@ import cientistavuador.ciencraftreal.chunk.render.layer.shaders.ChunkLayerShader
 import cientistavuador.ciencraftreal.chunk.render.layer.vertices.IndicesGenerator;
 import cientistavuador.ciencraftreal.chunk.render.layer.vertices.VerticesCompressor;
 import cientistavuador.ciencraftreal.chunk.render.layer.vertices.VerticesCreator;
-import cientistavuador.ciencraftreal.util.OcclusionCube;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -62,13 +61,19 @@ public class ChunkLayer {
     private boolean eliminate = false;
     private boolean deleted = true;
 
-    private OcclusionCube occlusionCube = null;
     private Future<Map.Entry<short[], int[]>> futureVerticesIndices = null;
     private short[] vertices = null;
     private int[] indices = null;
     private int vao = 0;
     private int vbo = 0;
     private int ebo = 0;
+    
+    private Future<Map.Entry<short[], int[]>> futureVerticesIndicesAlpha = null;
+    private short[] verticesAlpha = null;
+    private int[] indicesAlpha = null;
+    private int vaoAlpha = 0;
+    private int vboAlpha = 0;
+    private int eboAlpha = 0;
 
     public ChunkLayer(Chunk chunk, int y) {
         this.chunk = chunk;
@@ -120,7 +125,7 @@ public class ChunkLayer {
         }
         this.useCachedElimination = true;
 
-        if (this.vertices != null && this.vertices.length == 0) {
+        if ((this.vertices != null && this.vertices.length == 0) && (this.verticesAlpha != null && this.verticesAlpha.length == 0)) {
             this.eliminate = true;
             return this.eliminate;
         }
@@ -139,39 +144,22 @@ public class ChunkLayer {
     }
 
     public boolean checkVerticesStage1(Camera camera) {
-        if (this.vertices != null && this.indices != null) {
-            return false;
-        }
-
-        return true;
+        return !(this.vertices != null && this.verticesAlpha != null);
     }
 
     public boolean occlusionStage2(Camera camera) {
-        /*if (this.occlusionCube == null) {
-        this.occlusionCube = new OcclusionCube();
-        this.occlusionCube.getSize().set(
-        Chunk.CHUNK_SIZE,
-        ChunkLayer.HEIGHT,
-        Chunk.CHUNK_SIZE
-        );
-        this.occlusionCube.getPosition().set(
-        this.chunk.getChunkX() * Chunk.CHUNK_SIZE,
-        this.y,
-        this.chunk.getChunkZ() * Chunk.CHUNK_SIZE
-        );
-        }*/
-
-        //this.occlusionCube.render(camera);
         return true;
     }
     
     public boolean prepareVerticesStage3() {
-        //if (!this.occlusionCube.queryResult()) {
-        //    return false;
-        //}
-
         this.futureVerticesIndices = CompletableFuture.supplyAsync(() -> {
-            float[] verticesCreated = VerticesCreator.create(this);
+            float[] verticesCreated = VerticesCreator.create(this, false);
+            short[] compressedVertices = VerticesCompressor.compress(this, verticesCreated);
+            return IndicesGenerator.generate(compressedVertices);
+        });
+        
+        this.futureVerticesIndicesAlpha = CompletableFuture.supplyAsync(() -> {
+            float[] verticesCreated = VerticesCreator.create(this, true);
             short[] compressedVertices = VerticesCompressor.compress(this, verticesCreated);
             return IndicesGenerator.generate(compressedVertices);
         });
@@ -179,7 +167,29 @@ public class ChunkLayer {
         return true;
     }
 
-    public boolean prepareVaoVboStage4() {
+    private void setupVao() {
+        //position, 3 of unsigned short (normalized)
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_UNSIGNED_SHORT, true, VERTEX_SIZE_ELEMENTS * Short.BYTES, 0);
+
+        //texture coordinates, 2 of signed short (normalized)
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 2, GL_SHORT, true, VERTEX_SIZE_ELEMENTS * Short.BYTES, 3 * Short.BYTES);
+
+        //texture id, 1 of unsigned short (integer)
+        glEnableVertexAttribArray(2);
+        glVertexAttribIPointer(2, 1, GL_UNSIGNED_SHORT, VERTEX_SIZE_ELEMENTS * Short.BYTES, (3 + 2) * Short.BYTES);
+
+        //ao, 1 of unsigned short (normalized)
+        glEnableVertexAttribArray(3);
+        glVertexAttribPointer(3, 1, GL_UNSIGNED_SHORT, true, VERTEX_SIZE_ELEMENTS * Short.BYTES, (3 + 2 + 1) * Short.BYTES);
+
+        //unused, 1 of unsigned short (normalized)
+        //glEnableVertexAttribArray(4);
+        //glVertexAttribPointer(4, 1, GL_UNSIGNED_SHORT, true, VERTEX_SIZE_ELEMENTS * Short.BYTES, (3 + 2 + 1 + 1) * Short.BYTES);
+    }
+    
+    private boolean prepareVaoVbo() {
         Map.Entry<short[], int[]> result;
         try {
             result = this.futureVerticesIndices.get();
@@ -204,30 +214,53 @@ public class ChunkLayer {
         this.vbo = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, this.vbo);
         glBufferData(GL_ARRAY_BUFFER, this.vertices, GL_STATIC_DRAW);
-
-        //position, 3 of unsigned short (normalized)
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_UNSIGNED_SHORT, true, VERTEX_SIZE_ELEMENTS * Short.BYTES, 0);
-
-        //texture coordinates, 2 of signed short (normalized)
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 2, GL_SHORT, true, VERTEX_SIZE_ELEMENTS * Short.BYTES, 3 * Short.BYTES);
-
-        //texture id, 1 of unsigned short (integer)
-        glEnableVertexAttribArray(2);
-        glVertexAttribIPointer(2, 1, GL_UNSIGNED_SHORT, VERTEX_SIZE_ELEMENTS * Short.BYTES, (3 + 2) * Short.BYTES);
-
-        //ao, 1 of unsigned short (normalized)
-        glEnableVertexAttribArray(3);
-        glVertexAttribPointer(3, 1, GL_UNSIGNED_SHORT, true, VERTEX_SIZE_ELEMENTS * Short.BYTES, (3 + 2 + 1) * Short.BYTES);
-
-        //unused, 1 of unsigned short (normalized)
-        //glEnableVertexAttribArray(4);
-        //glVertexAttribPointer(4, 1, GL_UNSIGNED_SHORT, true, VERTEX_SIZE_ELEMENTS * Short.BYTES, (3 + 2 + 1 + 1) * Short.BYTES);
+        
+        setupVao();
+        
         glBindVertexArray(0);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         return true;
+    }
+    
+    private boolean prepareVaoVboAlpha() {
+        Map.Entry<short[], int[]> result;
+        try {
+            result = this.futureVerticesIndicesAlpha.get();
+        } catch (InterruptedException | ExecutionException ex) {
+            throw new RuntimeException(ex);
+        }
+
+        this.verticesAlpha = result.getKey();
+        this.indicesAlpha = result.getValue();
+        
+        if (this.verticesAlpha.length == 0) {
+            return false;
+        }
+        
+        this.vaoAlpha = glGenVertexArrays();
+        glBindVertexArray(this.vaoAlpha);
+
+        this.eboAlpha = glGenBuffers();
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this.eboAlpha);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, this.indicesAlpha, GL_STATIC_DRAW);
+
+        this.vboAlpha = glGenBuffers();
+        glBindBuffer(GL_ARRAY_BUFFER, this.vboAlpha);
+        glBufferData(GL_ARRAY_BUFFER, this.verticesAlpha, GL_STATIC_DRAW);
+        
+        setupVao();
+        
+        glBindVertexArray(0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        return true;
+    }
+    
+    public boolean prepareVaoVboStage4() {
+        boolean a = prepareVaoVbo();
+        boolean b = prepareVaoVboAlpha();
+        return a || b;
     }
 
     public void renderStage5(Camera camera) {
@@ -235,28 +268,49 @@ public class ChunkLayer {
             return;
         }
         
-        /*boolean inside = this.occlusionCube.isInside(camera);
-        
-        if (!inside) {
-        this.occlusionCube.render(camera);
-        }*/
-
         glUseProgram(ChunkLayerShaderProgram.SHADER_PROGRAM);
 
-        ChunkLayerShaderProgram.sendUniforms(camera, this.chunk.getChunkX(), this.y, this.chunk.getChunkZ());
+        ChunkLayerShaderProgram.sendUniforms(
+                camera,
+                this.chunk.getChunkX(),
+                this.y,
+                this.chunk.getChunkZ(),
+                false
+        );
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D_ARRAY, BlockTextures.GL_TEXTURE_ARRAY);
         
         glBindVertexArray(this.vao);
 
-        /*if (!inside) {
-        this.occlusionCube.beginConditionalRender(camera);
-        }*/
         glDrawElements(GL_TRIANGLES, this.indices.length, GL_UNSIGNED_INT, 0);
-        /*if (!inside) {
-        this.occlusionCube.endConditionalRender();
-        }*/
+
+        glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
+        glBindVertexArray(0);
+        glUseProgram(0);
+    }
+    
+    public void renderAlphaStage6(Camera camera) {
+        if (this.verticesAlpha.length == 0) {
+            return;
+        }
+        
+        glUseProgram(ChunkLayerShaderProgram.SHADER_PROGRAM);
+
+        ChunkLayerShaderProgram.sendUniforms(
+                camera,
+                this.chunk.getChunkX(),
+                this.y,
+                this.chunk.getChunkZ(),
+                true
+        );
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, BlockTextures.GL_TEXTURE_ARRAY);
+        
+        glBindVertexArray(this.vaoAlpha);
+
+        glDrawElements(GL_TRIANGLES, this.indicesAlpha.length, GL_UNSIGNED_INT, 0);
 
         glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
         glBindVertexArray(0);
@@ -271,9 +325,9 @@ public class ChunkLayer {
         if (this.deleted) {
             return;
         }
-        if (this.occlusionCube != null) {
-            this.occlusionCube.delete();
-        }
+        this.useCachedElimination = false;
+        this.eliminate = false;
+        
         if (this.vao != 0) {
             glDeleteVertexArrays(this.vao);
         }
@@ -283,24 +337,31 @@ public class ChunkLayer {
         if (this.ebo != 0) {
             glDeleteBuffers(this.ebo);
         }
-        if (this.futureVerticesIndices != null && !this.futureVerticesIndices.isDone()) {
-            try {
-                this.futureVerticesIndices.get();
-            } catch (InterruptedException | ExecutionException ex) {
-                throw new RuntimeException(ex);
-            }
-        }
 
-        this.useCachedElimination = false;
-        this.eliminate = false;
-
-        this.occlusionCube = null;
         this.futureVerticesIndices = null;
         this.vertices = null;
         this.indices = null;
         this.vao = 0;
         this.vbo = 0;
         this.ebo = 0;
+        
+        if (this.vaoAlpha != 0) {
+            glDeleteVertexArrays(this.vaoAlpha);
+        }
+        if (this.vboAlpha != 0) {
+            glDeleteBuffers(this.vboAlpha);
+        }
+        if (this.eboAlpha != 0) {
+            glDeleteBuffers(this.eboAlpha);
+        }
+        
+        this.futureVerticesIndicesAlpha = null;
+        this.verticesAlpha = null;
+        this.indicesAlpha = null;
+        this.vaoAlpha = 0;
+        this.vboAlpha = 0;
+        this.eboAlpha = 0;
+        
         this.deleted = true;
     }
 }
