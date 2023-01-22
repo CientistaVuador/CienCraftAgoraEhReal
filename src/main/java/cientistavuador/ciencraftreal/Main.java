@@ -47,6 +47,7 @@ public class Main {
 
     public static final boolean USE_MSAA = true;
     public static final boolean DEBUG_ENABLED = true;
+    public static final int MIN_TEXTURE_3D_SIZE_SUPPORTED = 2048;
     
     static {
         org.lwjgl.system.Configuration.LIBRARY_PATH.set("natives");
@@ -218,6 +219,10 @@ public class Main {
         glEnable(GL_CULL_FACE);
         glCullFace(GL_BACK);
         glLineWidth(1f);
+        int maxTex3DSize = glGetInteger(GL_MAX_3D_TEXTURE_SIZE);
+        if (maxTex3DSize < MIN_TEXTURE_3D_SIZE_SUPPORTED) {
+            throw new IllegalStateException("Max 3D Texture Size too small! Update your drivers or buy a new GPU.");
+        }
         
         Main.checkGLError();
         

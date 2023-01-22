@@ -56,20 +56,35 @@ public class BlockTextureLoader {
     private static int glTextureArray = 0;
 
     public static int push(final String resource) {
+        return push(resource, 1);
+    }
+
+    public static int push(final String resource, final int numberOfFrames) {
         if (glTextureArray != 0) {
             throw new RuntimeException("Already loaded!");
+        }
+        if (numberOfFrames <= 0) {
+            throw new IndexOutOfBoundsException(numberOfFrames);
         }
         final int index = currentTexture;
         queue.add((outputBuffer) -> {
             if (DEBUG_OUTPUT) {
-                System.out.println("Loading '" + resource + "' with index " + index);
+                if (numberOfFrames != 1) {
+                    System.out.println("Loading '" + resource + "' with index " + index + " (+" + numberOfFrames + " frames)");
+                } else {
+                    System.out.println("Loading '" + resource + "' with index " + index);
+                }
             }
 
             NativeImage image = ImageResources.load(resource, 4);
 
             try {
-                if (image.getWidth() != WIDTH || image.getHeight() != HEIGHT) {
-                    throw new IllegalArgumentException("Failed to load '" + resource + "' image dimensions must be " + WIDTH + "x" + HEIGHT);
+                int desiredHeight = HEIGHT * numberOfFrames;
+                if (image.getWidth() != WIDTH || image.getHeight() != desiredHeight) {
+                    if (numberOfFrames != 1) {
+                        throw new IllegalArgumentException("Failed to load '" + resource + "' image dimensions must be " + WIDTH + "x" + desiredHeight + ", (" + numberOfFrames + " frames)");
+                    }
+                    throw new IllegalArgumentException("Failed to load '" + resource + "' image dimensions must be " + WIDTH + "x" + desiredHeight);
                 }
 
                 long source = memAddress(image.getData());
@@ -77,21 +92,30 @@ public class BlockTextureLoader {
                 memCopy(
                         source,
                         dest,
-                        WIDTH * HEIGHT * 4
+                        (WIDTH * HEIGHT * 4) * numberOfFrames
                 );
             } finally {
                 image.free();
             }
 
             if (DEBUG_OUTPUT) {
-                System.out.println("Finished loading '" + resource + "' with index " + index);
+                if (numberOfFrames != 1) {
+                    System.out.println("Finished loading '" + resource + "' with index " + index + " (+"+numberOfFrames+" frames)");
+                } else {
+                    System.out.println("Finished loading '" + resource + "' with index " + index);
+                }
             }
         });
         if (DEBUG_OUTPUT) {
-            System.out.println("Pushed '" + resource + "' into the queue with index " + index);
+            if (numberOfFrames != 1) {
+                System.out.println("Pushed '" + resource + "' into the queue with index " + index + " (+"+numberOfFrames+" frames)");
+            } else {
+                System.out.println("Pushed '" + resource + "' into the queue with index " + index);
+            }
         }
 
-        return currentTexture++;
+        currentTexture += numberOfFrames;
+        return index;
     }
 
     public static void loadTextures() {

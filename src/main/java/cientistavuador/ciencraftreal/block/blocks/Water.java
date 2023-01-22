@@ -38,7 +38,7 @@ import cientistavuador.ciencraftreal.block.SimpleBlock;
 public class Water extends SimpleBlock {
     
     public Water() {
-        super("ciencraft_water", BlockTextures.WATER);
+        super("ciencraft_water", BlockTextures.WATER_FRAME_START);
     }
 
     @Override
