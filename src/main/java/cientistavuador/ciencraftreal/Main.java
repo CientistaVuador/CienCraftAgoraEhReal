@@ -263,9 +263,11 @@ public class Main {
         int frames = 0;
         long nextFpsUpdate = System.currentTimeMillis() + 1000;
         long nextTitleUpdate = System.currentTimeMillis() + 100;
-
+        long timeFrameBegin = System.nanoTime();
+        
         while (!glfwWindowShouldClose(WINDOW_POINTER)) {
-            long timeFrameBegin = System.nanoTime();
+            Main.TPF = (System.nanoTime() - timeFrameBegin) / 1E9d;
+            timeFrameBegin = System.nanoTime();
             
             glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
             glfwPollEvents();
@@ -293,9 +295,6 @@ public class Main {
             }
             
             Main.FRAME++;
-            Main.TPF = (System.nanoTime() - timeFrameBegin) / 1E9d;
-            
-            
         }
         if (DEBUG_ENABLED) {
             DEBUG_CALLBACK.free();
