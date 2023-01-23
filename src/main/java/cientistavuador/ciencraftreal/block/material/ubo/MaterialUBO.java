@@ -32,7 +32,7 @@ package cientistavuador.ciencraftreal.block.material.ubo;
  */
 public class MaterialUBO {
     
-    public static final MaterialUBO INSTANCE = new MaterialUBO();
+    public static final MaterialUBO DEFAULT = new MaterialUBO();
     
     private MaterialUBO() {
         
