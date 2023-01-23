@@ -87,20 +87,23 @@ public class BlockTextureLoader {
                     throw new IllegalArgumentException("Failed to load '" + resource + "' image dimensions must be " + WIDTH + "x" + desiredHeight);
                 }
 
+                int frameSize = WIDTH * HEIGHT * 4;
                 long source = memAddress(image.getData());
-                long dest = memAddress(outputBuffer) + (WIDTH * HEIGHT * 4 * index);
-                memCopy(
-                        source,
-                        dest,
-                        (WIDTH * HEIGHT * 4) * numberOfFrames
-                );
+                long dest = memAddress(outputBuffer) + (frameSize * index);
+                for (int i = 0; i < numberOfFrames; i++) {
+                    memCopy(
+                            source + (((numberOfFrames - 1) - i) * frameSize),
+                            dest + (i * frameSize),
+                            frameSize
+                    );
+                }
             } finally {
                 image.free();
             }
 
             if (DEBUG_OUTPUT) {
                 if (numberOfFrames != 1) {
-                    System.out.println("Finished loading '" + resource + "' with index " + index + " (+"+numberOfFrames+" frames)");
+                    System.out.println("Finished loading '" + resource + "' with index " + index + " (+" + numberOfFrames + " frames)");
                 } else {
                     System.out.println("Finished loading '" + resource + "' with index " + index);
                 }
@@ -108,7 +111,7 @@ public class BlockTextureLoader {
         });
         if (DEBUG_OUTPUT) {
             if (numberOfFrames != 1) {
-                System.out.println("Pushed '" + resource + "' into the queue with index " + index + " (+"+numberOfFrames+" frames)");
+                System.out.println("Pushed '" + resource + "' into the queue with index " + index + " (+" + numberOfFrames + " frames)");
             } else {
                 System.out.println("Pushed '" + resource + "' into the queue with index " + index);
             }
