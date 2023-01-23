@@ -26,6 +26,11 @@
  */
 package cientistavuador.ciencraftreal.block.material.ubo;
 
+import java.nio.FloatBuffer;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import static org.lwjgl.system.MemoryUtil.*;
+import static org.lwjgl.opengl.GL33C.*;
+
 /**
  *
  * @author Cien
@@ -33,24 +38,71 @@ package cientistavuador.ciencraftreal.block.material.ubo;
 public class ColorUBO {
     
     public static final ColorUBO DEFAULT = new ColorUBO();
+    public static final int SIZE = 1024;
+    
+    private final ConcurrentLinkedQueue<Integer> availableObjects = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<Runnable> updateTasks = new ConcurrentLinkedQueue<>();
+    private final int ubo;
+    private final FloatBuffer data;
     
     private ColorUBO() {
-        
+        this.data = memCallocFloat(SIZE * 4);
+        try {
+            this.ubo = glGenBuffers();
+            glBindBuffer(GL_UNIFORM_BUFFER, this.ubo);
+            glBufferData(GL_UNIFORM_BUFFER, data, GL_DYNAMIC_DRAW);
+            glBindBuffer(GL_UNIFORM_BUFFER, 0);
+        } catch (Throwable e) {
+            memFree(this.data);
+            throw e;
+        }
+        for (int i = 0; i < SIZE; i++) {
+            availableObjects.add(i);
+        }
+    }
+    
+    public int updateAndGetUBO() {
+        if (!updateTasks.isEmpty()) {
+            glBindBuffer(GL_UNIFORM_BUFFER, this.ubo);
+            Runnable r;
+            while ((r = this.updateTasks.poll()) != null) {
+                r.run();
+            }
+            glBindBuffer(GL_UNIFORM_BUFFER, 0);
+        }
+        return this.ubo;
     }
     
     public int allocate() {
-        return 0;
+        Integer obj = availableObjects.poll();
+        if (obj == null) {
+            throw new IllegalStateException("Out of Color Objects!");
+        }
+        return obj;
     }
     
     public void setColor(int colorPointer, float r, float g, float b, float a) {
-        
+        long address = memAddress(this.data) + (colorPointer * 4 * 4);
+        memPutFloat(address + 0, r);
+        memPutFloat(address + 4, g);
+        memPutFloat(address + 8, b);
+        memPutFloat(address + 12, a);
+        updateTasks.add(() -> {
+            nglBufferSubData(GL_UNIFORM_BUFFER, colorPointer * 4 * 4, 4 * 4, address);
+        });
     }
     
     public float getColor(int colorPointer, int channel) {
-        return 0;
+        long address = memAddress(this.data) + (colorPointer * 4 * 4);
+        return memGetFloat(address + (channel * 4));
     }
     
     public void free(int colorPointer) {
-        
+        this.availableObjects.add(colorPointer);
+    }
+    
+    public void delete() {
+        glDeleteBuffers(this.ubo);
+        memFree(this.data);
     }
 }
