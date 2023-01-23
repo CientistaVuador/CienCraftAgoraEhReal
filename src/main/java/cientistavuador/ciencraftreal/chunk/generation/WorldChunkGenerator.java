@@ -275,7 +275,9 @@ public class WorldChunkGenerator implements ChunkGenerator {
                 genSoil:
                 {
                     if (negativeSurface >= MIN_HEIGHT + 2) {
-                        generateSoil(x, negativeSurface, -z);
+                        for (int i = 0; i < 4; i++) {
+                            generateSoil(x, negativeSurface - i, -z);
+                        }
                         break genSoil;
                     }
                     if (negativeSurface >= MIN_HEIGHT) {
