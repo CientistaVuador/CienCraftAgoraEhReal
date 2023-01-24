@@ -26,6 +26,11 @@
  */
 package cientistavuador.ciencraftreal.block.material;
 
+import cientistavuador.ciencraftreal.Main;
+import cientistavuador.ciencraftreal.block.material.ubo.ColorUBO;
+import cientistavuador.ciencraftreal.block.material.ubo.MaterialUBO;
+import cientistavuador.ciencraftreal.util.ObjectCleaner;
+
 /**
  *
  * @author Cien
@@ -33,51 +38,84 @@ package cientistavuador.ciencraftreal.block.material;
 public class BlockMaterial {
     
     public static BlockMaterial create() {
-        return null;
+        return create(ColorUBO.DEFAULT, MaterialUBO.DEFAULT);
     }
     
-    private BlockMaterial() {
+    public static BlockMaterial create(ColorUBO colorUbo, MaterialUBO materialUbo) {
+        int colorPointer = colorUbo.allocate();
+        int materialPointer = materialUbo.allocate();
+        BlockMaterial mat = new BlockMaterial(colorUbo, materialUbo, colorPointer, materialPointer);
+        ObjectCleaner.get().register(mat, () -> {
+            colorUbo.free(colorPointer);
+            materialUbo.free(materialPointer);
+        });
+        return mat;
+    }
+    
+    private final ColorUBO colorUbo;
+    private final MaterialUBO materialUbo;
+    private final int colorPointer;
+    private final int materialPointer;
+    
+    private BlockMaterial(ColorUBO color, MaterialUBO material, int colorPointer, int materialPointer) {
+        this.colorUbo = color;
+        this.materialUbo = material;
+        this.colorPointer = colorPointer;
+        this.materialPointer = materialPointer;
         
+        this.colorUbo.setColor(this.colorPointer, 1, 1, 1, 1);
+        this.materialUbo.setColorPointer(this.materialPointer, this.colorPointer);
+        this.materialUbo.setFrameTime(this.materialPointer, 0f);
+        this.materialUbo.setFrameStart(this.materialPointer, 0);
+        this.materialUbo.setFrameEnd(this.materialPointer, 0);
+    }
+    
+    public int getTextureID() {
+        return this.materialPointer + Main.MIN_TEXTURE_3D_SIZE_SUPPORTED;
     }
     
     public void setColorEnabled(boolean enabled) {
-        
+        if (enabled) {
+            this.materialUbo.setColorPointer(this.materialPointer, this.colorPointer);
+        } else {
+            this.materialUbo.setColorPointer(this.materialPointer, ColorUBO.NULL);
+        }
     }
     
     public void setColor(float r, float g, float b, float a) {
-        
+        this.colorUbo.setColor(this.colorPointer, r, g, b, a);
     }
     
     public void setFrameTime(float time) {
-        
+        this.materialUbo.setFrameTime(this.materialPointer, time);
     }
     
     public void setFrameStart(int frameStart) {
-        
+        this.materialUbo.setFrameStart(this.materialPointer, frameStart);
     }
     
     public void setFrameEnd(int frameEnd) {
-        
-    }
-    
-    public float getFrameTime() {
-        return 0;
-    }
-    
-    public int getFrameStart() {
-        return 0;
-    }
-    
-    public int getFrameEnd() {
-        return 0;
+        this.materialUbo.setFrameEnd(this.materialPointer, frameEnd);
     }
     
     public boolean isColorEnabled() {
-        return false;
+        return this.materialUbo.getColorPointer(this.materialPointer) != ColorUBO.NULL;
     }
     
     public float getColor(int channel) {
-        return 0;
+        return this.colorUbo.getColor(this.colorPointer, channel);
+    }
+    
+    public float getFrameTime() {
+        return this.materialUbo.getFrameTime(this.materialPointer);
+    }
+    
+    public int getFrameStart() {
+        return this.materialUbo.getFrameStart(this.materialPointer);
+    }
+    
+    public int getFrameEnd() {
+        return this.materialUbo.getFrameEnd(this.materialPointer);
     }
     
 }
