@@ -57,7 +57,7 @@ public class Game {
     private final WorldCamera world = new WorldCamera(camera, 65487321654L, new WorldChunkGeneratorFactory());
     private final BlockOutline outline = new BlockOutline(world, camera);
     private int currentBlockId = Blocks.HAPPY_2023.getId();
-
+    
     private Game() {
 
     }
@@ -71,7 +71,7 @@ public class Game {
         colors.setColor(object, 0, 0, 1, 1);
         colors.updateVBO();
     }
-
+    
     public void loop() {
         camera.updateMovement();
         triangle.render(camera.getProjection(), camera.getView());
@@ -84,7 +84,7 @@ public class Game {
             }
             block.render(camera.getProjection(), camera.getView());
         }
-
+        
         world.update();
         world.render();
         

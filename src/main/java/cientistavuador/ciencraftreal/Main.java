@@ -45,7 +45,7 @@ import static org.lwjgl.system.MemoryUtil.*;
  */
 public class Main {
 
-    public static final boolean USE_MSAA = true;
+    public static final boolean USE_MSAA = false;
     public static final boolean DEBUG_ENABLED = true;
     public static final int MIN_TEXTURE_3D_SIZE_SUPPORTED = 2048;
     public static final int MIN_UNIFORM_BUFFER_BINDINGS = 36;
