@@ -86,6 +86,10 @@ public class UniformSetter {
         glUniform1i(getUniformLocation(name), value);
     }
     
+    public static void setFloat(String name, float value) {
+        glUniform1f(getUniformLocation(name), value);
+    }
+    
     private UniformSetter() {
         
     }
