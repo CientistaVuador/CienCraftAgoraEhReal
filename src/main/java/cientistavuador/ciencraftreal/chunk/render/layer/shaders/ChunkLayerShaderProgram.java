@@ -26,11 +26,16 @@
  */
 package cientistavuador.ciencraftreal.chunk.render.layer.shaders;
 
+import cientistavuador.ciencraftreal.Main;
+import cientistavuador.ciencraftreal.block.material.ubo.ColorUBO;
+import cientistavuador.ciencraftreal.block.material.ubo.MaterialUBO;
 import cientistavuador.ciencraftreal.camera.Camera;
 import cientistavuador.ciencraftreal.chunk.Chunk;
 import cientistavuador.ciencraftreal.chunk.render.layer.ChunkLayer;
 import cientistavuador.ciencraftreal.util.ProgramCompiler;
 import cientistavuador.ciencraftreal.util.UniformSetter;
+import java.util.Map;
+import static org.lwjgl.opengl.GL33C.*;
 
 /**
  *
@@ -43,7 +48,7 @@ public class ChunkLayerShaderProgram {
             #version 330 core
             
             uniform ivec3 layerBlockPos;
-            
+            uniform float time;
             uniform mat4 projection;
             uniform mat4 view;
             
@@ -52,8 +57,27 @@ public class ChunkLayerShaderProgram {
             layout (location = 2) in int inVertexTextureID;
             layout (location = 3) in float inVertexAO;
             
-            out vec2 inoutTexCoords;
-            flat out int inoutTextureID;
+            layout (std140) uniform BlockColors {
+                vec4 colors[COLORS_UBO_SIZE];
+            };
+            
+            struct BlockMaterial {
+                int colorPointer;
+                float frameTime;
+                int frameStart;
+                int frameEnd;
+            };
+            
+            layout (std140) uniform BlockMaterials {
+                BlockMaterial materials[MATERIALS_UBO_SIZE];
+            };
+            
+            out VS_OUT {
+                vec2 texCoords;
+                flat int textureID;
+                flat bool hasColor;
+                flat vec4 color;
+            } Output;
             
             void main() {
                 vec3 vertexPos = vec3(
@@ -64,15 +88,28 @@ public class ChunkLayerShaderProgram {
                 vertexPos += vec3(layerBlockPos);
                 vec2 texCoords = inTexCoords * TEX_COORDS_SIZE;
                 
-                inoutTexCoords = texCoords;
-                inoutTextureID = inVertexTextureID;
+                Output.hasColor = false;
+            
+                int texture = inVertexTextureID;
+                if (texture >= MIN_TEXTURE_3D_SIZE_SUPPORTED) {
+                    texture -= MIN_TEXTURE_3D_SIZE_SUPPORTED;
+                    
+                    BlockMaterial material = materials[texture];
+                    int frameLength = material.frameEnd - material.frameStart;
+                    int currentFrame = material.frameStart + (int(time / material.frameTime) % frameLength);
+                    texture = currentFrame;
+                    
+                    if (material.colorPointer != NULL_COLOR_POINTER) {
+                        Output.hasColor = true;
+                        Output.color = colors[material.colorPointer];
+                    }
+                }
+                
+                Output.texCoords = texCoords;
+                Output.textureID = texture;
                 gl_Position = projection * view * vec4(vertexPos, 1.0);
             }
-            """
-                    .replace("CHUNK_SIZE", Integer.toString(Chunk.CHUNK_SIZE) + ".0")
-                    .replace("LAYER_HEIGHT", Integer.toString(ChunkLayer.HEIGHT) + ".0")
-                    .replace("TEX_COORDS_SIZE", Integer.toString(ChunkLayer.TEX_COORDS_MAX) + ".0")
-            ;
+            """;
     
     public static final String FRAGMENT_SHADER = 
             """
@@ -81,14 +118,21 @@ public class ChunkLayerShaderProgram {
             uniform bool useAlpha;
             uniform sampler2DArray textures;
             
-            in vec2 inoutTexCoords;
-            flat in int inoutTextureID;
+            in VS_OUT {
+                vec2 texCoords;
+                flat int textureID;
+                flat bool hasColor;
+                flat vec4 color;
+            } Input;
             
             layout (location = 0) out vec4 out_Color;
             
             void main() {
-                vec4 color = texture(textures, vec3(inoutTexCoords, float(inoutTextureID)));
+                vec4 color = texture(textures, vec3(Input.texCoords, float(Input.textureID)));
                 vec4 output = color;
+                if (Input.hasColor) {
+                    output *= Input.color;
+                }
                 if (!useAlpha) {
                     if (color.a < 0.5) {
                         discard;
@@ -99,7 +143,22 @@ public class ChunkLayerShaderProgram {
             }
             """;
     
-    public static final int SHADER_PROGRAM = ProgramCompiler.compile(VERTEX_SHADER, FRAGMENT_SHADER);
+    public static final int SHADER_PROGRAM = ProgramCompiler.compile(
+            VERTEX_SHADER, 
+            FRAGMENT_SHADER,
+            Map.of(
+                    "CHUNK_SIZE", Integer.toString(Chunk.CHUNK_SIZE) + ".0",
+                    "LAYER_HEIGHT", Integer.toString(ChunkLayer.HEIGHT) + ".0",
+                    "TEX_COORDS_SIZE", Integer.toString(ChunkLayer.TEX_COORDS_MAX) + ".0",
+                    "MIN_TEXTURE_3D_SIZE_SUPPORTED", Integer.toString(Main.MIN_TEXTURE_3D_SIZE_SUPPORTED),
+                    "COLORS_UBO_SIZE", Integer.toString(ColorUBO.SIZE),
+                    "MATERIALS_UBO_SIZE", Integer.toString(MaterialUBO.SIZE),
+                    "NULL_COLOR_POINTER", Integer.toString(ColorUBO.NULL)
+            )
+    );
+    
+    public static final int BLOCK_COLORS_UBO_INDEX = glGetUniformBlockIndex(SHADER_PROGRAM, "BlockColors");
+    public static final int BLOCK_MATERIALS_UBO_INDEX = glGetUniformBlockIndex(SHADER_PROGRAM, "BlockMaterials");
     
     public static void sendUniforms(Camera camera, int chunkX, int blockY, int chunkZ, boolean useAlpha) {
         UniformSetter.setMatrix4f("projection", camera.getProjection());
@@ -108,6 +167,11 @@ public class ChunkLayerShaderProgram {
         UniformSetter.setVector3i("layerBlockPos", chunkX * Chunk.CHUNK_SIZE, blockY, chunkZ * Chunk.CHUNK_SIZE);
         UniformSetter.setInt("textures", 0);
         UniformSetter.setInt("useAlpha", (useAlpha ? 1 : 0));
+        UniformSetter.setFloat("time", (float) Main.ONE_MINUTE_COUNTER);
+        glUniformBlockBinding(SHADER_PROGRAM, BLOCK_COLORS_UBO_INDEX, ColorUBO.DEFAULT.getBindingPoint());
+        glUniformBlockBinding(SHADER_PROGRAM, BLOCK_MATERIALS_UBO_INDEX, MaterialUBO.DEFAULT.getBindingPoint());
+        ColorUBO.DEFAULT.updateVBO();
+        MaterialUBO.DEFAULT.updateUBO();
     }
     
     private ChunkLayerShaderProgram() {
