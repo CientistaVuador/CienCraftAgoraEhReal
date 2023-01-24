@@ -274,10 +274,11 @@ public class ChunkLayer {
         
         if (!useCurrentShader) {
             glUseProgram(ChunkLayerShaderProgram.SHADER_PROGRAM);
+            
+            ChunkLayerShaderProgram.sendCameraUniforms(camera);
         }
 
         ChunkLayerShaderProgram.sendUniforms(
-                camera,
                 this.chunk.getChunkX(),
                 this.y,
                 this.chunk.getChunkZ(),
@@ -310,10 +311,11 @@ public class ChunkLayer {
         
         if (!useCurrentShader) {
             glUseProgram(ChunkLayerShaderProgram.SHADER_PROGRAM);
+            
+            ChunkLayerShaderProgram.sendCameraUniforms(camera);
         }
 
         ChunkLayerShaderProgram.sendUniforms(
-                camera,
                 this.chunk.getChunkX(),
                 this.y,
                 this.chunk.getChunkZ(),

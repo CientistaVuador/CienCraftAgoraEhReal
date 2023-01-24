@@ -105,6 +105,8 @@ public class ChunkLayersRender {
         
         glUseProgram(ChunkLayerShaderProgram.SHADER_PROGRAM);
         
+        ChunkLayerShaderProgram.sendCameraUniforms(camera);
+        
         for (DistancedChunkLayer e:layerList) {
             ChunkLayer layer = e.getLayer();
             

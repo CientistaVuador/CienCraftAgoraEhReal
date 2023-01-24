@@ -159,15 +159,22 @@ public class ChunkLayerShaderProgram {
     
     public static final int BLOCK_COLORS_UBO_INDEX = glGetUniformBlockIndex(SHADER_PROGRAM, "BlockColors");
     public static final int BLOCK_MATERIALS_UBO_INDEX = glGetUniformBlockIndex(SHADER_PROGRAM, "BlockMaterials");
+    public static final int LAYER_BLOCK_POS_PROGRAM_INDEX = glGetUniformLocation(SHADER_PROGRAM, "layerBlockPos");
+    public static final int TEXTURES_PROGRAM_INDEX = glGetUniformLocation(SHADER_PROGRAM, "textures");
+    public static final int USE_ALPHA_PROGRAM_INDEX = glGetUniformLocation(SHADER_PROGRAM, "useAlpha");
+    public static final int TIME_PROGRAM_INDEX = glGetUniformLocation(SHADER_PROGRAM, "time");
     
-    public static void sendUniforms(Camera camera, int chunkX, int blockY, int chunkZ, boolean useAlpha) {
+    public static void sendCameraUniforms(Camera camera) {
         UniformSetter.setMatrix4f("projection", camera.getProjection());
         UniformSetter.setMatrix4f("view", camera.getView());
+    }
+    
+    public static void sendUniforms(int chunkX, int blockY, int chunkZ, boolean useAlpha) {
+        glUniform3i(LAYER_BLOCK_POS_PROGRAM_INDEX, chunkX * Chunk.CHUNK_SIZE, blockY, chunkZ * Chunk.CHUNK_SIZE);
+        glUniform1i(TEXTURES_PROGRAM_INDEX, 0);
+        glUniform1i(USE_ALPHA_PROGRAM_INDEX, (useAlpha ? 1 : 0));
+        glUniform1f(TIME_PROGRAM_INDEX, (float) Main.ONE_MINUTE_COUNTER);
         
-        UniformSetter.setVector3i("layerBlockPos", chunkX * Chunk.CHUNK_SIZE, blockY, chunkZ * Chunk.CHUNK_SIZE);
-        UniformSetter.setInt("textures", 0);
-        UniformSetter.setInt("useAlpha", (useAlpha ? 1 : 0));
-        UniformSetter.setFloat("time", (float) Main.ONE_MINUTE_COUNTER);
         glUniformBlockBinding(SHADER_PROGRAM, BLOCK_COLORS_UBO_INDEX, ColorUBO.DEFAULT.getBindingPoint());
         glUniformBlockBinding(SHADER_PROGRAM, BLOCK_MATERIALS_UBO_INDEX, MaterialUBO.DEFAULT.getBindingPoint());
         ColorUBO.DEFAULT.updateVBO();
