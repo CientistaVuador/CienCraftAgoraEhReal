@@ -337,34 +337,42 @@ public class WorldChunkGenerator implements ChunkGenerator {
                     value = (value + 1f) * 0.5f;
 
                     if (biomeType == 0 && surfaceBlock == Blocks.GRASS && value > 0.5f) {
-                        placeTree(x, surface + 1, -z, 4);
+                        placeTree(x, surface + 1, -z, false);
                     }
                     if (biomeType == 2 && surfaceBlock == Blocks.SAND && value > 0.90f) {
                         placeDeadTree(x, surface + 1, -z);
                     }
                     if (biomeType == 1 && surfaceBlock == Blocks.MYCELIUM && value > 0.70f) {
-                        placeTree(x, surface + 1, -z, 8);
+                        placeTree(x, surface + 1, -z, true);
                     }
                 }
             }
         }
     }
 
-    private void placeTree(int x, int y, int z, int treeHeight) {
+    private void placeTree(int x, int y, int z, boolean brownType) {
         if (
                 ((x-2) < 0 || (x+2) >= Chunk.CHUNK_SIZE) ||
                 ((z-2) <= -Chunk.CHUNK_SIZE || (z+2) > 0)
                 ) {
             return;
         }
+        int treeHeight = 4;
+        if (brownType) {
+            treeHeight = 5;
+        }
+        Block leaves = Blocks.LEAVES;
+        if (brownType) {
+            leaves = Blocks.BROWN_LEAVES;
+        }
         int height = this.treeRandom.nextInt(treeHeight) + 4;
         for (int localZ = -2; localZ <= 2; localZ++) {
             for (int localX = -2; localX <= 2; localX++) {
                 int finalX = localX + x;
                 int finalZ = localZ + z;
-                this.chunk.setBlock(finalX, (y + height) - 1, finalZ, Blocks.LEAVES);
-                this.chunk.setBlock(finalX, (y + height) - 2, finalZ, Blocks.LEAVES);
-                this.chunk.setBlock(finalX, (y + height) - 3, finalZ, Blocks.LEAVES);
+                this.chunk.setBlock(finalX, (y + height) - 1, finalZ, leaves);
+                this.chunk.setBlock(finalX, (y + height) - 2, finalZ, leaves);
+                this.chunk.setBlock(finalX, (y + height) - 3, finalZ, leaves);
                 this.surfaceMap[finalX + (-finalZ * Chunk.CHUNK_SIZE)] = (y + height) - 1;
             }
         }
@@ -372,7 +380,7 @@ public class WorldChunkGenerator implements ChunkGenerator {
             this.chunk.setBlock(x, y + i, z, Blocks.WOOD);
         }
         for (int i = 0; i < 2; i++) {
-            this.chunk.setBlock(x, y + i + height, z, Blocks.LEAVES);
+            this.chunk.setBlock(x, y + i + height, z, leaves);
         }
         this.chunk.setBlock(x, y - 1, z, Blocks.DIRT);
         this.surfaceMap[x + (-z * Chunk.CHUNK_SIZE)] = (y+1) + height;
