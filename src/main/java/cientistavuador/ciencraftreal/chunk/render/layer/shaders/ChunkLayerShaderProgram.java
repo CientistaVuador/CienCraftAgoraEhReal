@@ -95,9 +95,14 @@ public class ChunkLayerShaderProgram {
                     texture -= MIN_TEXTURE_3D_SIZE_SUPPORTED;
                     
                     BlockMaterial material = materials[texture];
-                    int frameLength = material.frameEnd - material.frameStart;
-                    int currentFrame = material.frameStart + (int(time / material.frameTime) % frameLength);
-                    texture = currentFrame;
+                    
+                    if (material.frameTime != 0.0) {
+                        int frameLength = material.frameEnd - material.frameStart;
+                        int currentFrame = material.frameStart + (int(time / material.frameTime) % frameLength);
+                        texture = currentFrame;
+                    } else {
+                        texture = material.frameStart;
+                    }
                     
                     if (material.colorPointer != NULL_COLOR_POINTER) {
                         Output.hasColor = true;
