@@ -264,11 +264,17 @@ public class ChunkLayer {
     }
 
     public void renderStage5(Camera camera) {
+        renderStage5(camera, false);
+    }
+    
+    public void renderStage5(Camera camera, boolean useCurrentShader) {
         if (this.vertices.length == 0) {
             return;
         }
         
-        glUseProgram(ChunkLayerShaderProgram.SHADER_PROGRAM);
+        if (!useCurrentShader) {
+            glUseProgram(ChunkLayerShaderProgram.SHADER_PROGRAM);
+        }
 
         ChunkLayerShaderProgram.sendUniforms(
                 camera,
@@ -287,15 +293,24 @@ public class ChunkLayer {
 
         glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
         glBindVertexArray(0);
-        glUseProgram(0);
+        
+        if (!useCurrentShader) {
+            glUseProgram(0);
+        }
     }
     
     public void renderAlphaStage6(Camera camera) {
+        renderAlphaStage6(camera, false);
+    }
+    
+    public void renderAlphaStage6(Camera camera, boolean useCurrentShader) {
         if (this.verticesAlpha.length == 0) {
             return;
         }
         
-        glUseProgram(ChunkLayerShaderProgram.SHADER_PROGRAM);
+        if (!useCurrentShader) {
+            glUseProgram(ChunkLayerShaderProgram.SHADER_PROGRAM);
+        }
 
         ChunkLayerShaderProgram.sendUniforms(
                 camera,
@@ -314,7 +329,10 @@ public class ChunkLayer {
 
         glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
         glBindVertexArray(0);
-        glUseProgram(0);
+        
+        if (!useCurrentShader) {
+            glUseProgram(0);
+        }
     }
 
     public boolean isDeleted() {

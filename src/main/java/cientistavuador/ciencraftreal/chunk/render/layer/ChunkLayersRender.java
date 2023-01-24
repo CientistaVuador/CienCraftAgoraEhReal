@@ -27,10 +27,12 @@
 package cientistavuador.ciencraftreal.chunk.render.layer;
 
 import cientistavuador.ciencraftreal.camera.Camera;
+import cientistavuador.ciencraftreal.chunk.render.layer.shaders.ChunkLayerShaderProgram;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 import org.joml.Vector3fc;
+import static org.lwjgl.opengl.GL33C.*;
 
 /**
  *
@@ -101,11 +103,13 @@ public class ChunkLayersRender {
         ArrayDeque<ChunkLayer> alphaRendering = new ArrayDeque<>(64);
         List<ChunkLayer> toProcess = new ArrayList<>();
         
+        glUseProgram(ChunkLayerShaderProgram.SHADER_PROGRAM);
+        
         for (DistancedChunkLayer e:layerList) {
             ChunkLayer layer = e.getLayer();
             
             if (!layer.checkVerticesStage1(camera)) {
-                layer.renderStage5(camera);
+                layer.renderStage5(camera, true);
                 alphaRendering.add(layer);
                 continue;
             }
@@ -115,10 +119,11 @@ public class ChunkLayersRender {
         //render alpha
         ChunkLayer e;
         while ((e = alphaRendering.pollLast()) != null) {
-            e.renderAlphaStage6(camera);
+            e.renderAlphaStage6(camera, true);
         }
         
         if (toProcess.isEmpty()) {
+            glUseProgram(0);
             return;
         }
         
@@ -171,15 +176,17 @@ public class ChunkLayersRender {
         //process the queue
         ChunkLayer f;
         while ((f = finishedProcessing.poll()) != null) {
-            f.renderStage5(camera);
+            f.renderStage5(camera, true);
             alphaRendering.add(f);
         }
         
         //render alpha
         ChunkLayer a;
         while ((a = alphaRendering.pollLast()) != null) {
-            a.renderAlphaStage6(camera);
+            a.renderAlphaStage6(camera, true);
         }
+        
+        glUseProgram(0);
     }
     
     private ChunkLayersRender() {
