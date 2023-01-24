@@ -312,21 +312,18 @@ public class WorldChunkGenerator implements ChunkGenerator {
     }
 
     private void generateTrees() {
-        for (int xHalf = 0; xHalf < (Chunk.CHUNK_SIZE / 2); xHalf++) {
-            for (int zHalf = 0; zHalf < (Chunk.CHUNK_SIZE / 2); zHalf++) {
-                int x = xHalf * 2;
-                int z = zHalf * 2;
-
+        for (int x = 0; x < Chunk.CHUNK_SIZE; x++) {
+            for (int z = 0; z < Chunk.CHUNK_SIZE; z++) {
                 int biomeType = this.biomeMap[x + (z * Chunk.CHUNK_SIZE)];
 
                 int chance;
                 switch (biomeType) {
                     case 1 ->
-                        chance = 40;
+                        chance = 160;
                     case 2 ->
-                        chance = 400;
+                        chance = 1600;
                     default ->
-                        chance = 10;
+                        chance = 40;
                 }
 
                 if (this.treeRandom.nextInt(chance) == 0) {
@@ -340,29 +337,45 @@ public class WorldChunkGenerator implements ChunkGenerator {
                     value = (value + 1f) * 0.5f;
 
                     if (biomeType == 0 && surfaceBlock == Blocks.GRASS && value > 0.5f) {
-                        this.chunk.setBlock(x, surface, -z, Blocks.DIRT);
-                        placeTree(x, surface + 1, -z);
+                        placeTree(x, surface + 1, -z, 4);
                     }
                     if (biomeType == 2 && surfaceBlock == Blocks.SAND && value > 0.90f) {
                         placeDeadTree(x, surface + 1, -z);
                     }
                     if (biomeType == 1 && surfaceBlock == Blocks.MYCELIUM && value > 0.70f) {
-                        this.chunk.setBlock(x, surface, -z, Blocks.DIRT);
-                        placeLongTree(x, surface + 1, -z);
+                        placeTree(x, surface + 1, -z, 8);
                     }
                 }
             }
         }
     }
 
-    private void placeTree(int x, int y, int z) {
-        for (int i = 0; i < 5; i++) {
+    private void placeTree(int x, int y, int z, int treeHeight) {
+        if (
+                ((x-2) < 0 || (x+2) >= Chunk.CHUNK_SIZE) ||
+                ((z-2) <= -Chunk.CHUNK_SIZE || (z+2) > 0)
+                ) {
+            return;
+        }
+        int height = this.treeRandom.nextInt(treeHeight) + 4;
+        for (int localZ = -2; localZ <= 2; localZ++) {
+            for (int localX = -2; localX <= 2; localX++) {
+                int finalX = localX + x;
+                int finalZ = localZ + z;
+                this.chunk.setBlock(finalX, (y + height) - 1, finalZ, Blocks.LEAVES);
+                this.chunk.setBlock(finalX, (y + height) - 2, finalZ, Blocks.LEAVES);
+                this.chunk.setBlock(finalX, (y + height) - 3, finalZ, Blocks.LEAVES);
+                this.surfaceMap[finalX + (-finalZ * Chunk.CHUNK_SIZE)] = (y + height) - 1;
+            }
+        }
+        for (int i = 0; i < height; i++) {
             this.chunk.setBlock(x, y + i, z, Blocks.WOOD);
         }
-    }
-
-    private void placeLongTree(int x, int y, int z) {
-        placeTree(x, y, z);
+        for (int i = 0; i < 2; i++) {
+            this.chunk.setBlock(x, y + i + height, z, Blocks.LEAVES);
+        }
+        this.chunk.setBlock(x, y - 1, z, Blocks.DIRT);
+        this.surfaceMap[x + (-z * Chunk.CHUNK_SIZE)] = (y+1) + height;
     }
 
     private void placeDeadTree(int x, int y, int z) {
