@@ -27,6 +27,7 @@
 package cientistavuador.ciencraftreal.block;
 
 import cientistavuador.ciencraftreal.block.blocks.Bedrock;
+import cientistavuador.ciencraftreal.block.blocks.BrownLeaves;
 import cientistavuador.ciencraftreal.block.blocks.CoalOre;
 import cientistavuador.ciencraftreal.block.blocks.DeadWood;
 import cientistavuador.ciencraftreal.block.blocks.Dirt;
@@ -67,6 +68,7 @@ public class Blocks {
     public static final Mycelium MYCELIUM = new Mycelium();
     public static final Sand SAND = new Sand();
     public static final Water WATER = new Water();
+    public static final BrownLeaves BROWN_LEAVES = new BrownLeaves();
     
     static {
         //0.5-DEV
@@ -89,6 +91,7 @@ public class Blocks {
         BlockRegister.register(MYCELIUM);
         BlockRegister.register(SAND);
         BlockRegister.register(WATER);
+        BlockRegister.register(BROWN_LEAVES);
     }
     
     public static final Block[] ORES = new Block[] {
