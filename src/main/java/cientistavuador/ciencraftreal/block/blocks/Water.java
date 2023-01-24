@@ -42,8 +42,8 @@ public class Water extends SimpleBlock {
     
     static {
         WATER_MATERIAL = BlockMaterial.create();
-        WATER_MATERIAL.setColor(1f, 1f, 1f, 0.45f);
-        WATER_MATERIAL.setFrameTime(1f);
+        WATER_MATERIAL.setColor(1f, 1f, 1f, 0.65f);
+        WATER_MATERIAL.setFrameTime(0.75f);
         WATER_MATERIAL.setFrameStart(BlockTextures.WATER_FRAME_START);
         WATER_MATERIAL.setFrameEnd(BlockTextures.WATER_FRAME_END);
     }

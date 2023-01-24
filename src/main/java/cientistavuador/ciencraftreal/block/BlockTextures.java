@@ -55,8 +55,9 @@ public class BlockTextures {
     public static final int MYCELIUM = BlockTextureLoader.push("vulpes_dirt_with_mycelium.png");
     public static final int MYCELIUM_TOP = BlockTextureLoader.push("vulpes_mycelium.png");
     public static final int SAND = BlockTextureLoader.push("vulpes_sand.png");
-    public static final int WATER_FRAME_START = BlockTextureLoader.push("vulpes_water_source_animated.png", 4);
+    public static final int WATER_FRAME_START = BlockTextureLoader.push("vulpesdog_water_source_animated_noalpha.png", 4);
     public static final int WATER_FRAME_END = WATER_FRAME_START + 4;
+    public static final int LEAVES_BW = BlockTextureLoader.push("vulpescien_leaves_bw.png");
     
     public static final int GL_TEXTURE_ARRAY;
     
