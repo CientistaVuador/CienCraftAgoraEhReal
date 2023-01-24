@@ -48,6 +48,7 @@ public class Main {
     public static final boolean USE_MSAA = true;
     public static final boolean DEBUG_ENABLED = true;
     public static final int MIN_TEXTURE_3D_SIZE_SUPPORTED = 2048;
+    public static final int MIN_UNIFORM_BUFFER_BINDINGS = 36;
     
     static {
         org.lwjgl.system.Configuration.LIBRARY_PATH.set("natives");
@@ -98,6 +99,8 @@ public class Main {
     public static int FPS = 60;
     public static long WINDOW_POINTER = NULL;
     public static long FRAME = 0;
+    public static double ONE_SECOND_COUNTER = 0.0;
+    public static double ONE_MINUTE_COUNTER = 0.0;
     private static GLDebugMessageCallback DEBUG_CALLBACK = null;
 
     private static String debugSource(int source) {
@@ -223,6 +226,10 @@ public class Main {
         if (maxTex3DSize < MIN_TEXTURE_3D_SIZE_SUPPORTED) {
             throw new IllegalStateException("Max 3D Texture Size too small! Update your drivers or buy a new GPU.");
         }
+        int maxUBOBindings = glGetInteger(GL_MAX_UNIFORM_BUFFER_BINDINGS);
+        if (maxUBOBindings < MIN_UNIFORM_BUFFER_BINDINGS) {
+            throw new IllegalStateException("Max UBO Bindings too small! Update your drivers or buy a new GPU.");
+        }
         
         Main.checkGLError();
         
@@ -292,6 +299,16 @@ public class Main {
             if (System.currentTimeMillis() >= nextTitleUpdate) {
                 nextTitleUpdate = System.currentTimeMillis() + 100;
                 glfwSetWindowTitle(WINDOW_POINTER, Main.WINDOW_TITLE);
+            }
+            
+            Main.ONE_SECOND_COUNTER += Main.TPF;
+            Main.ONE_MINUTE_COUNTER += Main.TPF;
+            
+            if (Main.ONE_SECOND_COUNTER > 1.0) {
+                Main.ONE_SECOND_COUNTER = 0.0;
+            }
+            if (Main.ONE_MINUTE_COUNTER > 60.0) {
+                Main.ONE_MINUTE_COUNTER = 0.0;
             }
             
             Main.FRAME++;

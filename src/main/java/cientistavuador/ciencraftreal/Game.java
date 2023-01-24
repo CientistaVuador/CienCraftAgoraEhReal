@@ -29,6 +29,7 @@ package cientistavuador.ciencraftreal;
 import cientistavuador.ciencraftreal.block.BlockRegister;
 import cientistavuador.ciencraftreal.block.Blocks;
 import cientistavuador.ciencraftreal.block.SimpleBlock;
+import cientistavuador.ciencraftreal.block.material.ubo.ColorUBO;
 import cientistavuador.ciencraftreal.debug.Triangle;
 import cientistavuador.ciencraftreal.camera.FreeCamera;
 import cientistavuador.ciencraftreal.chunk.biome.Biome;
@@ -63,6 +64,12 @@ public class Game {
 
     public void start() {
         camera.setPosition(0, 80, 0);
+        
+        ColorUBO colors = ColorUBO.DEFAULT;
+        colors.allocate();
+        int object = colors.allocate();
+        colors.setColor(object, 0, 0, 1, 1);
+        colors.updateVBO();
     }
 
     public void loop() {

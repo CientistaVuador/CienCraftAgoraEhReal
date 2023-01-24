@@ -30,6 +30,7 @@ import cientistavuador.ciencraftreal.block.Block;
 import cientistavuador.ciencraftreal.block.BlockTextures;
 import cientistavuador.ciencraftreal.block.BlockTransparency;
 import cientistavuador.ciencraftreal.block.SimpleBlock;
+import cientistavuador.ciencraftreal.block.material.BlockMaterial;
 
 /**
  *
@@ -37,8 +38,18 @@ import cientistavuador.ciencraftreal.block.SimpleBlock;
  */
 public class Water extends SimpleBlock {
     
+    public static final BlockMaterial WATER_MATERIAL;
+    
+    static {
+        WATER_MATERIAL = BlockMaterial.create();
+        WATER_MATERIAL.setColor(1f, 1f, 1f, 0.45f);
+        WATER_MATERIAL.setFrameTime(1f);
+        WATER_MATERIAL.setFrameStart(BlockTextures.WATER_FRAME_START);
+        WATER_MATERIAL.setFrameEnd(BlockTextures.WATER_FRAME_END);
+    }
+    
     public Water() {
-        super("ciencraft_water", BlockTextures.WATER_FRAME_START);
+        super("ciencraft_water", WATER_MATERIAL.getTextureID());
     }
 
     @Override
