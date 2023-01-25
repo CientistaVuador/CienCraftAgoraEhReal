@@ -34,7 +34,6 @@ import cientistavuador.ciencraftreal.chunk.generation.ChunkGenerator;
 import cientistavuador.ciencraftreal.chunk.generation.ChunkGeneratorFactory;
 import cientistavuador.ciencraftreal.chunk.render.layer.ChunkLayers;
 import cientistavuador.ciencraftreal.chunk.render.layer.ChunkLayersRender;
-import cientistavuador.ciencraftreal.noise.OpenSimplex2;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

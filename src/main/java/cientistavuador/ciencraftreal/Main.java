@@ -47,9 +47,10 @@ public class Main {
 
     public static final boolean USE_MSAA = false;
     public static final boolean DEBUG_ENABLED = true;
+    public static final boolean SPIKE_LAG_WARNINGS = false;
     public static final int MIN_TEXTURE_3D_SIZE_SUPPORTED = 2048;
     public static final int MIN_UNIFORM_BUFFER_BINDINGS = UBOBindingPoints.MIN_NUMBER_OF_UBO_BINDING_POINTS;
-    
+
     static {
         org.lwjgl.system.Configuration.LIBRARY_PATH.set("natives");
     }
@@ -105,38 +106,57 @@ public class Main {
 
     private static String debugSource(int source) {
         return switch (source) {
-            case GL_DEBUG_SOURCE_API -> "API";
-            case GL_DEBUG_SOURCE_WINDOW_SYSTEM -> "WINDOW SYSTEM";
-            case GL_DEBUG_SOURCE_SHADER_COMPILER -> "SHADER COMPILER";
-            case GL_DEBUG_SOURCE_THIRD_PARTY -> "THIRD PARTY";
-            case GL_DEBUG_SOURCE_APPLICATION -> "APPLICATION";
-            case GL_DEBUG_SOURCE_OTHER -> "OTHER";
-            default -> "UNKNOWN";
+            case GL_DEBUG_SOURCE_API ->
+                "API";
+            case GL_DEBUG_SOURCE_WINDOW_SYSTEM ->
+                "WINDOW SYSTEM";
+            case GL_DEBUG_SOURCE_SHADER_COMPILER ->
+                "SHADER COMPILER";
+            case GL_DEBUG_SOURCE_THIRD_PARTY ->
+                "THIRD PARTY";
+            case GL_DEBUG_SOURCE_APPLICATION ->
+                "APPLICATION";
+            case GL_DEBUG_SOURCE_OTHER ->
+                "OTHER";
+            default ->
+                "UNKNOWN";
         };
     }
 
     private static String debugType(int type) {
         return switch (type) {
-            case GL_DEBUG_TYPE_ERROR -> "ERROR";
-            case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR -> "DEPRECATED BEHAVIOR";
-            case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR -> "UNDEFINED BEHAVIOR";
-            case GL_DEBUG_TYPE_PORTABILITY -> "PORTABILITY";
-            case GL_DEBUG_TYPE_PERFORMANCE -> "PERFORMANCE";
-            case GL_DEBUG_TYPE_OTHER -> "OTHER";
-            case GL_DEBUG_TYPE_MARKER -> "MARKER";
-            default -> "UNKNOWN";
+            case GL_DEBUG_TYPE_ERROR ->
+                "ERROR";
+            case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR ->
+                "DEPRECATED BEHAVIOR";
+            case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR ->
+                "UNDEFINED BEHAVIOR";
+            case GL_DEBUG_TYPE_PORTABILITY ->
+                "PORTABILITY";
+            case GL_DEBUG_TYPE_PERFORMANCE ->
+                "PERFORMANCE";
+            case GL_DEBUG_TYPE_OTHER ->
+                "OTHER";
+            case GL_DEBUG_TYPE_MARKER ->
+                "MARKER";
+            default ->
+                "UNKNOWN";
         };
     }
 
     private static String debugSeverity(int severity) {
         return switch (severity) {
-            case GL_DEBUG_SEVERITY_HIGH -> "HIGH";
-            case GL_DEBUG_SEVERITY_MEDIUM -> "MEDIUM";
-            case GL_DEBUG_SEVERITY_LOW -> "LOW";
-            default -> "UNKNOWN";
+            case GL_DEBUG_SEVERITY_HIGH ->
+                "HIGH";
+            case GL_DEBUG_SEVERITY_MEDIUM ->
+                "MEDIUM";
+            case GL_DEBUG_SEVERITY_LOW ->
+                "LOW";
+            default ->
+                "UNKNOWN";
         };
     }
-    
+
     /**
      * @param args the command line arguments
      */
@@ -176,40 +196,41 @@ public class Main {
         GL.createCapabilities();
 
         if (DEBUG_ENABLED) {
-            debug: {
+            debug:
+            {
                 if (!GL.getCapabilities().GL_KHR_debug) {
                     System.err.println("[GL-DEBUG] Debug was enabled but KHR_debug is not supported.");
                     break debug;
                 }
-                
+
                 glEnable(GL_DEBUG_OUTPUT);
-                
+
                 DEBUG_CALLBACK = new GLDebugMessageCallback() {
                     @Override
                     public void invoke(int source, int type, int id, int severity, int length, long message, long userParam) {
                         if (severity == GL_DEBUG_SEVERITY_NOTIFICATION) {
                             return;
                         }
-                        
+
                         String msg = memASCII(message, length);
-                        
+
                         PrintStream out = System.out;
                         if (severity == GL_DEBUG_SEVERITY_HIGH) {
                             out = System.err;
                         }
-                        
+
                         out.println("[GL-DEBUG]");
-                        out.println("    Severity: "+debugSeverity(severity));
-                        out.println("    Source: "+debugSource(source));
-                        out.println("    Type: "+debugType(type));
-                        out.println("    ID: "+id);
-                        out.println("    Message: "+msg);
+                        out.println("    Severity: " + debugSeverity(severity));
+                        out.println("    Source: " + debugSource(source));
+                        out.println("    Type: " + debugType(type));
+                        out.println("    ID: " + id);
+                        out.println("    Message: " + msg);
                     }
                 };
                 glDebugMessageCallback(DEBUG_CALLBACK, NULL);
             }
         }
-        
+
         if (USE_MSAA) {
             glEnable(GL_MULTISAMPLE);
         }
@@ -230,14 +251,14 @@ public class Main {
         if (maxUBOBindings < MIN_UNIFORM_BUFFER_BINDINGS) {
             throw new IllegalStateException("Max UBO Bindings too small! Update your drivers or buy a new GPU.");
         }
-        
+
         Main.checkGLError();
-        
+
         //GLPool.init(); //static initialize
         BlockTextures.init();  //static initialize
         Blocks.init(); //static initialize
         Game.get(); //static initialize
-        
+
         Main.checkGLError();
 
         GLFWFramebufferSizeCallbackI frameBufferSizecb = (window, width, height) -> {
@@ -253,11 +274,11 @@ public class Main {
         glfwSetCursorPosCallback(WINDOW_POINTER, (window, x, y) -> {
             Game.get().mouseCursorMoved(x, y);
         });
-        
+
         glfwSetKeyCallback(WINDOW_POINTER, (window, key, scancode, action, mods) -> {
             Game.get().keyCallback(window, key, scancode, action, mods);
         });
-        
+
         glfwSetMouseButtonCallback(WINDOW_POINTER, (window, button, action, mods) -> {
             Game.get().mouseCallback(window, button, action, mods);
         });
@@ -270,16 +291,23 @@ public class Main {
         long nextFpsUpdate = System.currentTimeMillis() + 1000;
         long nextTitleUpdate = System.currentTimeMillis() + 100;
         long timeFrameBegin = System.nanoTime();
-        
+
         while (!glfwWindowShouldClose(WINDOW_POINTER)) {
             Main.TPF = (System.nanoTime() - timeFrameBegin) / 1E9d;
             timeFrameBegin = System.nanoTime();
-            
+
+            if (SPIKE_LAG_WARNINGS) {
+                int tpfFps = (int) (1.0 / Main.TPF);
+                if (tpfFps < 60 && ((Main.FPS - tpfFps) > 30)) {
+                    System.out.println("[Spike Lag Warning] From "+Main.FPS+" FPS to "+tpfFps+" FPS; current frame TPF: "+String.format("%.3f", Main.TPF)+"s");
+                }
+            }
+
             glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
             glfwPollEvents();
 
             Main.WINDOW_TITLE = "CienCraft - FPS: " + Main.FPS;
-            
+
             Game.get().loop();
 
             glFlush();
@@ -294,30 +322,30 @@ public class Main {
                 frames = 0;
                 nextFpsUpdate = System.currentTimeMillis() + 1000;
             }
-            
+
             if (System.currentTimeMillis() >= nextTitleUpdate) {
                 nextTitleUpdate = System.currentTimeMillis() + 100;
                 glfwSetWindowTitle(WINDOW_POINTER, Main.WINDOW_TITLE);
             }
-            
+
             Main.ONE_SECOND_COUNTER += Main.TPF;
             Main.ONE_MINUTE_COUNTER += Main.TPF;
-            
+
             if (Main.ONE_SECOND_COUNTER > 1.0) {
                 Main.ONE_SECOND_COUNTER = 0.0;
             }
             if (Main.ONE_MINUTE_COUNTER > 60.0) {
                 Main.ONE_MINUTE_COUNTER = 0.0;
             }
-            
+
             Main.FRAME++;
         }
         if (DEBUG_ENABLED) {
             DEBUG_CALLBACK.free();
         }
-        
+
         glfwTerminate();
-        
+
         System.exit(0);
     }
 

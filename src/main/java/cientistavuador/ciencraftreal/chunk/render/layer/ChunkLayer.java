@@ -147,11 +147,7 @@ public class ChunkLayer {
         return !(this.vertices != null && this.verticesAlpha != null);
     }
 
-    public boolean occlusionStage2(Camera camera) {
-        return true;
-    }
-    
-    public boolean prepareVerticesStage3() {
+    public boolean prepareVerticesStage2() {
         this.futureVerticesIndices = CompletableFuture.supplyAsync(() -> {
             float[] verticesCreated = VerticesCreator.create(this, false);
             short[] compressedVertices = VerticesCompressor.compress(this, verticesCreated);
@@ -257,17 +253,17 @@ public class ChunkLayer {
         return true;
     }
     
-    public boolean prepareVaoVboStage4() {
+    public boolean prepareVaoVboStage3() {
         boolean a = prepareVaoVbo();
         boolean b = prepareVaoVboAlpha();
         return a || b;
     }
 
-    public void renderStage5(Camera camera) {
-        renderStage5(camera, false);
+    public void renderStage4(Camera camera) {
+        renderStage4(camera, false);
     }
     
-    public void renderStage5(Camera camera, boolean useCurrentShader) {
+    public void renderStage4(Camera camera, boolean useCurrentShader) {
         if (this.vertices.length == 0) {
             return;
         }
@@ -300,11 +296,11 @@ public class ChunkLayer {
         }
     }
     
-    public void renderAlphaStage6(Camera camera) {
-        renderAlphaStage6(camera, false);
+    public void renderAlphaStage5(Camera camera) {
+        renderAlphaStage5(camera, false);
     }
     
-    public void renderAlphaStage6(Camera camera, boolean useCurrentShader) {
+    public void renderAlphaStage5(Camera camera, boolean useCurrentShader) {
         if (this.verticesAlpha.length == 0) {
             return;
         }
