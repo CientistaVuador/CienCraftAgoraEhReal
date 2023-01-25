@@ -24,41 +24,20 @@
  *
  * For more information, please refer to <https://unlicense.org>
  */
-package cientistavuador.ciencraftreal.chunk.biome.definitionmap;
-
-import cientistavuador.ciencraftreal.chunk.biome.BiomeDefinition;
-import cientistavuador.ciencraftreal.chunk.biome.BiomeMap;
+package cientistavuador.ciencraftreal.ubo;
 
 /**
  *
  * @author Cien
  */
-public class BiomeDefinitionMaps {
+public class UBOBindingPoints {
     
-    private final BiomeMap map;
-    private final BiomeDefinitionMap[] definitionMaps;
+    public static final int MIN_NUMBER_OF_UBO_BINDING_POINTS = 36;
     
-    public BiomeDefinitionMaps(BiomeMap map) {
-        this.map = map;
-        this.definitionMaps = new BiomeDefinitionMap[BiomeDefinition.LENGTH];
+    public static final int BLOCK_COLORS = 0;
+    public static final int BLOCK_MATERIALS = 1;
+    
+    private UBOBindingPoints() {
         
-        BiomeDefinitionMapBuilder builder = new BiomeDefinitionMapBuilder();
-        builder.setMap(map);
-        for (int i = 0; i < this.definitionMaps.length; i++) {
-            this.definitionMaps[i] = builder.setDefinitionField(i).build();
-        }
-        builder.delete();
-    }
-
-    public BiomeMap getMap() {
-        return map;
-    }
-    
-    public int length() {
-        return this.definitionMaps.length;
-    }
-    
-    public BiomeDefinitionMap getFieldMap(int field) {
-        return this.definitionMaps[field];
     }
 }

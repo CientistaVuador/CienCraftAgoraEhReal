@@ -32,7 +32,6 @@ import cientistavuador.ciencraftreal.block.SimpleBlock;
 import cientistavuador.ciencraftreal.block.material.ubo.ColorUBO;
 import cientistavuador.ciencraftreal.debug.Triangle;
 import cientistavuador.ciencraftreal.camera.FreeCamera;
-import cientistavuador.ciencraftreal.chunk.biome.Biome;
 import cientistavuador.ciencraftreal.chunk.generation.WorldChunkGeneratorFactory;
 import cientistavuador.ciencraftreal.debug.DebugBlock;
 import cientistavuador.ciencraftreal.util.BlockOutline;
@@ -91,14 +90,7 @@ public class Game {
         outline.update();
         outline.render();
         
-        Biome biome = world.getBiome((int) Math.floor(this.camera.getPosition().x()), (int) Math.ceil(camera.getPosition().z()));
-        
         Main.WINDOW_TITLE += " (Block: "+BlockRegister.getBlock(this.currentBlockId).getName()+")";
-        Main.WINDOW_TITLE += " (Temperature: "+world.getTemperature(this.camera.getPosition().x(), this.camera.getPosition().z())+"C )";
-        Main.WINDOW_TITLE += " (Humidity: "+world.getHumidity(this.camera.getPosition().x(), this.camera.getPosition().z())+"% )";
-        if (biome != null) {
-            Main.WINDOW_TITLE += " (Biome: "+biome.getName()+")";
-        }
     }
 
     public void mouseCursorMoved(double x, double y) {

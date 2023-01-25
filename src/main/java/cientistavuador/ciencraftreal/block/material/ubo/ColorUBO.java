@@ -26,6 +26,7 @@
  */
 package cientistavuador.ciencraftreal.block.material.ubo;
 
+import cientistavuador.ciencraftreal.ubo.UBOBindingPoints;
 import java.nio.FloatBuffer;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import static org.lwjgl.system.MemoryUtil.*;
@@ -37,7 +38,7 @@ import static org.lwjgl.opengl.GL33C.*;
  */
 public class ColorUBO {
 
-    public static final ColorUBO DEFAULT = new ColorUBO(0);
+    public static final ColorUBO DEFAULT = new ColorUBO(UBOBindingPoints.BLOCK_COLORS);
     public static final int SIZE = 1024;
     public static final int NULL = -1;
 

@@ -28,7 +28,7 @@ package cientistavuador.ciencraftreal;
 
 import cientistavuador.ciencraftreal.block.BlockTextures;
 import cientistavuador.ciencraftreal.block.Blocks;
-import cientistavuador.ciencraftreal.chunk.biome.Biomes;
+import cientistavuador.ciencraftreal.ubo.UBOBindingPoints;
 import java.io.PrintStream;
 import static org.lwjgl.glfw.GLFW.*;
 import org.lwjgl.glfw.GLFWFramebufferSizeCallbackI;
@@ -48,7 +48,7 @@ public class Main {
     public static final boolean USE_MSAA = false;
     public static final boolean DEBUG_ENABLED = true;
     public static final int MIN_TEXTURE_3D_SIZE_SUPPORTED = 2048;
-    public static final int MIN_UNIFORM_BUFFER_BINDINGS = 36;
+    public static final int MIN_UNIFORM_BUFFER_BINDINGS = UBOBindingPoints.MIN_NUMBER_OF_UBO_BINDING_POINTS;
     
     static {
         org.lwjgl.system.Configuration.LIBRARY_PATH.set("natives");
@@ -236,7 +236,6 @@ public class Main {
         //GLPool.init(); //static initialize
         BlockTextures.init();  //static initialize
         Blocks.init(); //static initialize
-        Biomes.init(); //static initialize
         Game.get(); //static initialize
         
         Main.checkGLError();

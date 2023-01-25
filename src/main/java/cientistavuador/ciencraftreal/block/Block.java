@@ -33,8 +33,8 @@ import cientistavuador.ciencraftreal.chunk.Chunk;
  * @author Cien
  */
 public interface Block {
-    //pos, tex coords, tex id
-    public static final int VERTEX_SIZE_ELEMENTS = 3 + 2 + 1;
+    //pos, tex coords, tex id, ao
+    public static final int VERTEX_SIZE_ELEMENTS = 3 + 2 + 1 + 1;
     
     String getName();
     int getId();

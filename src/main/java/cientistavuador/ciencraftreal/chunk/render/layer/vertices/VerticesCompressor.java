@@ -52,12 +52,10 @@ public class VerticesCompressor {
             return new short[0];
         }
         
-        Chunk chunk = layer.getChunk();
-        
         final int[] offsets = {
-            chunk.getChunkX() * Chunk.CHUNK_SIZE,
+            0,
             layer.getY(),
-            chunk.getChunkZ() * Chunk.CHUNK_SIZE
+            0
         };
         
         final float[] sizes = {
@@ -91,6 +89,10 @@ public class VerticesCompressor {
                     }
                     if (j < 6) {
                         output = (short) Float.floatToRawIntBits(value);
+                        break processValue;
+                    }
+                    if (j < 7) {
+                        output = floatToShort(value);
                         break processValue;
                     }
                 }

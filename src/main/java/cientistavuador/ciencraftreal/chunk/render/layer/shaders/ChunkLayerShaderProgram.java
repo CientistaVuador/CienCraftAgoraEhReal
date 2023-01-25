@@ -75,6 +75,7 @@ public class ChunkLayerShaderProgram {
             out VS_OUT {
                 vec2 texCoords;
                 flat int textureID;
+                float ao;
                 flat bool hasColor;
                 flat vec4 color;
             } Output;
@@ -112,6 +113,7 @@ public class ChunkLayerShaderProgram {
                 
                 Output.texCoords = texCoords;
                 Output.textureID = texture;
+                Output.ao = inVertexAO;
                 gl_Position = projection * view * vec4(vertexPos, 1.0);
             }
             """;
@@ -126,6 +128,7 @@ public class ChunkLayerShaderProgram {
             in VS_OUT {
                 vec2 texCoords;
                 flat int textureID;
+                float ao;
                 flat bool hasColor;
                 flat vec4 color;
             } Input;
@@ -144,6 +147,7 @@ public class ChunkLayerShaderProgram {
                     }
                     output.a = 1.0;
                 }
+                output.rgb *= 1.0 - Input.ao;
                 out_Color = output;
             }
             """;
