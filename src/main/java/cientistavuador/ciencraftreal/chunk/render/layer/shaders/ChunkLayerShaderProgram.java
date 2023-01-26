@@ -142,7 +142,7 @@ public class ChunkLayerShaderProgram {
                     output *= Input.color;
                 }
                 if (!useAlpha) {
-                    if (color.a < 0.5) {
+                    if (output.a < 0.5) {
                         discard;
                     }
                     output.a = 1.0;
