@@ -68,7 +68,7 @@ public class Game {
         colors.allocate();
         int object = colors.allocate();
         colors.setColor(object, 0, 0, 1, 1);
-        colors.updateVBO();
+        colors.updateUBO();
     }
     
     public void loop() {

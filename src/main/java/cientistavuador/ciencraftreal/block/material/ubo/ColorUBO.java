@@ -71,7 +71,7 @@ public class ColorUBO {
         return bindingPoint;
     }
     
-    public void updateVBO() {
+    public void updateUBO() {
         if (!updateTasks.isEmpty()) {
             glBindBuffer(GL_UNIFORM_BUFFER, this.ubo);
             Runnable r;

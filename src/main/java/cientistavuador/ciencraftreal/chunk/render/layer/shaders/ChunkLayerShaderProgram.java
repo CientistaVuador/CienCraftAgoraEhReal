@@ -173,6 +173,11 @@ public class ChunkLayerShaderProgram {
     public static final int USE_ALPHA_PROGRAM_INDEX = glGetUniformLocation(SHADER_PROGRAM, "useAlpha");
     public static final int TIME_PROGRAM_INDEX = glGetUniformLocation(SHADER_PROGRAM, "time");
     
+    static {
+        glUniformBlockBinding(SHADER_PROGRAM, BLOCK_COLORS_UBO_INDEX, ColorUBO.DEFAULT.getBindingPoint());
+        glUniformBlockBinding(SHADER_PROGRAM, BLOCK_MATERIALS_UBO_INDEX, MaterialUBO.DEFAULT.getBindingPoint());
+    }
+    
     public static void sendCameraUniforms(Camera camera) {
         UniformSetter.setMatrix4f("projection", camera.getProjection());
         UniformSetter.setMatrix4f("view", camera.getView());
@@ -184,9 +189,7 @@ public class ChunkLayerShaderProgram {
         glUniform1i(USE_ALPHA_PROGRAM_INDEX, (useAlpha ? 1 : 0));
         glUniform1f(TIME_PROGRAM_INDEX, (float) Main.ONE_MINUTE_COUNTER);
         
-        glUniformBlockBinding(SHADER_PROGRAM, BLOCK_COLORS_UBO_INDEX, ColorUBO.DEFAULT.getBindingPoint());
-        glUniformBlockBinding(SHADER_PROGRAM, BLOCK_MATERIALS_UBO_INDEX, MaterialUBO.DEFAULT.getBindingPoint());
-        ColorUBO.DEFAULT.updateVBO();
+        ColorUBO.DEFAULT.updateUBO();
         MaterialUBO.DEFAULT.updateUBO();
     }
     
