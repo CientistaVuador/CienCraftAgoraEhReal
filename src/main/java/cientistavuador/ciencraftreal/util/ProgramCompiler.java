@@ -26,22 +26,9 @@
  */
 package cientistavuador.ciencraftreal.util;
 
-import static org.lwjgl.opengl.GL11C.GL_TRUE;
-import static org.lwjgl.opengl.GL20C.GL_COMPILE_STATUS;
-import static org.lwjgl.opengl.GL20C.GL_FRAGMENT_SHADER;
-import static org.lwjgl.opengl.GL20C.GL_LINK_STATUS;
-import static org.lwjgl.opengl.GL20C.GL_VERTEX_SHADER;
-import static org.lwjgl.opengl.GL20C.glAttachShader;
-import static org.lwjgl.opengl.GL20C.glCompileShader;
-import static org.lwjgl.opengl.GL20C.glCreateProgram;
-import static org.lwjgl.opengl.GL20C.glCreateShader;
-import static org.lwjgl.opengl.GL20C.glDeleteShader;
-import static org.lwjgl.opengl.GL20C.glGetProgramInfoLog;
-import static org.lwjgl.opengl.GL20C.glGetProgrami;
-import static org.lwjgl.opengl.GL20C.glGetShaderInfoLog;
-import static org.lwjgl.opengl.GL20C.glGetShaderi;
-import static org.lwjgl.opengl.GL20C.glLinkProgram;
-import static org.lwjgl.opengl.GL20C.glShaderSource;
+import java.util.Map;
+import java.util.Map.Entry;
+import static org.lwjgl.opengl.GL33C.*;
 
 /**
  *
@@ -52,6 +39,21 @@ public class ProgramCompiler {
     private static final boolean ONLY_OUTPUT_ERRORS = false;
     
     public static int compile(String vertexSource, String fragmentSource) {
+        return compile(vertexSource, fragmentSource, null);
+    }
+    
+    private static String replace(String s, Map<String, String> replacements) {
+        for (Entry<String, String> e:replacements.entrySet()) {
+            s = s.replace(e.getKey(), e.getValue());
+        }
+        return s;
+    }
+    
+    public static int compile(String vertexSource, String fragmentSource, Map<String, String> replacements) {
+        if (replacements != null) {
+            vertexSource = replace(vertexSource, replacements);
+            fragmentSource = replace(fragmentSource, replacements);
+        }
         int vertexShader = glCreateShader(GL_VERTEX_SHADER);
         glShaderSource(vertexShader, vertexSource);
         glCompileShader(vertexShader);

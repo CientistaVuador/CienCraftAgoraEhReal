@@ -27,12 +27,19 @@
 package cientistavuador.ciencraftreal.block;
 
 import cientistavuador.ciencraftreal.block.blocks.Bedrock;
+import cientistavuador.ciencraftreal.block.blocks.BrownLeaves;
 import cientistavuador.ciencraftreal.block.blocks.CoalOre;
+import cientistavuador.ciencraftreal.block.blocks.DeadWood;
 import cientistavuador.ciencraftreal.block.blocks.Dirt;
 import cientistavuador.ciencraftreal.block.blocks.Grass;
 import cientistavuador.ciencraftreal.block.blocks.Happy2023;
 import cientistavuador.ciencraftreal.block.blocks.IronOre;
+import cientistavuador.ciencraftreal.block.blocks.Leaves;
+import cientistavuador.ciencraftreal.block.blocks.Mycelium;
+import cientistavuador.ciencraftreal.block.blocks.Sand;
 import cientistavuador.ciencraftreal.block.blocks.Stone;
+import cientistavuador.ciencraftreal.block.blocks.Water;
+import cientistavuador.ciencraftreal.block.blocks.Wood;
 
 /**
  * @author Shinoa Hiragi
@@ -54,6 +61,15 @@ public class Blocks {
     //1.0-DEV-HAPPY-2023
     public static final Happy2023 HAPPY_2023 = new Happy2023();
     
+    //2.0-DEV
+    public static final Wood WOOD = new Wood();
+    public static final Leaves LEAVES = new Leaves();
+    public static final DeadWood DEAD_WOOD = new DeadWood();
+    public static final Mycelium MYCELIUM = new Mycelium();
+    public static final Sand SAND = new Sand();
+    public static final Water WATER = new Water();
+    public static final BrownLeaves BROWN_LEAVES = new BrownLeaves();
+    
     static {
         //0.5-DEV
         BlockRegister.register(GRASS);
@@ -67,7 +83,21 @@ public class Blocks {
         
         //1.0-DEV-HAPPY-2023
         BlockRegister.register(HAPPY_2023);
+        
+        //2.0-DEV
+        BlockRegister.register(WOOD);
+        BlockRegister.register(LEAVES);
+        BlockRegister.register(DEAD_WOOD);
+        BlockRegister.register(MYCELIUM);
+        BlockRegister.register(SAND);
+        BlockRegister.register(WATER);
+        BlockRegister.register(BROWN_LEAVES);
     }
+    
+    public static final Block[] ORES = new Block[] {
+        COAL_ORE,
+        IRON_ORE
+    };
     
     public static void init() {
         

@@ -135,7 +135,7 @@ public class DebugCounter {
     }
     
     private String format(float f) {
-        return String.format("%.3f", f);
+        return String.format("%.4f", f);
     }
     
     public void print(PrintStream out) {
