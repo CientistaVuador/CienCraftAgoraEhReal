@@ -31,7 +31,6 @@ import cientistavuador.ciencraftreal.block.BlockFacesVertices;
 import cientistavuador.ciencraftreal.block.BlockSide;
 import cientistavuador.ciencraftreal.block.BlockTextures;
 import cientistavuador.ciencraftreal.block.BlockTransparency;
-import cientistavuador.ciencraftreal.block.SimpleBlock;
 import cientistavuador.ciencraftreal.block.SolidBlockCheck;
 import cientistavuador.ciencraftreal.block.material.BlockMaterial;
 import cientistavuador.ciencraftreal.chunk.Chunk;
@@ -52,7 +51,18 @@ public class Water implements Block, SolidBlockCheck {
         WATER_MATERIAL.setFrameEnd(BlockTextures.WATER_TOP_END);
     }
     
+    public static final BlockMaterial WATER_MATERIAL_SIDE;
+    
+    static {
+        WATER_MATERIAL_SIDE = BlockMaterial.create();
+        WATER_MATERIAL_SIDE.setColor(1f, 1f, 1f, 0.65f);
+        WATER_MATERIAL_SIDE.setFrameTime(0.4f);
+        WATER_MATERIAL_SIDE.setFrameStart(BlockTextures.WATER_SIDE_START);
+        WATER_MATERIAL_SIDE.setFrameEnd(BlockTextures.WATER_SIDE_END);
+    }
+    
     private final int textureId = WATER_MATERIAL.getTextureID();
+    private final int textureIdSide = WATER_MATERIAL_SIDE.getTextureID();
     private final String name = "ciencraft_water";
     private int id = -1;
     
@@ -114,7 +124,14 @@ public class Water implements Block, SolidBlockCheck {
                 continue;
             }
             BlockSide side = BlockSide.sideOf(i);
-            float[] sideVertices = BlockFacesVertices.generateFaceVertices(side, chunkX, chunkY, chunkZ, textureId);
+            
+            int texture = 0;
+            switch (side) {
+                case TOP, BOTTOM -> texture = this.textureId;
+                case EAST, NORTH, SOUTH, WEST -> texture = this.textureIdSide;
+            }
+            
+            float[] sideVertices = BlockFacesVertices.generateFaceVertices(side, chunkX, chunkY, chunkZ, texture);
             System.arraycopy(sideVertices, 0, vertices, pos, sideVertices.length);
             pos += sideVertices.length;
         }
