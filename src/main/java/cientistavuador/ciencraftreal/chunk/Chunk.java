@@ -38,6 +38,20 @@ import cientistavuador.ciencraftreal.world.WorldCamera;
  */
 public class Chunk {
 
+    public static Block getBlock(Chunk chunk, int chunkBlockX, int chunkBlockY, int chunkBlockZ) {
+        boolean needsOutOfBoundsCheck = (chunkBlockX < 0 || chunkBlockX >= Chunk.CHUNK_SIZE) || (chunkBlockZ > 0 || chunkBlockZ <= -Chunk.CHUNK_SIZE);
+        
+        Block block;
+        if (needsOutOfBoundsCheck) {
+            chunkBlockX += chunk.getChunkX() * Chunk.CHUNK_SIZE;
+            chunkBlockZ += chunk.getChunkZ() * Chunk.CHUNK_SIZE;
+            block = chunk.getWorld().getWorldBlock(chunkBlockX, chunkBlockY, chunkBlockZ);
+        } else {
+            block = chunk.getBlock(chunkBlockX, chunkBlockY, chunkBlockZ);
+        }
+        return block;
+    }
+    
     public static final int CHUNK_SIZE = 32;
     public static final int CHUNK_HEIGHT = 128;
 

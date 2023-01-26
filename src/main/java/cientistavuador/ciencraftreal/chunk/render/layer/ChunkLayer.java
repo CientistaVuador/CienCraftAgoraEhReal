@@ -146,18 +146,20 @@ public class ChunkLayer {
     public boolean checkVerticesStage1(Camera camera) {
         return !(this.vertices != null && this.verticesAlpha != null);
     }
-
+    
     public boolean prepareVerticesStage2() {
         this.futureVerticesIndices = CompletableFuture.supplyAsync(() -> {
             float[] verticesCreated = VerticesCreator.create(this, false);
             short[] compressedVertices = VerticesCompressor.compress(this, verticesCreated);
-            return IndicesGenerator.generate(compressedVertices);
+            Map.Entry<short[], int[]> indicesVertices = IndicesGenerator.generate(compressedVertices);
+            return indicesVertices;
         });
         
         this.futureVerticesIndicesAlpha = CompletableFuture.supplyAsync(() -> {
             float[] verticesCreated = VerticesCreator.create(this, true);
             short[] compressedVertices = VerticesCompressor.compress(this, verticesCreated);
-            return IndicesGenerator.generate(compressedVertices);
+            Map.Entry<short[], int[]> indicesVertices = IndicesGenerator.generate(compressedVertices);
+            return indicesVertices;
         });
 
         return true;

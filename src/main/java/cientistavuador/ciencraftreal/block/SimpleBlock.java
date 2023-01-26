@@ -33,7 +33,7 @@ import java.util.Arrays;
  *
  * @author Cien
  */
-public abstract class SimpleBlock implements Block {
+public abstract class SimpleBlock implements Block, SolidBlockCheck {
 
     private final String name;
     private final int[] sideTextures = new int[6];
@@ -102,20 +102,10 @@ public abstract class SimpleBlock implements Block {
         return blockId;
     }
     
-    protected boolean shouldHideFaceVerticesForBlock(Block block) {
-        return block != Blocks.AIR && !block.getBlockTransparency().isTransparent();
-    }
-
     @Override
     public float[] generateVertices(Chunk chunk, int chunkBlockX, int chunkBlockY, int chunkBlockZ) {
-        boolean[] sides = {
-            containsBlock(chunk, chunkBlockX, chunkBlockY, chunkBlockZ - 1), //north
-            containsBlock(chunk, chunkBlockX, chunkBlockY, chunkBlockZ + 1), //south
-            containsBlock(chunk, chunkBlockX + 1, chunkBlockY, chunkBlockZ), //east
-            containsBlock(chunk, chunkBlockX - 1, chunkBlockY, chunkBlockZ), //west
-            containsBlock(chunk, chunkBlockX, chunkBlockY + 1, chunkBlockZ), //top
-            containsBlock(chunk, chunkBlockX, chunkBlockY - 1, chunkBlockZ) //bottom
-        };
+        boolean[] sides = isSolidBlockSides(chunk, chunkBlockX, chunkBlockY, chunkBlockZ);
+        
         int verticesSize = 0;
         for (int i = 0; i < sides.length; i++) {
             verticesSize += (!sides[i] ? Block.VERTEX_SIZE_ELEMENTS * 6 : 0);
@@ -132,111 +122,19 @@ public abstract class SimpleBlock implements Block {
         float[] vertices = new float[verticesSize];
         int pos = 0;
 
-        if (!sides[BlockSide.NORTH.index()]) {
-            float texture = Float.intBitsToFloat(sideTextures[BlockSide.NORTH.index()]);
-            float[] sideVertices = {
-                -0.5f + chunkX, 0.5f + chunkY, -0.5f + chunkZ, 1f, 1f, texture, 0f,
-                0.5f + chunkX, -0.5f + chunkY, -0.5f + chunkZ, 0f, 0f, texture, 0f,
-                -0.5f + chunkX, -0.5f + chunkY, -0.5f + chunkZ, 1f, 0f, texture, 0f,
-                -0.5f + chunkX, 0.5f + chunkY, -0.5f + chunkZ, 1f, 1f, texture, 0f,
-                0.5f + chunkX, 0.5f + chunkY, -0.5f + chunkZ, 0f, 1f, texture, 0f,
-                0.5f + chunkX, -0.5f + chunkY, -0.5f + chunkZ, 0f, 0f, texture, 0f
-            };
+        for (int i = 0; i < sides.length; i++) {
+            if (sides[i]) {
+                continue;
+            }
+            BlockSide side = BlockSide.sideOf(i);
+            float[] sideVertices = BlockFacesVertices.generateFaceVertices(side, chunkX, chunkY, chunkZ, sideTextures[i]);
             System.arraycopy(sideVertices, 0, vertices, pos, sideVertices.length);
             pos += sideVertices.length;
         }
-
-        if (!sides[BlockSide.SOUTH.index()]) {
-            float texture = Float.intBitsToFloat(sideTextures[BlockSide.SOUTH.index()]);
-            float[] sideVertices = {
-                -0.5f + chunkX, 0.5f + chunkY, 0.5f + chunkZ, 0f, 1f, texture, 0f,
-                -0.5f + chunkX, -0.5f + chunkY, 0.5f + chunkZ, 0f, 0f, texture, 0f,
-                0.5f + chunkX, -0.5f + chunkY, 0.5f + chunkZ, 1f, 0f, texture, 0f,
-                -0.5f + chunkX, 0.5f + chunkY, 0.5f + chunkZ, 0f, 1f, texture, 0f,
-                0.5f + chunkX, -0.5f + chunkY, 0.5f + chunkZ, 1f, 0f, texture, 0f,
-                0.5f + chunkX, 0.5f + chunkY, 0.5f + chunkZ, 1f, 1f, texture, 0f
-            };
-            System.arraycopy(sideVertices, 0, vertices, pos, sideVertices.length);
-            pos += sideVertices.length;
-        }
-
-        if (!sides[BlockSide.EAST.index()]) {
-            float texture = Float.intBitsToFloat(sideTextures[BlockSide.EAST.index()]);
-            float[] sideVertices = {
-                0.5f + chunkX, 0.5f + chunkY, -0.5f + chunkZ, 1f, 1f, texture, 0f,
-                0.5f + chunkX, -0.5f + chunkY, 0.5f + chunkZ, 0f, 0f, texture, 0f,
-                0.5f + chunkX, -0.5f + chunkY, -0.5f + chunkZ, 1f, 0f, texture, 0f,
-                0.5f + chunkX, 0.5f + chunkY, 0.5f + chunkZ, 0f, 1f, texture, 0f,
-                0.5f + chunkX, -0.5f + chunkY, 0.5f + chunkZ, 0f, 0f, texture, 0f,
-                0.5f + chunkX, 0.5f + chunkY, -0.5f + chunkZ, 1f, 1f, texture, 0f
-            };
-            System.arraycopy(sideVertices, 0, vertices, pos, sideVertices.length);
-            pos += sideVertices.length;
-        }
-
-        if (!sides[BlockSide.WEST.index()]) {
-            float texture = Float.intBitsToFloat(sideTextures[BlockSide.WEST.index()]);
-            float[] sideVertices = {
-                -0.5f + chunkX, 0.5f + chunkY, -0.5f + chunkZ, 0f, 1f, texture, 0f,
-                -0.5f + chunkX, -0.5f + chunkY, -0.5f + chunkZ, 0f, 0f, texture, 0f,
-                -0.5f + chunkX, -0.5f + chunkY, 0.5f + chunkZ, 1f, 0f, texture, 0f,
-                -0.5f + chunkX, 0.5f + chunkY, 0.5f + chunkZ, 1f, 1f, texture, 0f,
-                -0.5f + chunkX, 0.5f + chunkY, -0.5f + chunkZ, 0f, 1f, texture, 0f,
-                -0.5f + chunkX, -0.5f + chunkY, 0.5f + chunkZ, 1f, 0f, texture, 0f
-            };
-            System.arraycopy(sideVertices, 0, vertices, pos, sideVertices.length);
-            pos += sideVertices.length;
-        }
-
-        if (!sides[BlockSide.TOP.index()]) {
-            float texture = Float.intBitsToFloat(sideTextures[BlockSide.TOP.index()]);
-            float[] sideVertices = {
-                -0.5f + chunkX, 0.5f + chunkY, 0.5f + chunkZ, 0f, 0f, texture, 0f,
-                0.5f + chunkX, 0.5f + chunkY, 0.5f + chunkZ, 1f, 0f, texture, 0f,
-                -0.5f + chunkX, 0.5f + chunkY, -0.5f + chunkZ, 0f, 1f, texture, 0f,
-                -0.5f + chunkX, 0.5f + chunkY, -0.5f + chunkZ, 0f, 1f, texture, 0f,
-                0.5f + chunkX, 0.5f + chunkY, 0.5f + chunkZ, 1f, 0f, texture, 0f,
-                0.5f + chunkX, 0.5f + chunkY, -0.5f + chunkZ, 1f, 1f, texture,  0f
-            };
-            System.arraycopy(sideVertices, 0, vertices, pos, sideVertices.length);
-            pos += sideVertices.length;
-        }
-
-        if (!sides[BlockSide.BOTTOM.index()]) {
-            float texture = Float.intBitsToFloat(sideTextures[BlockSide.BOTTOM.index()]);
-            float[] sideVertices = {
-                -0.5f + chunkX, -0.5f + chunkY, 0.5f + chunkZ, 0f, 1f, texture, 0f,
-                -0.5f + chunkX, -0.5f + chunkY, -0.5f + chunkZ, 0f, 0f, texture, 0f,
-                0.5f + chunkX, -0.5f + chunkY, 0.5f + chunkZ, 1f, 1f, texture, 0f,
-                -0.5f + chunkX, -0.5f + chunkY, -0.5f + chunkZ, 0f, 0f, texture, 0f,
-                0.5f + chunkX, -0.5f + chunkY, -0.5f + chunkZ, 1f, 0f, texture, 0f,
-                0.5f + chunkX, -0.5f + chunkY, 0.5f + chunkZ, 1f, 1f, texture, 0f
-            };
-            System.arraycopy(sideVertices, 0, vertices, pos, sideVertices.length);
-        }
-
+        
         return vertices;
     }
-
-    private boolean containsBlock(Chunk chunk, int chunkBlockX, int chunkBlockY, int chunkBlockZ) {
-        if (chunkBlockY < 0 || chunkBlockY >= Chunk.CHUNK_HEIGHT) {
-            return false;
-        }
-        
-        boolean needsOutOfBoundsCheck = (chunkBlockX < 0 || chunkBlockX >= Chunk.CHUNK_SIZE) || (chunkBlockZ > 0 || chunkBlockZ <= -Chunk.CHUNK_SIZE);
-        
-        Block block;
-        if (needsOutOfBoundsCheck) {
-            chunkBlockX += chunk.getChunkX() * Chunk.CHUNK_SIZE;
-            chunkBlockZ += chunk.getChunkZ() * Chunk.CHUNK_SIZE;
-            block = chunk.getWorld().getWorldBlock(chunkBlockX, chunkBlockY, chunkBlockZ);
-        } else {
-            block = chunk.getBlock(chunkBlockX, chunkBlockY, chunkBlockZ);
-        }
-        
-        return shouldHideFaceVerticesForBlock(block);
-    }
-
+    
     @Override
     public String getName() {
         return this.name;

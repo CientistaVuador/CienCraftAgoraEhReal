@@ -27,16 +27,20 @@
 package cientistavuador.ciencraftreal.block.blocks;
 
 import cientistavuador.ciencraftreal.block.Block;
+import cientistavuador.ciencraftreal.block.BlockFacesVertices;
+import cientistavuador.ciencraftreal.block.BlockSide;
 import cientistavuador.ciencraftreal.block.BlockTextures;
 import cientistavuador.ciencraftreal.block.BlockTransparency;
 import cientistavuador.ciencraftreal.block.SimpleBlock;
+import cientistavuador.ciencraftreal.block.SolidBlockCheck;
 import cientistavuador.ciencraftreal.block.material.BlockMaterial;
+import cientistavuador.ciencraftreal.chunk.Chunk;
 
 /**
  *
  * @author Cien
  */
-public class Water extends SimpleBlock {
+public class Water implements Block, SolidBlockCheck {
     
     public static final BlockMaterial WATER_MATERIAL;
     
@@ -48,21 +52,78 @@ public class Water extends SimpleBlock {
         WATER_MATERIAL.setFrameEnd(BlockTextures.WATER_TOP_END);
     }
     
+    private final int textureId = WATER_MATERIAL.getTextureID();
+    private final String name = "ciencraft_water";
+    private int id = -1;
+    
     public Water() {
-        super("ciencraft_water", WATER_MATERIAL.getTextureID());
+        
     }
 
     @Override
-    protected boolean shouldHideFaceVerticesForBlock(Block block) {
+    public boolean isSolidBlock(Block block) {
         if (block == this) {
             return true;
         }
-        return super.shouldHideFaceVerticesForBlock(block);
+        return SolidBlockCheck.super.isSolidBlock(block);
+    }
+    
+    @Override
+    public String getName() {
+        return this.name;
+    }
+
+    @Override
+    public int getId() {
+        if (this.id == -1) {
+            throw new RuntimeException("Unregistered block");
+        }
+        return this.id;
+    }
+
+    @Override
+    public void setId(int id) {
+        if (this.id != -1) {
+            throw new RuntimeException("Registered block");
+        }
+        this.id = id;
+    }
+
+    @Override
+    public float[] generateVertices(Chunk chunk, int chunkBlockX, int chunkBlockY, int chunkBlockZ) {
+        boolean[] sides = isSolidBlockSides(chunk, chunkBlockX, chunkBlockY, chunkBlockZ);
+        
+        int verticesSize = 0;
+        for (int i = 0; i < sides.length; i++) {
+            verticesSize += (!sides[i] ? Block.VERTEX_SIZE_ELEMENTS * 6 : 0);
+        }
+
+        if (verticesSize == 0) {
+            return null;
+        }
+
+        float chunkX = chunkBlockX + 0.5f;
+        float chunkY = chunkBlockY + 0.5f;
+        float chunkZ = chunkBlockZ - 0.5f;
+        
+        float[] vertices = new float[verticesSize];
+        int pos = 0;
+
+        for (int i = 0; i < sides.length; i++) {
+            if (sides[i]) {
+                continue;
+            }
+            BlockSide side = BlockSide.sideOf(i);
+            float[] sideVertices = BlockFacesVertices.generateFaceVertices(side, chunkX, chunkY, chunkZ, textureId);
+            System.arraycopy(sideVertices, 0, vertices, pos, sideVertices.length);
+            pos += sideVertices.length;
+        }
+        
+        return vertices;
     }
     
     @Override
     public BlockTransparency getBlockTransparency() {
         return BlockTransparency.COLORED_GLASS;
     }
-    
 }

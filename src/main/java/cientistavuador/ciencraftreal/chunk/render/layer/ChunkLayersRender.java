@@ -40,7 +40,7 @@ import static org.lwjgl.opengl.GL33C.*;
  */
 public class ChunkLayersRender {
 
-    public static final int MAX_LAYERS_PER_FRAME = 2;
+    public static final int MAX_LAYERS_PER_FRAME = 4;
 
     private static class DistancedChunkLayer {
 
