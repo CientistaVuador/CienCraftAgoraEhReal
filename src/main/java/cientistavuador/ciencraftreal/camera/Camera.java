@@ -26,9 +26,11 @@
  */
 package cientistavuador.ciencraftreal.camera;
 
-import org.joml.FrustumIntersection;
+import cientistavuador.ciencraftreal.ubo.CameraUBO;
+import org.joml.Matrix4dc;
 import org.joml.Matrix4fc;
 import org.joml.Vector2fc;
+import org.joml.Vector3dc;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
@@ -48,26 +50,26 @@ public interface Camera {
     Vector2fc getDimensions();
 
     float getFarPlane();
-
-    Vector3fc getFront();
-
+    
     float getNearPlane();
-
-    Vector3fc getPosition();
-
-    Matrix4fc getProjection();
-
-    Vector3fc getRight();
 
     Vector3fc getRotation();
 
+    Vector3fc getFront();
+    
+    Vector3fc getRight();
+    
     Vector3fc getUp();
 
+    Matrix4fc getProjection();
+    
     Matrix4fc getView();
     
-    Matrix4fc getProjectionView();
+    Vector3dc getPosition();
     
-    FrustumIntersection getFrustumIntersection();
+    Matrix4dc getProjectionView();
+    
+    CameraUBO getUBO();
 
     void setDimensions(float width, float height);
 
@@ -77,12 +79,14 @@ public interface Camera {
 
     void setNearPlane(float nearPlane);
 
-    void setPosition(float x, float y, float z);
+    void setPosition(double x, double y, double z);
 
     void setPosition(Vector3fc position);
 
     void setRotation(float pitch, float yaw, float roll);
 
     void setRotation(Vector3fc rotation);
+    
+    void setUBO(CameraUBO ubo);
 
 }

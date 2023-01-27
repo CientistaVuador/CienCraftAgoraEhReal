@@ -36,6 +36,7 @@ import cientistavuador.ciencraftreal.block.blocks.Happy2023;
 import cientistavuador.ciencraftreal.block.blocks.IronOre;
 import cientistavuador.ciencraftreal.block.blocks.Leaves;
 import cientistavuador.ciencraftreal.block.blocks.Mycelium;
+import cientistavuador.ciencraftreal.block.blocks.Planks;
 import cientistavuador.ciencraftreal.block.blocks.Sand;
 import cientistavuador.ciencraftreal.block.blocks.Stone;
 import cientistavuador.ciencraftreal.block.blocks.Water;
@@ -70,6 +71,9 @@ public class Blocks {
     public static final Water WATER = new Water();
     public static final BrownLeaves BROWN_LEAVES = new BrownLeaves();
     
+    //2.1-DEV
+    public static final Planks PLANKS = new Planks();
+    
     static {
         //0.5-DEV
         BlockRegister.register(GRASS);
@@ -92,6 +96,9 @@ public class Blocks {
         BlockRegister.register(SAND);
         BlockRegister.register(WATER);
         BlockRegister.register(BROWN_LEAVES);
+        
+        //2.1-DEV
+        BlockRegister.register(PLANKS);
     }
     
     public static final Block[] ORES = new Block[] {

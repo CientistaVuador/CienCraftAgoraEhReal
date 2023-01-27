@@ -110,10 +110,10 @@ public class ChunkLayer {
         if (doPreElimination()) {
             return false;
         }
-        float xMin = this.chunk.getChunkX() * Chunk.CHUNK_SIZE;
-        float yMin = this.y;
-        float zMin = this.chunk.getChunkZ() * Chunk.CHUNK_SIZE;
-        return camera.getFrustumIntersection().testAab(
+        double xMin = this.chunk.getChunkX() * Chunk.CHUNK_SIZE;
+        double yMin = this.y;
+        double zMin = this.chunk.getChunkZ() * Chunk.CHUNK_SIZE;
+        return camera.getProjectionView().testAab(
                 xMin, yMin, zMin - Chunk.CHUNK_SIZE,
                 xMin + Chunk.CHUNK_SIZE, yMin + HEIGHT, zMin
         );

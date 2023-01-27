@@ -28,12 +28,10 @@ package cientistavuador.ciencraftreal;
 
 import cientistavuador.ciencraftreal.block.BlockRegister;
 import cientistavuador.ciencraftreal.block.Blocks;
-import cientistavuador.ciencraftreal.block.SimpleBlock;
-import cientistavuador.ciencraftreal.block.material.ubo.ColorUBO;
-import cientistavuador.ciencraftreal.debug.Triangle;
 import cientistavuador.ciencraftreal.camera.FreeCamera;
 import cientistavuador.ciencraftreal.chunk.generation.WorldChunkGeneratorFactory;
-import cientistavuador.ciencraftreal.debug.DebugBlock;
+import cientistavuador.ciencraftreal.ubo.CameraUBO;
+import cientistavuador.ciencraftreal.ubo.UBOBindingPoints;
 import cientistavuador.ciencraftreal.util.BlockOutline;
 import cientistavuador.ciencraftreal.world.WorldCamera;
 import static org.lwjgl.glfw.GLFW.*;
@@ -50,9 +48,7 @@ public class Game {
         return GAME;
     }
 
-    private final Triangle triangle = new Triangle();
     private final FreeCamera camera = new FreeCamera();
-    private final DebugBlock block = new DebugBlock();
     private final WorldCamera world = new WorldCamera(camera, 65487321654L, new WorldChunkGeneratorFactory());
     private final BlockOutline outline = new BlockOutline(world, camera);
     private int currentBlockId = Blocks.HAPPY_2023.getId();
@@ -63,26 +59,11 @@ public class Game {
 
     public void start() {
         camera.setPosition(0, 80, 0);
-        
-        ColorUBO colors = ColorUBO.DEFAULT;
-        colors.allocate();
-        int object = colors.allocate();
-        colors.setColor(object, 0, 0, 1, 1);
-        colors.updateVBO();
+        camera.setUBO(CameraUBO.create(UBOBindingPoints.PLAYER_CAMERA));
     }
     
     public void loop() {
         camera.updateMovement();
-        triangle.render(camera.getProjection(), camera.getView());
-        block.copySideTextures(Blocks.STONE);
-
-        for (int i = 1; i < BlockRegister.numberOfRegisteredBlocks(); i++) {
-            block.getModel().identity().translate(1 + (i * 1), 0, 0);
-            if (BlockRegister.getBlock(i) instanceof SimpleBlock e) {
-                block.copySideTextures(e);
-            }
-            block.render(camera.getProjection(), camera.getView());
-        }
         
         world.update();
         world.render();
@@ -90,7 +71,8 @@ public class Game {
         outline.update();
         outline.render();
         
-        Main.WINDOW_TITLE += " (Block: "+BlockRegister.getBlock(this.currentBlockId).getName()+")";
+        Main.WINDOW_TITLE += " (Block: "+BlockRegister.getBlock(this.currentBlockId).getName()+") ";
+        Main.WINDOW_TITLE += " (x:"+(int)Math.floor(camera.getPosition().x())+",y:"+(int)Math.floor(camera.getPosition().y())+",z:"+(int)Math.floor(camera.getPosition().z())+") ";
     }
 
     public void mouseCursorMoved(double x, double y) {
@@ -104,9 +86,9 @@ public class Game {
     public void keyCallback(long window, int key, int scancode, int action, int mods) {
         if (key == GLFW_KEY_F && action == GLFW_PRESS) {
             camera.setPosition(
-                    (float) (Math.random() * 10000),
+                    Math.random() * 100000000,
                     camera.getPosition().y(),
-                    (float) (Math.random() * 10000)
+                    Math.random() * 100000000
             );
         }
         if (key == GLFW_KEY_G && action == GLFW_PRESS) {

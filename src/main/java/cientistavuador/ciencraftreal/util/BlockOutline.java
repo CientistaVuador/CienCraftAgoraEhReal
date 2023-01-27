@@ -30,8 +30,10 @@ import cientistavuador.ciencraftreal.Main;
 import cientistavuador.ciencraftreal.block.Block;
 import cientistavuador.ciencraftreal.block.Blocks;
 import cientistavuador.ciencraftreal.camera.Camera;
+import cientistavuador.ciencraftreal.ubo.CameraUBO;
 import cientistavuador.ciencraftreal.world.WorldCamera;
 import java.nio.FloatBuffer;
+import org.joml.Vector3d;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
 import org.joml.Vector3ic;
@@ -61,19 +63,26 @@ public class BlockOutline {
         }
     }
 
-    private static final String VERTEX_SHADER
-            = """
+    private static final String VERTEX_SHADER = 
+            """
             #version 330 core
             
-            uniform mat4 view;
-            uniform mat4 projection;
+            layout (std140) uniform Camera {
+                mat4 projection;
+                mat4 view;
+                ivec4 icamPos;
+                vec4 dcamPos;
+            };
             
-            uniform vec3 blockPosition;
+            uniform ivec3 blockPosition;
             
             layout (location = 0) in vec3 vertexPosition;
             
             void main() {
-                gl_Position = projection * view * vec4((vertexPosition * 1.01) + blockPosition + vec3(0.5, 0.5, -0.5), 1.0);
+                vec3 position = vertexPosition * 1.01;
+                position += vec3(blockPosition - icamPos.xyz);
+                position -= dcamPos.xyz;
+                gl_Position = projection * view * vec4(position + vec3(0.5, 0.5, -0.5), 1.0);
             }
             """;
 
@@ -90,7 +99,9 @@ public class BlockOutline {
 
     private static final int shaderProgram = ProgramCompiler.compile(VERTEX_SHADER, FRAGMENT_SHADER);
     private static final int vao = glGenVertexArrays();
-
+    private static final int cameraUboIndex = glGetUniformBlockIndex(shaderProgram, "Camera");
+    private static final int blockPositionUniformLocation = glGetUniformLocation(shaderProgram, "blockPosition");
+    
     static {
         int vbo = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -140,7 +151,7 @@ public class BlockOutline {
 
     private final WorldCamera world;
     private final Camera camera;
-    private final Vector3f castVector = new Vector3f();
+    private final Vector3d castVector = new Vector3d();
 
     private final Vector3i castPos = new Vector3i();
     private final Vector3i sidePos = new Vector3i();
@@ -211,23 +222,16 @@ public class BlockOutline {
             return;
         }
 
-        glUseProgram(shaderProgram);
-
-        int viewUniformLocation = glGetUniformLocation(shaderProgram, "view");
-        int projectionUniformLocation = glGetUniformLocation(shaderProgram, "projection");
-        int blockPositionUniformLocation = glGetUniformLocation(shaderProgram, "blockPosition");
-
-        try (MemoryStack stack = MemoryStack.stackPush()) {
-            FloatBuffer matrixBuffer = stack.callocFloat(4 * 4);
-
-            camera.getView().get(matrixBuffer);
-            glUniformMatrix4fv(viewUniformLocation, false, matrixBuffer);
-
-            camera.getProjection().get(matrixBuffer);
-            glUniformMatrix4fv(projectionUniformLocation, false, matrixBuffer);
-
-            glUniform3f(blockPositionUniformLocation, this.castPos.x(), this.castPos.y(), this.castPos.z());
+        CameraUBO ubo = getCamera().getUBO();
+        if (ubo == null) {
+            throw new RuntimeException("Camera UBO is null");
         }
+        ubo.updateUBO();
+        glUniformBlockBinding(shaderProgram, cameraUboIndex, ubo.getBindingPoint());
+        
+        glUseProgram(shaderProgram);
+        glUniform3i(blockPositionUniformLocation, this.castPos.x(), this.castPos.y(), this.castPos.z());
+        
         glBindVertexArray(vao);
 
         float lineWidth = 2f;

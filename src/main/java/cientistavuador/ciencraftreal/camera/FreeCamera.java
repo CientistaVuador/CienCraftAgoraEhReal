@@ -87,9 +87,9 @@ public class FreeCamera extends PerspectiveCamera {
         float za = currentSpeed * diagonal * directionZ;
         
         super.setPosition(
-            super.getPosition().x() + ((super.getRight().x() * xa + super.getFront().x() * za) * (float)Main.TPF),
-            super.getPosition().y() + ((super.getRight().y() * xa + super.getFront().y() * za) * (float)Main.TPF),
-            super.getPosition().z() + ((super.getRight().z() * xa + super.getFront().z() * za) * (float)Main.TPF)
+            super.getPosition().x() + ((super.getRight().x() * xa + super.getFront().x() * za) * Main.TPF),
+            super.getPosition().y() + ((super.getRight().y() * xa + super.getFront().y() * za) * Main.TPF),
+            super.getPosition().z() + ((super.getRight().z() * xa + super.getFront().z() * za) * Main.TPF)
         );
     }
     

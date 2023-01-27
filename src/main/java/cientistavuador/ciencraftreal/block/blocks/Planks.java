@@ -24,21 +24,19 @@
  *
  * For more information, please refer to <https://unlicense.org>
  */
-package cientistavuador.ciencraftreal.ubo;
+package cientistavuador.ciencraftreal.block.blocks;
+
+import cientistavuador.ciencraftreal.block.BlockTextures;
+import cientistavuador.ciencraftreal.block.SimpleBlock;
 
 /**
  *
  * @author Cien
  */
-public class UBOBindingPoints {
+public class Planks extends SimpleBlock {
     
-    public static final int MIN_NUMBER_OF_UBO_BINDING_POINTS = 36;
-    
-    public static final int BLOCK_COLORS = 0;
-    public static final int BLOCK_MATERIALS = 1;
-    public static final int PLAYER_CAMERA = 2;
-    
-    private UBOBindingPoints() {
-        
+    public Planks() {
+        super("ciencraft_planks", BlockTextures.PLANKS);
     }
+    
 }
