@@ -292,8 +292,8 @@ public class WorldCamera {
             return Blocks.AIR;
         }
 
-        int cX = (int) Math.floor((float) x / Chunk.CHUNK_SIZE);
-        int cZ = (int) Math.ceil((float) z / Chunk.CHUNK_SIZE);
+        int cX = (int) Math.floor((double) x / Chunk.CHUNK_SIZE);
+        int cZ = (int) Math.ceil((double) z / Chunk.CHUNK_SIZE);
 
         int camChunkX = cX - this.chunkX;
         int camChunkZ = cZ - this.chunkZ;

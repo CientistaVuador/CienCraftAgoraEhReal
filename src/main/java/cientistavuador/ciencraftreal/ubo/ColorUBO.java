@@ -24,32 +24,31 @@
  *
  * For more information, please refer to <https://unlicense.org>
  */
-package cientistavuador.ciencraftreal.block.material.ubo;
+package cientistavuador.ciencraftreal.ubo;
 
-import cientistavuador.ciencraftreal.ubo.UBOBindingPoints;
-import java.nio.IntBuffer;
+import java.nio.FloatBuffer;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import static org.lwjgl.opengl.GL33C.*;
 import static org.lwjgl.system.MemoryUtil.*;
+import static org.lwjgl.opengl.GL33C.*;
 
 /**
  *
  * @author Cien
  */
-public class MaterialUBO {
-    
-    public static final MaterialUBO DEFAULT = new MaterialUBO(UBOBindingPoints.BLOCK_MATERIALS);
+public class ColorUBO {
+
+    public static final ColorUBO DEFAULT = new ColorUBO(UBOBindingPoints.BLOCK_COLORS);
     public static final int SIZE = 1024;
     public static final int NULL = -1;
 
     private final ConcurrentLinkedQueue<Integer> availableObjects = new ConcurrentLinkedQueue<>();
     private final ConcurrentLinkedQueue<Runnable> updateTasks = new ConcurrentLinkedQueue<>();
     private final int ubo;
-    private final IntBuffer data;
+    private final FloatBuffer data;
     private final int bindingPoint;
-    
-    private MaterialUBO(int bindingPoint) {
-        this.data = memCallocInt(SIZE * 4);
+
+    private ColorUBO(int bindingPoint) {
+        this.data = memCallocFloat(SIZE * 4);
         this.bindingPoint = bindingPoint;
         try {
             this.ubo = glGenBuffers();
@@ -70,7 +69,7 @@ public class MaterialUBO {
     public int getBindingPoint() {
         return bindingPoint;
     }
-
+    
     public void updateUBO() {
         if (!updateTasks.isEmpty()) {
             glBindBuffer(GL_UNIFORM_BUFFER, this.ubo);
@@ -81,11 +80,11 @@ public class MaterialUBO {
             glBindBuffer(GL_UNIFORM_BUFFER, 0);
         }
     }
-    
+
     public int getUBO() {
-        return ubo;
+        return this.ubo;
     }
-    
+
     public int allocate() {
         Integer obj = availableObjects.poll();
         if (obj == null) {
@@ -93,61 +92,29 @@ public class MaterialUBO {
         }
         return obj;
     }
-    
-    private void setValue(int materialPointer, int index, int value) {
-        long offset = (materialPointer * 4 * 4) + (index * 4);
-        long address = memAddress(this.data) + offset;
-        memPutInt(address, value);
+
+    public void setColor(int colorPointer, float r, float g, float b, float a) {
+        long address = memAddress(this.data) + (colorPointer * 4 * 4);
+        memPutFloat(address + 0, r);
+        memPutFloat(address + 4, g);
+        memPutFloat(address + 8, b);
+        memPutFloat(address + 12, a);
         updateTasks.add(() -> {
-            nglBufferSubData(GL_UNIFORM_BUFFER, offset, 4, address);
+            nglBufferSubData(GL_UNIFORM_BUFFER, colorPointer * 4 * 4, 4 * 4, address);
         });
     }
-    
-    private int getValue(int materialPointer, int index) {
-        long offset = (materialPointer * 4 * 4) + (index * 4);
-        long address = memAddress(this.data) + offset;
-        return memGetInt(address);
+
+    public float getColor(int colorPointer, int channel) {
+        long address = memAddress(this.data) + (colorPointer * 4 * 4);
+        return memGetFloat(address + (channel * 4));
     }
-    
-    public void setColorPointer(int materialPointer, int colorPointer) {
-        setValue(materialPointer, 0, colorPointer);
-    }
-    
-    public void setFrameTime(int materialPointer, float time) {
-        setValue(materialPointer, 1, Float.floatToRawIntBits(time));
-    }
-    
-    public void setFrameStart(int materialPointer, int frameStart) {
-        setValue(materialPointer, 2, frameStart);
-    }
-    
-    public void setFrameEnd(int materialPointer, int frameEnd) {
-        setValue(materialPointer, 3, frameEnd);
-    }
-    
-    public int getColorPointer(int materialPointer) {
-        return getValue(materialPointer, 0);
-    }
-    
-    public float getFrameTime(int materialPointer) {
-        return Float.intBitsToFloat(getValue(materialPointer, 1));
-    }
-    
-    public int getFrameStart(int materialPointer) {
-        return getValue(materialPointer, 2);
-    }
-    
-    public int getFrameEnd(int materialPointer) {
-        return getValue(materialPointer, 3);
-    }
-    
-    public void free(int materialPointer) {
-        this.availableObjects.add(materialPointer);
+
+    public void free(int colorPointer) {
+        this.availableObjects.add(colorPointer);
     }
 
     public void delete() {
         glDeleteBuffers(this.ubo);
         memFree(this.data);
     }
-    
 }

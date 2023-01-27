@@ -27,8 +27,8 @@
 package cientistavuador.ciencraftreal.block.material;
 
 import cientistavuador.ciencraftreal.Main;
-import cientistavuador.ciencraftreal.block.material.ubo.ColorUBO;
-import cientistavuador.ciencraftreal.block.material.ubo.MaterialUBO;
+import cientistavuador.ciencraftreal.ubo.ColorUBO;
+import cientistavuador.ciencraftreal.ubo.MaterialUBO;
 import cientistavuador.ciencraftreal.util.ObjectCleaner;
 
 /**

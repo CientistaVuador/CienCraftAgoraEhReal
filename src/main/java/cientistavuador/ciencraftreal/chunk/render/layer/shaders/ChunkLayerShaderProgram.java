@@ -27,13 +27,13 @@
 package cientistavuador.ciencraftreal.chunk.render.layer.shaders;
 
 import cientistavuador.ciencraftreal.Main;
-import cientistavuador.ciencraftreal.block.material.ubo.ColorUBO;
-import cientistavuador.ciencraftreal.block.material.ubo.MaterialUBO;
+import cientistavuador.ciencraftreal.ubo.ColorUBO;
+import cientistavuador.ciencraftreal.ubo.MaterialUBO;
 import cientistavuador.ciencraftreal.camera.Camera;
 import cientistavuador.ciencraftreal.chunk.Chunk;
 import cientistavuador.ciencraftreal.chunk.render.layer.ChunkLayer;
+import cientistavuador.ciencraftreal.ubo.CameraUBO;
 import cientistavuador.ciencraftreal.util.ProgramCompiler;
-import cientistavuador.ciencraftreal.util.UniformSetter;
 import java.util.Map;
 import static org.lwjgl.opengl.GL33C.*;
 
@@ -49,13 +49,18 @@ public class ChunkLayerShaderProgram {
             
             uniform ivec3 layerBlockPos;
             uniform float time;
-            uniform mat4 projection;
-            uniform mat4 view;
             
             layout (location = 0) in vec3 inVertexPos;
             layout (location = 1) in vec2 inTexCoords;
             layout (location = 2) in int inVertexTextureID;
             layout (location = 3) in float inVertexAO;
+            
+            layout (std140) uniform Camera {
+                mat4 projection;
+                mat4 view;
+                ivec4 icamPos;
+                vec4 dcamPos;
+            };
             
             layout (std140) uniform BlockColors {
                 vec4 colors[COLORS_UBO_SIZE];
@@ -86,7 +91,8 @@ public class ChunkLayerShaderProgram {
                     inVertexPos.y * LAYER_HEIGHT,
                     -inVertexPos.z * CHUNK_SIZE
                 );
-                vertexPos += vec3(layerBlockPos);
+                vertexPos += vec3(layerBlockPos - icamPos.xyz);
+                vertexPos -= dcamPos.xyz;
                 vec2 texCoords = inTexCoords * TEX_COORDS_SIZE;
                 
                 Output.hasColor = false;
@@ -172,6 +178,7 @@ public class ChunkLayerShaderProgram {
     public static final int TEXTURES_PROGRAM_INDEX = glGetUniformLocation(SHADER_PROGRAM, "textures");
     public static final int USE_ALPHA_PROGRAM_INDEX = glGetUniformLocation(SHADER_PROGRAM, "useAlpha");
     public static final int TIME_PROGRAM_INDEX = glGetUniformLocation(SHADER_PROGRAM, "time");
+    public static final int CAMERA_UBO_INDEX = glGetUniformBlockIndex(SHADER_PROGRAM, "Camera");
     
     static {
         glUniformBlockBinding(SHADER_PROGRAM, BLOCK_COLORS_UBO_INDEX, ColorUBO.DEFAULT.getBindingPoint());
@@ -179,8 +186,12 @@ public class ChunkLayerShaderProgram {
     }
     
     public static void sendCameraUniforms(Camera camera) {
-        UniformSetter.setMatrix4f("projection", camera.getProjection());
-        UniformSetter.setMatrix4f("view", camera.getView());
+        CameraUBO ubo = camera.getUBO();
+        if (ubo == null) {
+            throw new NullPointerException("Camera UBO is null");
+        }
+        glUniformBlockBinding(SHADER_PROGRAM, CAMERA_UBO_INDEX, ubo.getBindingPoint());
+        ubo.updateUBO();
     }
     
     public static void sendUniforms(int chunkX, int blockY, int chunkZ, boolean useAlpha) {

@@ -27,6 +27,7 @@
 package cientistavuador.ciencraftreal.util;
 
 import cientistavuador.ciencraftreal.camera.Camera;
+import org.joml.Vector3dc;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 import static org.lwjgl.opengl.GL33C.*;
@@ -119,7 +120,7 @@ public class OcclusionCube {
         return size;
     }
     
-    public boolean isInside(Vector3fc pos) {
+    public boolean isInside(float x, float y, float z) {
         float xMin = this.position.x();
         float yMin = this.position.y();
         float zMin = this.position.z() - this.size.z();
@@ -127,14 +128,18 @@ public class OcclusionCube {
         float yMax = this.position.y() + this.size.y();
         float zMax = this.position.z();
         
-        return pos.x() <= xMax && pos.x() >= xMin &&
-                pos.y() <= yMax && pos.y() >= yMin &&
-                pos.z() <= zMax && pos.z() >= zMin;
-                
+        return x <= xMax && x >= xMin &&
+                y <= yMax && y >= yMin &&
+                z <= zMax && z >= zMin;
+    }
+    
+    public boolean isInside(Vector3fc pos) {
+        return isInside(pos.x(), pos.y(), pos.z());
     }
     
     public boolean isInside(Camera cam) {
-        return isInside(cam.getPosition());
+        Vector3dc camPos = cam.getPosition();
+        return isInside((float)camPos.x(), (float)camPos.y(), (float)camPos.z());
     }
 
     public void render(Camera camera) {

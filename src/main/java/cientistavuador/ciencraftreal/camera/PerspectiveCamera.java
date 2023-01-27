@@ -27,11 +27,15 @@
 package cientistavuador.ciencraftreal.camera;
 
 import cientistavuador.ciencraftreal.Main;
-import org.joml.FrustumIntersection;
+import cientistavuador.ciencraftreal.ubo.CameraUBO;
+import org.joml.Matrix4d;
+import org.joml.Matrix4dc;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fc;
 import org.joml.Vector2f;
 import org.joml.Vector2fc;
+import org.joml.Vector3d;
+import org.joml.Vector3dc;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
@@ -57,16 +61,16 @@ public class PerspectiveCamera implements Camera {
     private final Vector3f right = new Vector3f(1, 0, 0);
     
     //Position and Rotation
-    private final Vector3f position = new Vector3f(DEFAULT_POSITION);
+    private final Vector3d position = new Vector3d(DEFAULT_POSITION);
     private final Vector3f rotation = new Vector3f(DEFAULT_PITCH, DEFAULT_YAW, 0);
     
     //Matrices
     private final Matrix4f view = new Matrix4f();
     private final Matrix4f projection = new Matrix4f();
-    private final Matrix4f projectionView = new Matrix4f();
+    private final Matrix4d projectionView = new Matrix4d();
     
-    //Frustum Intersection
-    private final FrustumIntersection frustumIntersection = new FrustumIntersection(projectionView);
+    //UBO
+    private CameraUBO ubo = null;
     
     public PerspectiveCamera() {
         updateProjection();
@@ -93,6 +97,9 @@ public class PerspectiveCamera implements Camera {
                         this.farPlane
                 );
         
+        if (this.ubo != null) {
+            this.ubo.notifyProjection();
+        }
         updateProjectionView();
     }
     
@@ -110,21 +117,37 @@ public class PerspectiveCamera implements Camera {
         this.up.set(this.front).cross(this.right).normalize();
         
         this.view.identity().lookAt(
-                this.position.x(),
-                this.position.y(),
-                this.position.z(),
-                this.position.x() + this.front.x(),
-                this.position.y() + this.front.y(),
-                this.position.z() + this.front.z(),
+                0,
+                0,
+                0,
+                0 + this.front.x(),
+                0 + this.front.y(),
+                0 + this.front.z(),
                 this.up.x(), this.up.y(), this.up.z()
         );
+        
+        if (this.ubo != null) {
+            this.ubo.notifyView();
+        }
         
         updateProjectionView();
     }
     
     private void updateProjectionView() {
-        this.projection.mul(this.view, this.projectionView);
-        this.frustumIntersection.set(this.projectionView);
+        this.projectionView
+                .set(this.projection)
+                .mul(this.view)
+                .translate(-this.position.x(), -this.position.y(), -this.position.z())
+                ;
+    }
+
+    @Override
+    public void setUBO(CameraUBO ubo) {
+        if (this.ubo != null) {
+            this.ubo.setCamera(null);
+        }
+        ubo.setCamera(this);
+        this.ubo = ubo;
     }
 
     @Override
@@ -156,9 +179,12 @@ public class PerspectiveCamera implements Camera {
     }
 
     @Override
-    public void setPosition(float x, float y, float z) {
+    public void setPosition(double x, double y, double z) {
         this.position.set(x, y, z);
-        updateView();
+        if (this.ubo != null) {
+            this.ubo.notifyPosition();
+        }
+        updateProjectionView();
     }
     
     @Override
@@ -197,7 +223,7 @@ public class PerspectiveCamera implements Camera {
     }
 
     @Override
-    public Vector3fc getPosition() {
+    public Vector3dc getPosition() {
         return position;
     }
 
@@ -222,12 +248,13 @@ public class PerspectiveCamera implements Camera {
     }
 
     @Override
-    public Matrix4fc getProjectionView() {
+    public Matrix4dc getProjectionView() {
         return projectionView;
     }
 
     @Override
-    public FrustumIntersection getFrustumIntersection() {
-        return frustumIntersection;
+    public CameraUBO getUBO() {
+        return this.ubo;
     }
+    
 }

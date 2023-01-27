@@ -36,6 +36,7 @@ public class UBOBindingPoints {
     
     public static final int BLOCK_COLORS = 0;
     public static final int BLOCK_MATERIALS = 1;
+    public static final int PLAYER_CAMERA = 2;
     
     private UBOBindingPoints() {
         

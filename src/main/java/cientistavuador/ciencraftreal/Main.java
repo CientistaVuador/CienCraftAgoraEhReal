@@ -30,6 +30,7 @@ import cientistavuador.ciencraftreal.block.BlockTextures;
 import cientistavuador.ciencraftreal.block.Blocks;
 import cientistavuador.ciencraftreal.ubo.UBOBindingPoints;
 import java.io.PrintStream;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import static org.lwjgl.glfw.GLFW.*;
 import org.lwjgl.glfw.GLFWFramebufferSizeCallbackI;
 import org.lwjgl.opengl.GL;
@@ -102,6 +103,7 @@ public class Main {
     public static long FRAME = 0;
     public static double ONE_SECOND_COUNTER = 0.0;
     public static double ONE_MINUTE_COUNTER = 0.0;
+    public static final ConcurrentLinkedQueue<Runnable> MAIN_TASKS = new ConcurrentLinkedQueue<>();
     private static GLDebugMessageCallback DEBUG_CALLBACK = null;
 
     private static String debugSource(int source) {
@@ -309,7 +311,12 @@ public class Main {
             Main.WINDOW_TITLE = "CienCraft - FPS: " + Main.FPS;
 
             Game.get().loop();
-
+            
+            Runnable r;
+            while ((r = MAIN_TASKS.poll()) != null) {
+                r.run();
+            }
+            
             glFlush();
 
             Main.checkGLError();

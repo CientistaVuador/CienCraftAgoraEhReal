@@ -31,7 +31,7 @@ import cientistavuador.ciencraftreal.chunk.render.layer.shaders.ChunkLayerShader
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
-import org.joml.Vector3fc;
+import org.joml.Vector3dc;
 import static org.lwjgl.opengl.GL33C.*;
 
 /**
@@ -51,7 +51,7 @@ public class ChunkLayersRender {
         public DistancedChunkLayer(ChunkLayer layer, Camera camera) {
             this.layer = layer;
             this.camera = camera;
-            Vector3fc cameraPos = camera.getPosition();
+            Vector3dc cameraPos = camera.getPosition();
             this.distance = (float) layer.getCenter().distance(
                     cameraPos.x(),
                     cameraPos.y(),
