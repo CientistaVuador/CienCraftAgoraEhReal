@@ -27,12 +27,10 @@
 package cientistavuador.ciencraftreal.chunk.render.layer;
 
 import cientistavuador.ciencraftreal.camera.Camera;
-import cientistavuador.ciencraftreal.chunk.render.layer.shaders.ChunkLayerShaderProgram;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 import org.joml.Vector3dc;
-import static org.lwjgl.opengl.GL33C.*;
 
 /**
  *
@@ -72,7 +70,7 @@ public class ChunkLayersRender {
         }
     }
 
-    public static void render(Camera camera, ChunkLayers[] chunks) {
+    public static int render(Camera camera, ChunkLayers[] chunks) {
         List<DistancedChunkLayer> layerList = new ArrayList<>(64);
 
         for (int i = 0; i < chunks.length; i++) {
@@ -88,9 +86,11 @@ public class ChunkLayersRender {
         }
 
         if (layerList.isEmpty()) {
-            return;
+            return 0;
         }
-
+        
+        int drawCalls = 0;
+        
         layerList.sort((o1, o2) -> {
             if (o1.getDistance() > o2.getDistance()) {
                 return 1;
@@ -104,16 +104,18 @@ public class ChunkLayersRender {
         ArrayDeque<ChunkLayer> alphaRendering = new ArrayDeque<>(64);
         ArrayDeque<ChunkLayer> toProcess = new ArrayDeque<>(64);
 
-        glUseProgram(ChunkLayerShaderProgram.SHADER_PROGRAM);
-
-        ChunkLayerShaderProgram.sendCameraUniforms(camera);
+        ChunkLayer.useDefaultProgram();
+        ChunkLayer.sendPerFrameUniforms(camera);
+        ChunkLayer.sendUseAlphaUniform(false);
 
         int layersToProcess = 0;
         for (DistancedChunkLayer e : layerList) {
             ChunkLayer layer = e.getLayer();
 
             if (!layer.checkVerticesStage1(camera)) {
-                layer.renderStage4(camera, true);
+                if (layer.renderStage4()) {
+                    drawCalls++;
+                }
                 alphaRendering.add(layer);
                 continue;
             }
@@ -127,34 +129,50 @@ public class ChunkLayersRender {
             }
         }
 
+        ChunkLayer.sendUseAlphaUniform(true);
+
         //render alpha
         ChunkLayer e;
         while ((e = alphaRendering.pollLast()) != null) {
-            e.renderAlphaStage5(camera, true);
+            if (e.renderAlphaStage5()) {
+                drawCalls++;
+            }
         }
 
         if (toProcess.isEmpty()) {
-            glUseProgram(0);
-            return;
+            ChunkLayer.finishRendering();
+            ChunkLayer.discardProgram();
+            return drawCalls;
         }
+
+        ChunkLayer.sendUseAlphaUniform(false);
 
         //process the queue
         ChunkLayer f;
         while ((f = toProcess.poll()) != null) {
             boolean result = f.prepareVaoVboStage3();
             if (result) {
-                f.renderStage4(camera, true);
+                if (f.renderStage4()) {
+                    drawCalls++;
+                }
                 alphaRendering.add(f);
             }
         }
 
+        ChunkLayer.sendUseAlphaUniform(true);
+
         //render alpha
         ChunkLayer a;
         while ((a = alphaRendering.pollLast()) != null) {
-            a.renderAlphaStage5(camera, true);
+            if (a.renderAlphaStage5()) {
+                drawCalls++;
+            }
         }
 
-        glUseProgram(0);
+        ChunkLayer.finishRendering();
+        ChunkLayer.discardProgram();
+        
+        return drawCalls;
     }
 
     private ChunkLayersRender() {

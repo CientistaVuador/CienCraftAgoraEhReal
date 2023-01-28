@@ -27,6 +27,7 @@
 package cientistavuador.ciencraftreal.chunk.render.layer.shaders;
 
 import cientistavuador.ciencraftreal.Main;
+import cientistavuador.ciencraftreal.block.BlockTextures;
 import cientistavuador.ciencraftreal.ubo.ColorUBO;
 import cientistavuador.ciencraftreal.ubo.MaterialUBO;
 import cientistavuador.ciencraftreal.camera.Camera;
@@ -81,9 +82,9 @@ public class ChunkLayerShaderProgram {
                 vec2 texCoords;
                 flat int textureID;
                 float ao;
-                flat bool hasColor;
+                flat int hasColor;
                 flat vec4 color;
-            } Output;
+            } VOut;
             
             void main() {
                 vec3 vertexPos = vec3(
@@ -95,7 +96,7 @@ public class ChunkLayerShaderProgram {
                 vertexPos -= dcamPos.xyz;
                 vec2 texCoords = inTexCoords * TEX_COORDS_SIZE;
                 
-                Output.hasColor = false;
+                VOut.hasColor = int(false);
             
                 int texture = inVertexTextureID;
                 if (texture >= MIN_TEXTURE_3D_SIZE_SUPPORTED) {
@@ -112,14 +113,14 @@ public class ChunkLayerShaderProgram {
                     }
                     
                     if (material.colorPointer != NULL_COLOR_POINTER) {
-                        Output.hasColor = true;
-                        Output.color = colors[material.colorPointer];
+                        VOut.hasColor = int(true);
+                        VOut.color = colors[material.colorPointer];
                     }
                 }
                 
-                Output.texCoords = texCoords;
-                Output.textureID = texture;
-                Output.ao = inVertexAO;
+                VOut.texCoords = texCoords;
+                VOut.textureID = texture;
+                VOut.ao = inVertexAO;
                 gl_Position = projection * view * vec4(vertexPos, 1.0);
             }
             """;
@@ -135,26 +136,26 @@ public class ChunkLayerShaderProgram {
                 vec2 texCoords;
                 flat int textureID;
                 float ao;
-                flat bool hasColor;
+                flat int hasColor;
                 flat vec4 color;
-            } Input;
+            } FIn;
             
             layout (location = 0) out vec4 out_Color;
             
             void main() {
-                vec4 color = texture(textures, vec3(Input.texCoords, float(Input.textureID)));
-                vec4 output = color;
-                if (Input.hasColor) {
-                    output *= Input.color;
+                vec4 color = texture(textures, vec3(FIn.texCoords, float(FIn.textureID)));
+                vec4 outputColor = color;
+                if (bool(FIn.hasColor)) {
+                    outputColor *= FIn.color;
                 }
                 if (!useAlpha) {
-                    if (output.a < 0.5) {
+                    if (outputColor.a < 0.5) {
                         discard;
                     }
-                    output.a = 1.0;
+                    outputColor.a = 1.0;
                 }
-                output.rgb *= 1.0 - Input.ao;
-                out_Color = output;
+                outputColor.rgb *= 1.0 - FIn.ao;
+                out_Color = outputColor;
             }
             """;
     
@@ -180,28 +181,38 @@ public class ChunkLayerShaderProgram {
     public static final int TIME_PROGRAM_INDEX = glGetUniformLocation(SHADER_PROGRAM, "time");
     public static final int CAMERA_UBO_INDEX = glGetUniformBlockIndex(SHADER_PROGRAM, "Camera");
     
-    static {
-        glUniformBlockBinding(SHADER_PROGRAM, BLOCK_COLORS_UBO_INDEX, ColorUBO.DEFAULT.getBindingPoint());
-        glUniformBlockBinding(SHADER_PROGRAM, BLOCK_MATERIALS_UBO_INDEX, MaterialUBO.DEFAULT.getBindingPoint());
-    }
-    
-    public static void sendCameraUniforms(Camera camera) {
-        CameraUBO ubo = camera.getUBO();
-        if (ubo == null) {
-            throw new NullPointerException("Camera UBO is null");
-        }
-        glUniformBlockBinding(SHADER_PROGRAM, CAMERA_UBO_INDEX, ubo.getBindingPoint());
-        ubo.updateUBO();
-    }
-    
-    public static void sendUniforms(int chunkX, int blockY, int chunkZ, boolean useAlpha) {
-        glUniform3i(LAYER_BLOCK_POS_PROGRAM_INDEX, chunkX * Chunk.CHUNK_SIZE, blockY, chunkZ * Chunk.CHUNK_SIZE);
+    public static void sendPerFrameUniforms(Camera camera) {
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, BlockTextures.GL_TEXTURE_ARRAY);
+        
         glUniform1i(TEXTURES_PROGRAM_INDEX, 0);
-        glUniform1i(USE_ALPHA_PROGRAM_INDEX, (useAlpha ? 1 : 0));
         glUniform1f(TIME_PROGRAM_INDEX, (float) Main.ONE_MINUTE_COUNTER);
         
+        CameraUBO cameraUbo = camera.getUBO();
+        if (cameraUbo == null) {
+            throw new NullPointerException("Camera UBO is null");
+        }
+        
+        glUniformBlockBinding(SHADER_PROGRAM, CAMERA_UBO_INDEX, cameraUbo.getBindingPoint());
+        glUniformBlockBinding(SHADER_PROGRAM, BLOCK_COLORS_UBO_INDEX, ColorUBO.DEFAULT.getBindingPoint());
+        glUniformBlockBinding(SHADER_PROGRAM, BLOCK_MATERIALS_UBO_INDEX, MaterialUBO.DEFAULT.getBindingPoint());
+        
+        cameraUbo.updateUBO();
         ColorUBO.DEFAULT.updateUBO();
         MaterialUBO.DEFAULT.updateUBO();
+    }
+    
+    public static void sendUseAlphaUniform(boolean useAlpha) {
+        glUniform1i(USE_ALPHA_PROGRAM_INDEX, (useAlpha ? 1 : 0));
+    }
+    
+    public static void sendPerDrawUniforms(int chunkX, int blockY, int chunkZ) {
+        glUniform3i(LAYER_BLOCK_POS_PROGRAM_INDEX, chunkX * Chunk.CHUNK_SIZE, blockY, chunkZ * Chunk.CHUNK_SIZE);
+    }
+    
+    public static void finishRendering() {
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
     }
     
     private ChunkLayerShaderProgram() {

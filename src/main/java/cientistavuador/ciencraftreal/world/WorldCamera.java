@@ -37,7 +37,6 @@ import cientistavuador.ciencraftreal.chunk.render.layer.ChunkLayersRender;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -48,8 +47,6 @@ import java.util.concurrent.Future;
  */
 public class WorldCamera {
 
-    public static final int HUMIDITY_TEMPERATURE_SCALE = 4000;
-    
     public static final int VIEW_DISTANCE = 5;
     public static final int VIEW_DISTANCE_SIZE = (VIEW_DISTANCE * 2) + 1;
     public static final int VIEW_DISTANCE_NUMBER_OF_CHUNKS = VIEW_DISTANCE_SIZE * VIEW_DISTANCE_SIZE;
@@ -57,8 +54,6 @@ public class WorldCamera {
     private final Object[] map = new Object[VIEW_DISTANCE_NUMBER_OF_CHUNKS];
 
     private final long seed;
-    private final long temperatureSeed;
-    private final long humiditySeed;
     private final Camera camera;
     private int oldChunkX = 0;
     private int oldChunkZ = 0;
@@ -70,22 +65,11 @@ public class WorldCamera {
         this.camera = camera;
         this.seed = seed;
         
-        Random random = new Random(seed);
-        this.temperatureSeed = random.nextLong();
-        this.humiditySeed = random.nextLong();
         this.chunkGeneratorFactory = chunkGeneratorFactory;
     }
 
     public ChunkGeneratorFactory getChunkGeneratorFactory() {
         return chunkGeneratorFactory;
-    }
-    
-    public long getTemperatureSeed() {
-        return temperatureSeed;
-    }
-
-    public long getHumiditySeed() {
-        return humiditySeed;
     }
     
     private void updatePosition() {
@@ -318,7 +302,7 @@ public class WorldCamera {
         return Blocks.AIR;
     }
 
-    public void render() {
+    public int render() {
         List<ChunkLayers> layers = new ArrayList<>();
         
         for (int i = 0; i < length(); i++) {
@@ -328,7 +312,7 @@ public class WorldCamera {
             }
         }
         
-        ChunkLayersRender.render(this.camera, layers.toArray(ChunkLayers[]::new));
+        return ChunkLayersRender.render(this.camera, layers.toArray(ChunkLayers[]::new));
     }
     
     public Camera getCamera() {

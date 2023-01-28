@@ -26,7 +26,6 @@
  */
 package cientistavuador.ciencraftreal.chunk.render.layer;
 
-import cientistavuador.ciencraftreal.block.BlockTextures;
 import cientistavuador.ciencraftreal.camera.Camera;
 import cientistavuador.ciencraftreal.chunk.Chunk;
 import cientistavuador.ciencraftreal.chunk.render.layer.shaders.ChunkLayerShaderProgram;
@@ -47,6 +46,26 @@ import static org.lwjgl.opengl.GL33C.*;
  */
 public class ChunkLayer {
 
+    public static void useDefaultProgram() {
+        glUseProgram(ChunkLayerShaderProgram.SHADER_PROGRAM);
+    }
+    
+    public static void sendPerFrameUniforms(Camera camera) {
+        ChunkLayerShaderProgram.sendPerFrameUniforms(camera);
+    }
+    
+    public static void sendUseAlphaUniform(boolean useAlpha) {
+        ChunkLayerShaderProgram.sendUseAlphaUniform(useAlpha);
+    }
+    
+    public static void finishRendering() {
+        ChunkLayerShaderProgram.finishRendering();
+    }
+    
+    public static void discardProgram() {
+        glUseProgram(0);
+    }
+    
     //pos, tex coords, tex id, ao, unused 
     public static final int VERTEX_SIZE_ELEMENTS = 3 + 2 + 1 + 1 + 1;
     public static final int TEX_COORDS_MAX = 10;
@@ -261,78 +280,32 @@ public class ChunkLayer {
         return a || b;
     }
 
-    public void renderStage4(Camera camera) {
-        renderStage4(camera, false);
-    }
-    
-    public void renderStage4(Camera camera, boolean useCurrentShader) {
+    public boolean renderStage4() {
         if (this.vertices.length == 0) {
-            return;
+            return false;
         }
         
-        if (!useCurrentShader) {
-            glUseProgram(ChunkLayerShaderProgram.SHADER_PROGRAM);
-            
-            ChunkLayerShaderProgram.sendCameraUniforms(camera);
-        }
-
-        ChunkLayerShaderProgram.sendUniforms(
-                this.chunk.getChunkX(),
-                this.y,
-                this.chunk.getChunkZ(),
-                false
-        );
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D_ARRAY, BlockTextures.GL_TEXTURE_ARRAY);
+        ChunkLayerShaderProgram.sendPerDrawUniforms(this.chunk.getChunkX(), this.y, this.chunk.getChunkZ());
         
         glBindVertexArray(this.vao);
-
         glDrawElements(GL_TRIANGLES, this.indices.length, GL_UNSIGNED_INT, 0);
-
-        glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
         glBindVertexArray(0);
         
-        if (!useCurrentShader) {
-            glUseProgram(0);
-        }
+        return true;
     }
     
-    public void renderAlphaStage5(Camera camera) {
-        renderAlphaStage5(camera, false);
-    }
-    
-    public void renderAlphaStage5(Camera camera, boolean useCurrentShader) {
+    public boolean renderAlphaStage5() {
         if (this.verticesAlpha.length == 0) {
-            return;
+            return false;
         }
         
-        if (!useCurrentShader) {
-            glUseProgram(ChunkLayerShaderProgram.SHADER_PROGRAM);
-            
-            ChunkLayerShaderProgram.sendCameraUniforms(camera);
-        }
-
-        ChunkLayerShaderProgram.sendUniforms(
-                this.chunk.getChunkX(),
-                this.y,
-                this.chunk.getChunkZ(),
-                true
-        );
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D_ARRAY, BlockTextures.GL_TEXTURE_ARRAY);
+        ChunkLayerShaderProgram.sendPerDrawUniforms(this.chunk.getChunkX(), this.y, this.chunk.getChunkZ());
         
         glBindVertexArray(this.vaoAlpha);
-
         glDrawElements(GL_TRIANGLES, this.indicesAlpha.length, GL_UNSIGNED_INT, 0);
-
-        glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
         glBindVertexArray(0);
         
-        if (!useCurrentShader) {
-            glUseProgram(0);
-        }
+        return true;
     }
 
     public boolean isDeleted() {

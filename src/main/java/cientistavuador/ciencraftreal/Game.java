@@ -66,13 +66,14 @@ public class Game {
         camera.updateMovement();
         
         world.update();
-        world.render();
+        int drawCalls = world.render();
         
         outline.update();
         outline.render();
         
-        Main.WINDOW_TITLE += " (Block: "+BlockRegister.getBlock(this.currentBlockId).getName()+") ";
-        Main.WINDOW_TITLE += " (x:"+(int)Math.floor(camera.getPosition().x())+",y:"+(int)Math.floor(camera.getPosition().y())+",z:"+(int)Math.floor(camera.getPosition().z())+") ";
+        Main.WINDOW_TITLE += " (Block: "+BlockRegister.getBlock(this.currentBlockId).getName()+")";
+        Main.WINDOW_TITLE += " (x:"+(int)Math.floor(camera.getPosition().x())+",y:"+(int)Math.floor(camera.getPosition().y())+",z:"+(int)Math.floor(camera.getPosition().z())+")";
+        Main.WINDOW_TITLE += " (DrawCalls: "+drawCalls+")";
     }
 
     public void mouseCursorMoved(double x, double y) {
