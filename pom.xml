@@ -40,6 +40,8 @@
                             </manifestEntries>
                         </transformer>
                     </transformers>
+                    <shadedArtifactAttached>true</shadedArtifactAttached>
+                    <shadedClassifierName>build</shadedClassifierName>
                 </configuration>
                 <executions>
                     <execution>
