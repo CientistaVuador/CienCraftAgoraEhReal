@@ -26,7 +26,6 @@
  */
 package cientistavuador.ciencraftreal.ubo;
 
-import cientistavuador.ciencraftreal.ubo.UBOBindingPoints;
 import java.nio.IntBuffer;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import static org.lwjgl.opengl.GL33C.*;
@@ -36,6 +35,7 @@ import static org.lwjgl.system.MemoryUtil.*;
  *
  * @author Cien
  */
+//TODO: do not use unsafe
 public class MaterialUBO {
     
     public static final MaterialUBO DEFAULT = new MaterialUBO(UBOBindingPoints.BLOCK_MATERIALS);
