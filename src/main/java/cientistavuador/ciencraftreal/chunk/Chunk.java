@@ -61,8 +61,6 @@ public class Chunk {
 
     private final byte[] blocks = new byte[CHUNK_SIZE * CHUNK_SIZE * CHUNK_HEIGHT];
     private final int[] blocksInHeight = new int[CHUNK_HEIGHT];
-    private final float[] humidityTemperatureMap = new float[CHUNK_SIZE * CHUNK_SIZE * 2];
-    private final byte[] biomeMap = new byte[CHUNK_SIZE * CHUNK_SIZE];
     private final ChunkLayers layers;
     
     private int highestY = 0;
@@ -156,14 +154,6 @@ public class Chunk {
     
     public ChunkLayers getLayers() {
         return layers;
-    }
-    
-    public float getHumidity(int x, int z) {
-        return this.humidityTemperatureMap[((x + (-z * Chunk.CHUNK_SIZE)) * 2) + 0];
-    }
-    
-    public float getTemperature(int x, int z) {
-        return this.humidityTemperatureMap[((x + (-z * Chunk.CHUNK_SIZE)) * 2) + 1];
     }
     
 }
