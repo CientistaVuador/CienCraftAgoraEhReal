@@ -98,7 +98,7 @@ public class PerspectiveCamera implements Camera {
                 );
         
         if (this.ubo != null) {
-            this.ubo.notifyProjection();
+            this.ubo.setProjection(this.projection);
         }
         updateProjectionView();
     }
@@ -127,9 +127,8 @@ public class PerspectiveCamera implements Camera {
         );
         
         if (this.ubo != null) {
-            this.ubo.notifyView();
+            this.ubo.setView(this.view);
         }
-        
         updateProjectionView();
     }
     
@@ -143,11 +142,12 @@ public class PerspectiveCamera implements Camera {
 
     @Override
     public void setUBO(CameraUBO ubo) {
-        if (this.ubo != null) {
-            this.ubo.setCamera(null);
-        }
-        ubo.setCamera(this);
         this.ubo = ubo;
+        if (this.ubo != null) {
+            this.ubo.setProjection(this.projection);
+            this.ubo.setView(this.view);
+            this.ubo.setPosition(this.position);
+        }
     }
 
     @Override
@@ -182,7 +182,7 @@ public class PerspectiveCamera implements Camera {
     public void setPosition(double x, double y, double z) {
         this.position.set(x, y, z);
         if (this.ubo != null) {
-            this.ubo.notifyPosition();
+            this.ubo.setPosition(this.position);
         }
         updateProjectionView();
     }

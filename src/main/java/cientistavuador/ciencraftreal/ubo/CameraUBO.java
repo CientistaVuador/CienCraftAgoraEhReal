@@ -27,38 +27,23 @@
 package cientistavuador.ciencraftreal.ubo;
 
 import cientistavuador.ciencraftreal.Main;
-import cientistavuador.ciencraftreal.camera.Camera;
 import cientistavuador.ciencraftreal.util.ObjectCleaner;
-import java.nio.FloatBuffer;
-import java.util.concurrent.atomic.AtomicBoolean;
+import org.joml.Matrix4f;
 import org.joml.Matrix4fc;
+import org.joml.Vector3d;
 import org.joml.Vector3dc;
-import static org.lwjgl.system.MemoryUtil.*;
 import static org.lwjgl.opengl.GL33C.*;
 
 /**
  *
  * @author Cien
  */
-//TODO: do not use unsafe
 public class CameraUBO {
 
     public static CameraUBO create(int bindingPoint) {
-        FloatBuffer buffer = memCallocFloat(16 + 16 + 8);
-        int ubo;
-        try {
-            ubo = glGenBuffers();
-            glBindBuffer(GL_UNIFORM_BUFFER, ubo);
-            glBufferData(GL_UNIFORM_BUFFER, buffer, GL_DYNAMIC_DRAW);
-            glBindBuffer(GL_UNIFORM_BUFFER, 0);
-            glBindBufferBase(GL_UNIFORM_BUFFER, bindingPoint, ubo);
-        } catch (Throwable e) {
-            memFree(buffer);
-            throw e;
-        }
-        CameraUBO cameraUbo = new CameraUBO(bindingPoint, buffer, ubo);
+        int ubo = glGenBuffers();
+        CameraUBO cameraUbo = new CameraUBO(bindingPoint, ubo);
         ObjectCleaner.get().register(cameraUbo, () -> {
-            memFree(buffer);
             Main.MAIN_TASKS.add(() -> {
                 glDeleteBuffers(ubo);
             });
@@ -67,116 +52,106 @@ public class CameraUBO {
     }
 
     private final int bindingPoint;
-    private final FloatBuffer buffer;
     private final int ubo;
 
-    private final AtomicBoolean updateProjection = new AtomicBoolean(false);
-    private final AtomicBoolean updateView = new AtomicBoolean(false);
-    private final AtomicBoolean updatePosition = new AtomicBoolean(false);
+    private final Matrix4f projection = new Matrix4f();
+    private final Matrix4f view = new Matrix4f();
+    private final Vector3d position = new Vector3d();
 
-    private Camera camera;
+    private boolean projectionUpdate = false;
+    private boolean viewUpdate = false;
+    private boolean positionUpdate = false;
+    private boolean needsUpdate = false;
 
-    private CameraUBO(int bindingPoint, FloatBuffer buffer, int ubo) {
+    private CameraUBO(int bindingPoint, int ubo) {
         this.bindingPoint = bindingPoint;
-        this.buffer = buffer;
         this.ubo = ubo;
+
+        glBindBuffer(GL_UNIFORM_BUFFER, this.ubo);
+        glBufferData(GL_UNIFORM_BUFFER, (16 + 16 + 4 + 4) * Float.BYTES, GL_DYNAMIC_DRAW);
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+        glBindBufferBase(GL_UNIFORM_BUFFER, this.bindingPoint, this.ubo);
     }
 
     public int getBindingPoint() {
         return bindingPoint;
     }
 
-    public Camera getCamera() {
-        return camera;
+    public int getUBO() {
+        return ubo;
     }
 
-    public void setCamera(Camera camera) {
-        this.camera = camera;
-        notifyProjection();
-        notifyView();
-        notifyPosition();
+    public void setProjection(Matrix4fc projection) {
+        projection.get(this.projection);
+        this.projectionUpdate = true;
+        this.needsUpdate = true;
     }
 
-    public void notifyProjection() {
-        this.updateProjection.set(true);
+    public void setView(Matrix4fc view) {
+        view.get(this.view);
+        this.viewUpdate = true;
+        this.needsUpdate = true;
     }
 
-    public void notifyView() {
-        this.updateView.set(true);
+    public void setPosition(Vector3dc position) {
+        position.get(this.position);
+        this.positionUpdate = true;
+        this.needsUpdate = true;
     }
 
-    public void notifyPosition() {
-        this.updatePosition.set(true);
+    public Matrix4fc getProjection() {
+        return this.projection;
     }
 
-    private void updateProjection() {
-        long address = memAddress(this.buffer);
-
-        Matrix4fc projection = this.camera.getProjection();
-        projection.getToAddress(address);
-
-        nglBufferSubData(GL_UNIFORM_BUFFER, 0, 4 * 4 * Float.BYTES, address);
-        this.updateProjection.set(false);
+    public Matrix4fc getView() {
+        return this.view;
     }
 
-    private void updateView() {
-        long address = memAddress(this.buffer) + (4 * 4 * Float.BYTES);
-
-        Matrix4fc view = this.camera.getView();
-        view.getToAddress(address);
-
-        nglBufferSubData(GL_UNIFORM_BUFFER, 4 * 4 * Float.BYTES, 4 * 4 * Float.BYTES, address);
-        this.updateView.set(false);
-    }
-
-    private void updatePosition() {
-        long address = memAddress(this.buffer) + (2 * 4 * 4 * Float.BYTES);
-
-        Vector3dc position = this.camera.getPosition();
-
-        int xInt = (int) Math.floor(position.x());
-        int yInt = (int) Math.floor(position.y());
-        int zInt = (int) Math.ceil(position.z());
-        float xDec = (float) (position.x() - xInt);
-        float yDec = (float) (position.y() - yInt);
-        float zDec = (float) (position.z() - zInt);
-        
-        long addressOffset = address;
-
-        memPutInt(addressOffset + 0, xInt);
-        memPutInt(addressOffset + 4, yInt);
-        memPutInt(addressOffset + 8, zInt);
-        memPutInt(addressOffset + 12, 0);
-
-        addressOffset += (12 + 4);
-
-        memPutFloat(addressOffset + 0, xDec);
-        memPutFloat(addressOffset + 4, yDec);
-        memPutFloat(addressOffset + 8, zDec);
-        memPutFloat(addressOffset + 12, 0f);
-
-        nglBufferSubData(GL_UNIFORM_BUFFER, 2 * 4 * 4 * Float.BYTES, 2 * 4 * Float.BYTES, address);
-        this.updatePosition.set(false);
+    public Vector3dc getPosition() {
+        return this.position;
     }
 
     public void updateUBO() {
-        boolean projection = this.updateProjection.get();
-        boolean view = this.updateView.get();
-        boolean position = this.updatePosition.get();
-
-        if (projection || view || position) {
-            glBindBuffer(GL_UNIFORM_BUFFER, this.ubo);
-            if (projection) {
-                updateProjection();
-            }
-            if (view) {
-                updateView();
-            }
-            if (position) {
-                updatePosition();
-            }
-            glBindBuffer(GL_UNIFORM_BUFFER, 0);
+        if (!this.needsUpdate) {
+            return;
         }
+        this.needsUpdate = false;
+
+        glBindBuffer(GL_UNIFORM_BUFFER, this.ubo);
+        if (this.projectionUpdate) {
+            glBufferSubData(GL_UNIFORM_BUFFER, 0, this.projection.get(new float[4 * 4]));
+            this.projectionUpdate = false;
+        }
+        if (this.viewUpdate) {
+            glBufferSubData(GL_UNIFORM_BUFFER, (4 * 4) * Float.BYTES, this.view.get(new float[4 * 4]));
+            this.viewUpdate = false;
+        }
+        if (this.positionUpdate) {
+            int xInt = (int) Math.floor(position.x());
+            int yInt = (int) Math.floor(position.y());
+            int zInt = (int) Math.ceil(position.z());
+            float xDec = (float) (position.x() - xInt);
+            float yDec = (float) (position.y() - yInt);
+            float zDec = (float) (position.z() - zInt);
+            
+            int offset = (2 * 4 * 4) * Float.BYTES;
+            
+            glBufferSubData(GL_UNIFORM_BUFFER, offset, new int[] {
+                xInt,
+                yInt,
+                zInt,
+                0
+            });
+            glBufferSubData(GL_UNIFORM_BUFFER, offset + (4 * Integer.BYTES), new float[] {
+                xDec,
+                yDec,
+                zDec,
+                0f
+            });
+            this.positionUpdate = false;
+        }
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
     }
 
 }

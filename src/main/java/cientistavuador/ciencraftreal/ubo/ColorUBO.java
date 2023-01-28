@@ -26,42 +26,52 @@
  */
 package cientistavuador.ciencraftreal.ubo;
 
-import java.nio.FloatBuffer;
+import cientistavuador.ciencraftreal.Main;
+import cientistavuador.ciencraftreal.util.ObjectCleaner;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import static org.lwjgl.system.MemoryUtil.*;
 import static org.lwjgl.opengl.GL33C.*;
 
 /**
  *
  * @author Cien
  */
-//TODO: do not use unsafe
 public class ColorUBO {
 
-    public static final ColorUBO DEFAULT = new ColorUBO(UBOBindingPoints.BLOCK_COLORS);
+    public static final ColorUBO DEFAULT = create(UBOBindingPoints.BLOCK_COLORS);
     public static final int SIZE = 1024;
     public static final int NULL = -1;
 
-    private final ConcurrentLinkedQueue<Integer> availableObjects = new ConcurrentLinkedQueue<>();
-    private final ConcurrentLinkedQueue<Runnable> updateTasks = new ConcurrentLinkedQueue<>();
-    private final int ubo;
-    private final FloatBuffer data;
-    private final int bindingPoint;
+    public static ColorUBO create(int bindingPoint) {
+        int ubo = glGenBuffers();
+        ColorUBO colorUbo = new ColorUBO(bindingPoint, ubo);
+        ObjectCleaner.get().register(colorUbo, () -> {
+            Main.MAIN_TASKS.add(() -> {
+                glDeleteBuffers(ubo);
+            });
+        });
+        return colorUbo;
+    }
 
-    private ColorUBO(int bindingPoint) {
-        this.data = memCallocFloat(SIZE * 4);
+    private final int bindingPoint;
+    private final int ubo;
+    
+    private final float[] colorsRGBA = new float[SIZE * 4];
+    
+    private final boolean[] needsUpdate = new boolean[SIZE];
+    private boolean needsUpdateGlobal = false;
+
+    private final ConcurrentLinkedQueue<Integer> availableObjects = new ConcurrentLinkedQueue<>();
+
+    private ColorUBO(int bindingPoint, int ubo) {
         this.bindingPoint = bindingPoint;
-        try {
-            this.ubo = glGenBuffers();
-            glBindBuffer(GL_UNIFORM_BUFFER, this.ubo);
-            glBufferData(GL_UNIFORM_BUFFER, data, GL_DYNAMIC_DRAW);
-            glBindBuffer(GL_UNIFORM_BUFFER, 0);
-            
-            glBindBufferBase(GL_UNIFORM_BUFFER, bindingPoint, this.ubo);
-        } catch (Throwable e) {
-            memFree(this.data);
-            throw e;
-        }
+        this.ubo = ubo;
+
+        glBindBuffer(GL_UNIFORM_BUFFER, this.ubo);
+        glBufferData(GL_UNIFORM_BUFFER, this.colorsRGBA, GL_DYNAMIC_DRAW);
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+        glBindBufferBase(GL_UNIFORM_BUFFER, bindingPoint, this.ubo);
+
         for (int i = 0; i < SIZE; i++) {
             availableObjects.add(i);
         }
@@ -70,20 +80,9 @@ public class ColorUBO {
     public int getBindingPoint() {
         return bindingPoint;
     }
-    
-    public void updateUBO() {
-        if (!updateTasks.isEmpty()) {
-            glBindBuffer(GL_UNIFORM_BUFFER, this.ubo);
-            Runnable r;
-            while ((r = this.updateTasks.poll()) != null) {
-                r.run();
-            }
-            glBindBuffer(GL_UNIFORM_BUFFER, 0);
-        }
-    }
 
     public int getUBO() {
-        return this.ubo;
+        return ubo;
     }
 
     public int allocate() {
@@ -94,28 +93,47 @@ public class ColorUBO {
         return obj;
     }
 
-    public void setColor(int colorPointer, float r, float g, float b, float a) {
-        long address = memAddress(this.data) + (colorPointer * 4 * 4);
-        memPutFloat(address + 0, r);
-        memPutFloat(address + 4, g);
-        memPutFloat(address + 8, b);
-        memPutFloat(address + 12, a);
-        updateTasks.add(() -> {
-            nglBufferSubData(GL_UNIFORM_BUFFER, colorPointer * 4 * 4, 4 * 4, address);
-        });
+    public float getColor(int pointer, int channel) {
+        return this.colorsRGBA[(pointer * 4) + channel];
     }
 
-    public float getColor(int colorPointer, int channel) {
-        long address = memAddress(this.data) + (colorPointer * 4 * 4);
-        return memGetFloat(address + (channel * 4));
+    public float[] getColor(int pointer) {
+        float[] array = new float[4];
+        System.arraycopy(this.colorsRGBA, pointer * 4, array, 0, 4);
+        return array;
+    }
+
+    public void setColor(int pointer, float r, float g, float b, float a) {
+        System.arraycopy(new float[]{r, g, b, a}, 0, this.colorsRGBA, pointer * 4, 4);
+        this.needsUpdate[pointer] = true;
+        this.needsUpdateGlobal = true;
+    }
+
+    public void setColor(int pointer, float[] color) {
+        System.arraycopy(color, 0, this.colorsRGBA, pointer * 4, 4);
+        this.needsUpdate[pointer] = true;
+        this.needsUpdateGlobal = true;
     }
 
     public void free(int colorPointer) {
         this.availableObjects.add(colorPointer);
     }
 
-    public void delete() {
-        glDeleteBuffers(this.ubo);
-        memFree(this.data);
+    public void updateUBO() {
+        if (!this.needsUpdateGlobal) {
+            return;
+        }
+        this.needsUpdateGlobal = false;
+
+        glBindBuffer(GL_UNIFORM_BUFFER, this.ubo);
+        for (int i = 0; i < SIZE; i++) {
+            if (!this.needsUpdate[i]) {
+                continue;
+            }
+            glBufferSubData(GL_UNIFORM_BUFFER, (i * 4) * Float.BYTES, getColor(i));
+            this.needsUpdate[i] = false;
+        }
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
     }
+    
 }
