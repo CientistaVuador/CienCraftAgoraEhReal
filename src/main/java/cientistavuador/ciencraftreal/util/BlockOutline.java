@@ -32,13 +32,10 @@ import cientistavuador.ciencraftreal.block.Blocks;
 import cientistavuador.ciencraftreal.camera.Camera;
 import cientistavuador.ciencraftreal.ubo.CameraUBO;
 import cientistavuador.ciencraftreal.world.WorldCamera;
-import java.nio.FloatBuffer;
 import org.joml.Vector3d;
-import org.joml.Vector3f;
 import org.joml.Vector3i;
 import org.joml.Vector3ic;
 import static org.lwjgl.opengl.GL33C.*;
-import org.lwjgl.system.MemoryStack;
 
 /**
  *
