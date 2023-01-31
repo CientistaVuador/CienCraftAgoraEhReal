@@ -28,6 +28,7 @@ package cientistavuador.ciencraftreal.util;
 
 import cientistavuador.ciencraftreal.camera.Camera;
 import cientistavuador.ciencraftreal.ubo.CameraUBO;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import static org.lwjgl.opengl.GL33C.*;
 
 /**
@@ -69,6 +70,8 @@ public class AabRender {
                 outputColor = vec4(1.0, 0.0, 0.0, 1.0);
             }
             """;
+
+    private static final ConcurrentLinkedQueue<Runnable> renderQueue = new ConcurrentLinkedQueue<>();
 
     private static final int SHADER_PROGRAM = ProgramCompiler.compile(VERTEX_SHADER, FRAGMENT_SHADER);
     private static final int CAMERA_UBO_INDEX = glGetUniformBlockIndex(SHADER_PROGRAM, "Camera");
@@ -128,7 +131,7 @@ public class AabRender {
 
         glUseProgram(SHADER_PROGRAM);
         glUniformBlockBinding(SHADER_PROGRAM, CAMERA_UBO_INDEX, ubo.getBindingPoint());
-        
+
         glBindVertexArray(VAO);
     }
 
@@ -153,6 +156,40 @@ public class AabRender {
     public static void endRendering() {
         glBindVertexArray(0);
         glUseProgram(0);
+    }
+
+    public static void queueRender(double x0, double y0, double z0, double x1, double y1, double z1) {
+        int xInt = (int) Math.floor(x0);
+        int yInt = (int) Math.floor(y0);
+        int zInt = (int) Math.ceil(z0);
+        float xDec = (float) (x0 - xInt);
+        float yDec = (float) (y0 - yInt);
+        float zDec = (float) (z0 - zInt);
+        float scaleX = (float) Math.abs(x1 - x0);
+        float scaleY = (float) Math.abs(y1 - y0);
+        float scaleZ = (float) Math.abs(z1 - z0);
+
+        renderQueue.add(() -> {
+            glUniform3i(AAB_POS_INTEGER_INDEX, xInt, yInt, zInt);
+            glUniform3f(AAB_POS_DECIMAL_INDEX, xDec, yDec, zDec);
+            glUniform3f(AAB_SCALE_INDEX, scaleX, scaleY, scaleZ);
+
+            glDrawArrays(GL_LINES, 0, 24);
+        });
+    }
+
+    public static int renderQueue(Camera camera) {
+        int drawCalls = 0;
+        
+        beginRendering(camera);
+        Runnable r;
+        while ((r = renderQueue.poll()) != null) {
+            r.run();
+            drawCalls++;
+        }
+        endRendering();
+        
+        return drawCalls;
     }
 
     private AabRender() {

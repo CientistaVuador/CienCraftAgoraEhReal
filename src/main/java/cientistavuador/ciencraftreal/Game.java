@@ -32,6 +32,7 @@ import cientistavuador.ciencraftreal.camera.FreeCamera;
 import cientistavuador.ciencraftreal.chunk.generation.WorldChunkGeneratorFactory;
 import cientistavuador.ciencraftreal.ubo.CameraUBO;
 import cientistavuador.ciencraftreal.ubo.UBOBindingPoints;
+import cientistavuador.ciencraftreal.util.AabRender;
 import cientistavuador.ciencraftreal.util.BlockOutline;
 import cientistavuador.ciencraftreal.world.WorldCamera;
 import static org.lwjgl.glfw.GLFW.*;
@@ -70,6 +71,8 @@ public class Game {
         
         outline.update();
         outline.render();
+        
+        drawCalls += AabRender.renderQueue(camera);
         
         Main.WINDOW_TITLE += " (Block: "+BlockRegister.getBlock(this.currentBlockId).getName()+")";
         Main.WINDOW_TITLE += " (x:"+(int)Math.floor(camera.getPosition().x())+",y:"+(int)Math.floor(camera.getPosition().y())+",z:"+(int)Math.floor(camera.getPosition().z())+")";
