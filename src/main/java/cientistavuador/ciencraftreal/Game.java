@@ -31,6 +31,7 @@ import cientistavuador.ciencraftreal.block.Blocks;
 import cientistavuador.ciencraftreal.camera.FreeCamera;
 import cientistavuador.ciencraftreal.chunk.generation.WorldChunkGeneratorFactory;
 import cientistavuador.ciencraftreal.player.Player;
+import cientistavuador.ciencraftreal.player.PlayerPhysics;
 import cientistavuador.ciencraftreal.ubo.CameraUBO;
 import cientistavuador.ciencraftreal.ubo.UBOBindingPoints;
 import cientistavuador.ciencraftreal.util.AabRender;
@@ -64,10 +65,8 @@ public class Game {
         camera.setPosition(0, 80, 0);
         camera.setUBO(CameraUBO.create(UBOBindingPoints.PLAYER_CAMERA));
         player.setPosition(0, 100, 0);
-        player.setSpeed(0, -4, 0);
+        camera.setMovementDisabled(true);
     }
-    
-    long here = System.currentTimeMillis() + 5000;
     
     public void loop() {
         camera.updateMovement();
@@ -78,15 +77,11 @@ public class Game {
         outline.update();
         outline.render();
         
-        if (System.currentTimeMillis() >= here) {
-            here = System.currentTimeMillis() + 5000;
-            player.setSpeed((Math.random() - 0.5) * 4, -4, (Math.random() - 0.5) * 4);
-        }
-        
+        player.setYaw(camera.getRotation().y());
         player.update();
         camera.setPosition(
                 player.getPosition().x(),
-                player.getPosition().y() + 1.6,
+                player.getPosition().y() + PlayerPhysics.EYES_HEIGHT,
                 player.getPosition().z()
         );
         
@@ -106,6 +101,7 @@ public class Game {
     }
 
     public void keyCallback(long window, int key, int scancode, int action, int mods) {
+        player.keyCallback(window, key, scancode, action, mods);
         if (key == GLFW_KEY_F && action == GLFW_PRESS) {
             camera.setPosition(
                     Math.random() * 100000000,

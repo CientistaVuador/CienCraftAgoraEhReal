@@ -27,7 +27,7 @@
 package cientistavuador.ciencraftreal.block;
 
 import cientistavuador.ciencraftreal.chunk.Chunk;
-import cientistavuador.ciencraftreal.player.Player;
+import cientistavuador.ciencraftreal.player.PlayerPhysics;
 import org.joml.Intersectiond;
 
 /**
@@ -46,7 +46,7 @@ public interface Block {
     default StateOfMatter getStateOfMatter() {
         return StateOfMatter.SOLID;
     }
-    default boolean checkCollision(int blockX, int blockY, int blockZ, Player player) {
+    default boolean checkCollision(int blockX, int blockY, int blockZ, PlayerPhysics player) {
         double x0 = blockX;
         double y0 = blockY;
         double z0 = blockZ - 1;
