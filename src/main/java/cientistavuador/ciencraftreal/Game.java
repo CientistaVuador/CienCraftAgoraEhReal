@@ -30,6 +30,7 @@ import cientistavuador.ciencraftreal.block.BlockRegister;
 import cientistavuador.ciencraftreal.block.Blocks;
 import cientistavuador.ciencraftreal.camera.FreeCamera;
 import cientistavuador.ciencraftreal.chunk.generation.WorldChunkGeneratorFactory;
+import cientistavuador.ciencraftreal.player.Player;
 import cientistavuador.ciencraftreal.ubo.CameraUBO;
 import cientistavuador.ciencraftreal.ubo.UBOBindingPoints;
 import cientistavuador.ciencraftreal.util.AabRender;
@@ -52,6 +53,7 @@ public class Game {
     private final FreeCamera camera = new FreeCamera();
     private final WorldCamera world = new WorldCamera(camera, 65487321654L, new WorldChunkGeneratorFactory());
     private final BlockOutline outline = new BlockOutline(world, camera);
+    private final Player player = new Player(world);
     private int currentBlockId = Blocks.HAPPY_2023.getId();
     
     private Game() {
@@ -61,7 +63,11 @@ public class Game {
     public void start() {
         camera.setPosition(0, 80, 0);
         camera.setUBO(CameraUBO.create(UBOBindingPoints.PLAYER_CAMERA));
+        player.setPosition(0, 100, 0);
+        player.setSpeed(0, -4, 0);
     }
+    
+    long here = System.currentTimeMillis() + 5000;
     
     public void loop() {
         camera.updateMovement();
@@ -72,10 +78,22 @@ public class Game {
         outline.update();
         outline.render();
         
+        if (System.currentTimeMillis() >= here) {
+            here = System.currentTimeMillis() + 5000;
+            player.setSpeed((Math.random() - 0.5) * 4, -4, (Math.random() - 0.5) * 4);
+        }
+        
+        player.update();
+        camera.setPosition(
+                player.getPosition().x(),
+                player.getPosition().y() + 1.6,
+                player.getPosition().z()
+        );
+        
         drawCalls += AabRender.renderQueue(camera);
         
         Main.WINDOW_TITLE += " (Block: "+BlockRegister.getBlock(this.currentBlockId).getName()+")";
-        Main.WINDOW_TITLE += " (x:"+(int)Math.floor(camera.getPosition().x())+",y:"+(int)Math.floor(camera.getPosition().y())+",z:"+(int)Math.floor(camera.getPosition().z())+")";
+        Main.WINDOW_TITLE += " (x:"+(int)Math.floor(camera.getPosition().x())+",y:"+(int)Math.floor(camera.getPosition().y())+",z:"+(int)Math.ceil(camera.getPosition().z())+")";
         Main.WINDOW_TITLE += " (DrawCalls: "+drawCalls+")";
     }
 

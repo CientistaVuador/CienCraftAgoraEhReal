@@ -85,32 +85,32 @@ public class AabRender {
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
         glBufferData(GL_ARRAY_BUFFER, new float[]{
             //bottom quad
-            0f, 0f, 0f,
-            0f, 0f, -1f,
-            0f, 0f, -1f,
-            1f, 0f, -1f,
-            1f, 0f, -1f,
-            1f, 0f, 0f,
-            1f, 0f, 0f,
-            0f, 0f, 0f,
+            -0.5f, -0.5f, -0.5f,
+            -0.5f, -0.5f, 0.5f,
+            -0.5f, -0.5f, 0.5f,
+            0.5f, -0.5f, 0.5f,
+            0.5f, -0.5f, 0.5f,
+            0.5f, -0.5f, -0.5f,
+            0.5f, -0.5f, -0.5f,
+            -0.5f, -0.5f, -0.5f,
             //top quad
-            0f, 1f, 0f,
-            0f, 1f, -1f,
-            0f, 1f, -1f,
-            1f, 1f, -1f,
-            1f, 1f, -1f,
-            1f, 1f, 0f,
-            1f, 1f, 0f,
-            0f, 1f, 0f,
+            -0.5f, 0.5f, -0.5f,
+            -0.5f, 0.5f, 0.5f,
+            -0.5f, 0.5f, 0.5f,
+            0.5f, 0.5f, 0.5f,
+            0.5f, 0.5f, 0.5f,
+            0.5f, 0.5f, -0.5f,
+            0.5f, 0.5f, -0.5f,
+            -0.5f, 0.5f, -0.5f,
             //connections
-            0f, 0f, 0f,
-            0f, 1f, 0f,
-            0f, 0f, -1f,
-            0f, 1f, -1f,
-            1f, 0f, 0f,
-            1f, 1f, 0f,
-            1f, 0f, -1f,
-            1f, 1f, -1f
+            -0.5f, -0.5f, -0.5f,
+            -0.5f, 0.5f, -0.5f,
+            -0.5f, -0.5f, 0.5f,
+            -0.5f, 0.5f, 0.5f,
+            0.5f, -0.5f, -0.5f,
+            0.5f, 0.5f, -0.5f,
+            0.5f, -0.5f, 0.5f,
+            0.5f, 0.5f, 0.5f
         }, GL_STATIC_DRAW);
 
         VAO = glGenVertexArrays();
@@ -136,15 +136,18 @@ public class AabRender {
     }
 
     public static void render(double x0, double y0, double z0, double x1, double y1, double z1) {
-        int xInt = (int) Math.floor(x0);
-        int yInt = (int) Math.floor(y0);
-        int zInt = (int) Math.ceil(z0);
-        float xDec = (float) (x0 - xInt);
-        float yDec = (float) (y0 - yInt);
-        float zDec = (float) (z0 - zInt);
-        float scaleX = (float) Math.abs(x1 - x0);
-        float scaleY = (float) Math.abs(y1 - y0);
-        float scaleZ = (float) Math.abs(z1 - z0);
+        double centerX = ((x1 - x0) * 0.5) + x0;
+        double centerY = ((y1 - y0) * 0.5) + y0;
+        double centerZ = ((z1 - z0) * 0.5) + z0;
+        int xInt = (int) Math.floor(centerX);
+        int yInt = (int) Math.floor(centerY);
+        int zInt = (int) Math.ceil(centerZ);
+        float xDec = (float) (centerX - xInt);
+        float yDec = (float) (centerY - yInt);
+        float zDec = (float) (centerZ - zInt);
+        float scaleX = (float) (x1 - x0);
+        float scaleY = (float) (y1 - y0);
+        float scaleZ = (float) (z1 - z0);
 
         glUniform3i(AAB_POS_INTEGER_INDEX, xInt, yInt, zInt);
         glUniform3f(AAB_POS_DECIMAL_INDEX, xDec, yDec, zDec);
@@ -159,15 +162,18 @@ public class AabRender {
     }
 
     public static void queueRender(double x0, double y0, double z0, double x1, double y1, double z1) {
-        int xInt = (int) Math.floor(x0);
-        int yInt = (int) Math.floor(y0);
-        int zInt = (int) Math.ceil(z0);
-        float xDec = (float) (x0 - xInt);
-        float yDec = (float) (y0 - yInt);
-        float zDec = (float) (z0 - zInt);
-        float scaleX = (float) Math.abs(x1 - x0);
-        float scaleY = (float) Math.abs(y1 - y0);
-        float scaleZ = (float) Math.abs(z1 - z0);
+        double centerX = ((x1 - x0) * 0.5) + x0;
+        double centerY = ((y1 - y0) * 0.5) + y0;
+        double centerZ = ((z1 - z0) * 0.5) + z0;
+        int xInt = (int) Math.floor(centerX);
+        int yInt = (int) Math.floor(centerY);
+        int zInt = (int) Math.ceil(centerZ);
+        float xDec = (float) (centerX - xInt);
+        float yDec = (float) (centerY - yInt);
+        float zDec = (float) (centerZ - zInt);
+        float scaleX = (float) (x1 - x0);
+        float scaleY = (float) (y1 - y0);
+        float scaleZ = (float) (z1 - z0);
 
         renderQueue.add(() -> {
             glUniform3i(AAB_POS_INTEGER_INDEX, xInt, yInt, zInt);
