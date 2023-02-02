@@ -26,8 +26,10 @@
  */
 package cientistavuador.ciencraftreal;
 
+import cientistavuador.ciencraftreal.block.Block;
 import cientistavuador.ciencraftreal.block.BlockRegister;
 import cientistavuador.ciencraftreal.block.Blocks;
+import cientistavuador.ciencraftreal.block.StateOfMatter;
 import cientistavuador.ciencraftreal.camera.FreeCamera;
 import cientistavuador.ciencraftreal.chunk.generation.WorldChunkGeneratorFactory;
 import cientistavuador.ciencraftreal.player.Player;
@@ -56,7 +58,7 @@ public class Game {
     private final BlockOutline outline = new BlockOutline(world, camera);
     private final Player player = new Player(world);
     private int currentBlockId = Blocks.HAPPY_2023.getId();
-    
+
     private Game() {
 
     }
@@ -65,31 +67,36 @@ public class Game {
         camera.setPosition(0, 80, 0);
         camera.setUBO(CameraUBO.create(UBOBindingPoints.PLAYER_CAMERA));
         player.setPosition(0, 100, 0);
+        
         camera.setMovementDisabled(true);
+        player.setMovementDisabled(false);
     }
-    
+
     public void loop() {
         camera.updateMovement();
-        
+
         world.update();
         int drawCalls = world.render();
-        
+
         outline.update();
         outline.render();
+
+        player.update();
         
         player.setYaw(camera.getRotation().y());
-        player.update();
-        camera.setPosition(
-                player.getPosition().x(),
-                player.getPosition().y() + PlayerPhysics.EYES_HEIGHT,
-                player.getPosition().z()
-        );
-        
+        if (camera.isMovementDisabled()) {
+            camera.setPosition(
+                    player.getPosition().x(),
+                    player.getPosition().y() + PlayerPhysics.EYES_HEIGHT,
+                    player.getPosition().z()
+            );
+        }
+
         drawCalls += AabRender.renderQueue(camera);
-        
-        Main.WINDOW_TITLE += " (Block: "+BlockRegister.getBlock(this.currentBlockId).getName()+")";
-        Main.WINDOW_TITLE += " (x:"+(int)Math.floor(camera.getPosition().x())+",y:"+(int)Math.floor(camera.getPosition().y())+",z:"+(int)Math.ceil(camera.getPosition().z())+")";
-        Main.WINDOW_TITLE += " (DrawCalls: "+drawCalls+")";
+
+        Main.WINDOW_TITLE += " (Block: " + BlockRegister.getBlock(this.currentBlockId).getName() + ")";
+        Main.WINDOW_TITLE += " (x:" + (int) Math.floor(camera.getPosition().x()) + ",y:" + (int) Math.floor(camera.getPosition().y()) + ",z:" + (int) Math.ceil(camera.getPosition().z()) + ")";
+        Main.WINDOW_TITLE += " (DrawCalls: " + drawCalls + ")";
     }
 
     public void mouseCursorMoved(double x, double y) {
@@ -102,6 +109,7 @@ public class Game {
 
     public void keyCallback(long window, int key, int scancode, int action, int mods) {
         player.keyCallback(window, key, scancode, action, mods);
+        
         if (key == GLFW_KEY_F && action == GLFW_PRESS) {
             camera.setPosition(
                     Math.random() * 100000000,
@@ -125,6 +133,15 @@ public class Game {
                 this.currentBlockId = 1;
             }
         }
+        if (key == GLFW_KEY_V && action == GLFW_PRESS) {
+            if (player.isMovementDisabled()) {
+                camera.setMovementDisabled(true);
+                player.setMovementDisabled(false);
+            } else {
+                camera.setMovementDisabled(false);
+                player.setMovementDisabled(true);
+            }
+        }
     }
 
     public void mouseCallback(long window, int button, int action, int mods) {
@@ -137,11 +154,20 @@ public class Game {
             );
         }
         if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS && outline.getBlock() != Blocks.AIR) {
+            int blockX = outline.getSidePos().x();
+            int blockY = outline.getSidePos().y();
+            int blockZ = outline.getSidePos().z();
+            Block block = BlockRegister.getBlock(this.currentBlockId);
+
+            if (StateOfMatter.SOLID.equals(block.getStateOfMatter()) && block.checkCollision(blockX, blockY, blockZ, this.player)) {
+                return;
+            }
+
             this.world.setWorldBlock(
-                    outline.getSidePos().x(),
-                    outline.getSidePos().y(),
-                    outline.getSidePos().z(),
-                    BlockRegister.getBlock(this.currentBlockId)
+                    blockX,
+                    blockY,
+                    blockZ,
+                    block
             );
         }
     }

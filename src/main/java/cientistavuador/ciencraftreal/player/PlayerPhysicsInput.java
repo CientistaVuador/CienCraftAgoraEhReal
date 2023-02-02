@@ -38,14 +38,17 @@ import static org.lwjgl.glfw.GLFW.*;
  */
 public class PlayerPhysicsInput extends PlayerPhysics {
 
-    public static final float JUMP_SPEED = 5f;
+    public static final float JUMP_SPEED = 6f;
+    public static final float SWIM_UP_SPEED = 2.4f;
+    
+    public static final float MOVEMENT_FORCE = 15f;
     public static final float MOVEMENT_SPEED = 5f;
-    public static final float SWIM_UP_SPEED = 1.2f;
 
     private float yaw = 0;
     private boolean running = false;
     private long lastTimeWPressed = 0;
     private boolean crawling = false;
+    private boolean mustJump = false;
 
     public PlayerPhysicsInput(WorldCamera world) {
         super(world);
@@ -69,6 +72,11 @@ public class PlayerPhysicsInput extends PlayerPhysics {
 
     @Override
     public void update() {
+        if (isMovementDisabled()) {
+            super.update();
+            return;
+        }
+        
         Vector3d walkSpeed = new Vector3d();
         float multiplier = 1;
 
@@ -102,27 +110,36 @@ public class PlayerPhysicsInput extends PlayerPhysics {
                 .mul(MOVEMENT_SPEED * multiplier);
         
         if (walkSpeed.isFinite()) {
-            setSpeed(walkSpeed.x(), getSpeed().y(), walkSpeed.z());
-        } else {
-            setSpeed(0, getSpeed().y(), 0);
+            if (Math.abs(getSpeed().x()) < Math.abs(walkSpeed.x())) {
+                addSpeed(walkSpeed.x() * Main.TPF * MOVEMENT_FORCE, 0, 0);
+            }
+            if (Math.abs(getSpeed().z()) < Math.abs(walkSpeed.z())) {
+                addSpeed(0, 0, walkSpeed.z() * Main.TPF * MOVEMENT_FORCE);
+            }
         }
 
+        if (this.mustJump) {
+            addSpeed(0, JUMP_SPEED, 0);
+            this.mustJump = false;
+        }
+        
+        if (isOnLiquid() && glfwGetKey(Main.WINDOW_POINTER, GLFW_KEY_SPACE) == GLFW_PRESS && getSpeed().y() < SWIM_UP_SPEED) {
+            addSpeed(0, SWIM_UP_SPEED * Main.TPF * MOVEMENT_FORCE, 0);
+        }
+        
         boolean liquidStore = isOnLiquid();
+        boolean collision = (getCollisionBlockX() != Blocks.AIR || getCollisionBlockZ() != Blocks.AIR);
         
         super.update();
+        
+        if (liquidStore && !isOnLiquid() && glfwGetKey(Main.WINDOW_POINTER, GLFW_KEY_SPACE) == GLFW_PRESS && collision) {
+            addSpeed(0, JUMP_SPEED, 0);
+        }
     }
 
     public void keyCallback(long window, int key, int scancode, int action, int mods) {
-        if (key == GLFW_KEY_SPACE && isOnLiquid()) {
-            if (action == GLFW_PRESS) {
-                
-            }
-            if (action == GLFW_RELEASE) {
-                
-            }
-        }
         if (key == GLFW_KEY_SPACE && action == GLFW_PRESS && getCollisionBlockY() != Blocks.AIR && !isOnLiquid()) {
-            
+            this.mustJump = true;
         }
         if (key == GLFW_KEY_W) {
             if (action == GLFW_PRESS) {

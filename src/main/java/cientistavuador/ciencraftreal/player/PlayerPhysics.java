@@ -42,12 +42,15 @@ import org.joml.Vector3dc;
 public class PlayerPhysics {
 
     public static final boolean DEBUG = true;
-    public static final float GRAVITY = 9.8f;
-    public static final float GRAVITY_LIQUID_SPEED = 0.5f;
+    public static final float GRAVITY = 14f;
 
     public static final float HEIGHT = 1.65f;
     public static final float EYES_HEIGHT = 1.5f;
     public static final float WIDTH_DEPTH = 0.60f;
+
+    public static final float AIR_RESISTANCE = 2f;
+    public static final float GROUND_RESISTANCE = 15f;
+    public static final float LIQUID_RESISTANCE = 20f;
 
     private final Vector3d position = new Vector3d(0, 0, 0);
     private final Vector3d speed = new Vector3d(0, 0, 0);
@@ -61,6 +64,9 @@ public class PlayerPhysics {
     private Block feetBlock = Blocks.AIR;
 
     private boolean onLiquid = false;
+    private boolean onAir = false;
+    
+    private boolean movementDisabled = false;
 
     public PlayerPhysics(WorldCamera world) {
         this.world = world;
@@ -133,7 +139,43 @@ public class PlayerPhysics {
         return onLiquid;
     }
 
+    public boolean isOnAir() {
+        return onAir;
+    }
+
+    public boolean isMovementDisabled() {
+        return movementDisabled;
+    }
+
+    public void setMovementDisabled(boolean movementDisabled) {
+        this.movementDisabled = movementDisabled;
+    }
+
     public void update() {
+        addSpeed(0, -GRAVITY * Main.TPF, 0);
+
+        if (isOnLiquid()) {
+            addSpeed(
+                    -getSpeed().x() * LIQUID_RESISTANCE * Main.TPF,
+                    -getSpeed().y() * LIQUID_RESISTANCE * Main.TPF,
+                    -getSpeed().z() * LIQUID_RESISTANCE * Main.TPF
+            );
+        } else {
+            if (isOnAir()) {
+                addSpeed(
+                        -getSpeed().x() * AIR_RESISTANCE * Main.TPF,
+                        0,
+                        -getSpeed().z() * AIR_RESISTANCE * Main.TPF
+                );
+            } else {
+                addSpeed(
+                        -getSpeed().x() * GROUND_RESISTANCE * Main.TPF,
+                        0,
+                        -getSpeed().z() * GROUND_RESISTANCE * Main.TPF
+                );
+            }
+        }
+
         if (DEBUG) {
             AabRender.queueRender(
                     this.min.x(),
@@ -145,8 +187,6 @@ public class PlayerPhysics {
             );
         }
 
-        addSpeed(0, -GRAVITY * Main.TPF, 0);
-        
         this.feetBlock = this.world.getWorldBlock(
                 (int) Math.floor(this.position.x()),
                 (int) Math.floor(this.position.y()),
@@ -157,6 +197,7 @@ public class PlayerPhysics {
         this.collisionBlockY = Blocks.AIR;
         this.collisionBlockZ = Blocks.AIR;
         this.onLiquid = false;
+        this.onAir = false;
 
         double xSpeed = getSpeed().x();
         double ySpeed = getSpeed().y();
@@ -176,11 +217,11 @@ public class PlayerPhysics {
                     if (block == Blocks.AIR || StateOfMatter.GAS.equals(block.getStateOfMatter())) {
                         continue;
                     }
-                    
+
                     if (StateOfMatter.LIQUID.equals(block.getStateOfMatter()) && this.onLiquid) {
                         continue;
                     }
-                    
+
                     if (xSpeed == 0.0 && ySpeed == 0.0 && zSpeed == 0.0 && !StateOfMatter.LIQUID.equals(block.getStateOfMatter())) {
                         continue;
                     }
@@ -195,14 +236,14 @@ public class PlayerPhysics {
                                 blockZ
                         );
                     }
-                    
+
                     if (StateOfMatter.LIQUID.equals(block.getStateOfMatter())) {
                         if (block.checkCollision(blockX, blockY, blockZ, this)) {
                             this.onLiquid = true;
                         }
                         continue;
                     }
-                    
+
                     boolean changed = false;
                     if (xSpeed != 0.0) {
                         setPosition(xStore + (xSpeed * Main.TPF), yStore, zStore);
@@ -236,11 +277,14 @@ public class PlayerPhysics {
                 }
             }
         }
+        if (this.collisionBlockX == Blocks.AIR && this.collisionBlockY == Blocks.AIR && this.collisionBlockZ == Blocks.AIR) {
+            this.onAir = true;
+        }
         setSpeed(xSpeed, ySpeed, zSpeed);
         setPosition(
-            xStore + (xSpeed * Main.TPF),
-            yStore + (ySpeed * Main.TPF),
-            zStore + (zSpeed * Main.TPF)
+                xStore + (xSpeed * Main.TPF),
+                yStore + (ySpeed * Main.TPF),
+                zStore + (zSpeed * Main.TPF)
         );
     }
 

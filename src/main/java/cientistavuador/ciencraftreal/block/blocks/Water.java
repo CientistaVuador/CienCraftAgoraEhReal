@@ -46,7 +46,7 @@ public class Water implements Block, SolidBlockCheck {
     
     static {
         WATER_MATERIAL = BlockMaterial.create();
-        WATER_MATERIAL.setColor(1f, 1f, 1f, 0.65f);
+        WATER_MATERIAL.setColor(1f, 1f, 1f, 0.5f);
         WATER_MATERIAL.setFrameTime(0.75f);
         WATER_MATERIAL.setFrameStart(BlockTextures.WATER_TOP_START);
         WATER_MATERIAL.setFrameEnd(BlockTextures.WATER_TOP_END);
@@ -56,7 +56,7 @@ public class Water implements Block, SolidBlockCheck {
     
     static {
         WATER_MATERIAL_SIDE = BlockMaterial.create();
-        WATER_MATERIAL_SIDE.setColor(1f, 1f, 1f, 0.65f);
+        WATER_MATERIAL_SIDE.setColor(1f, 1f, 1f, 0.5f);
         WATER_MATERIAL_SIDE.setFrameTime(0.4f);
         WATER_MATERIAL_SIDE.setFrameStart(BlockTextures.WATER_SIDE_START);
         WATER_MATERIAL_SIDE.setFrameEnd(BlockTextures.WATER_SIDE_END);
