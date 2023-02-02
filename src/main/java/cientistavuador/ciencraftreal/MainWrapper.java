@@ -34,6 +34,7 @@ import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+import static org.lwjgl.glfw.GLFW.glfwTerminate;
 
 /**
  *
@@ -56,6 +57,9 @@ public class MainWrapper {
         try {
             Main.main(args);
         } catch (Throwable e) {
+            //GLPool.destroy();
+            glfwTerminate();
+            
             ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
             PrintStream messageStream = new PrintStream(byteArray);
             e.printStackTrace(messageStream);

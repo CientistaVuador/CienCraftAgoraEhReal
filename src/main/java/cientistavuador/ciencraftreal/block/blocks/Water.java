@@ -32,6 +32,7 @@ import cientistavuador.ciencraftreal.block.BlockSide;
 import cientistavuador.ciencraftreal.block.BlockTextures;
 import cientistavuador.ciencraftreal.block.BlockTransparency;
 import cientistavuador.ciencraftreal.block.SolidBlockCheck;
+import cientistavuador.ciencraftreal.block.StateOfMatter;
 import cientistavuador.ciencraftreal.block.material.BlockMaterial;
 import cientistavuador.ciencraftreal.chunk.Chunk;
 
@@ -70,6 +71,11 @@ public class Water implements Block, SolidBlockCheck {
         
     }
 
+    @Override
+    public StateOfMatter getStateOfMatter() {
+        return StateOfMatter.LIQUID;
+    }
+    
     @Override
     public boolean isSolidBlock(Block block) {
         if (block == this) {

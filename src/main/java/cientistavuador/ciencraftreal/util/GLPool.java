@@ -30,6 +30,8 @@ import cientistavuador.ciencraftreal.Main;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import static org.lwjgl.glfw.GLFW.*;
 import org.lwjgl.opengl.GL;
 import static org.lwjgl.opengl.GL33C.*;
@@ -42,7 +44,7 @@ import static org.lwjgl.system.MemoryUtil.NULL;
 public class GLPool {
 
     public static final boolean OUTPUT_DEBUG = true;
-
+    private static final Thread[] threads;
     private static final LinkedBlockingQueue<Runnable> tasks = new LinkedBlockingQueue<>();
 
     static {
@@ -53,7 +55,7 @@ public class GLPool {
         }
 
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-        Thread[] threads = new Thread[amountOfThreads];
+        threads = new Thread[amountOfThreads];
         for (int i = 0; i < amountOfThreads; i++) {
             long window = glfwCreateWindow(1, 1, "GL-Pool-Window" + i, NULL, Main.WINDOW_POINTER);
 
@@ -113,6 +115,19 @@ public class GLPool {
         });
     }
 
+    public static void destroy() {
+        for (Thread t:threads) {
+            t.interrupt();
+        }
+        for (Thread t:threads) {
+            try {
+                t.join();
+            } catch (InterruptedException ex) {
+                Logger.getLogger(GLPool.class.getName()).log(Level.WARNING, null, ex);
+            }
+        }
+    }
+    
     private GLPool() {
 
     }

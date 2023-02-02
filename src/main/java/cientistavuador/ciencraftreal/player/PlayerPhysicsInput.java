@@ -27,6 +27,7 @@
 package cientistavuador.ciencraftreal.player;
 
 import cientistavuador.ciencraftreal.Main;
+import cientistavuador.ciencraftreal.block.Blocks;
 import cientistavuador.ciencraftreal.world.WorldCamera;
 import org.joml.Vector3d;
 import static org.lwjgl.glfw.GLFW.*;
@@ -39,9 +40,12 @@ public class PlayerPhysicsInput extends PlayerPhysics {
 
     public static final float JUMP_SPEED = 5f;
     public static final float MOVEMENT_SPEED = 5f;
+    public static final float SWIM_UP_SPEED = 1.2f;
 
-    private float jumpSpeed = 0;
     private float yaw = 0;
+    private boolean running = false;
+    private long lastTimeWPressed = 0;
+    private boolean crawling = false;
 
     public PlayerPhysicsInput(WorldCamera world) {
         super(world);
@@ -55,56 +59,90 @@ public class PlayerPhysicsInput extends PlayerPhysics {
         this.yaw = yaw;
     }
 
-    public float getJumpSpeed() {
-        return jumpSpeed;
+    public boolean isRunning() {
+        return running;
     }
-    
+
+    public boolean isCrawling() {
+        return crawling;
+    }
+
     @Override
     public void update() {
-        Vector3d walkTranslate = new Vector3d();
+        Vector3d walkSpeed = new Vector3d();
         float multiplier = 1;
 
         if (glfwGetKey(Main.WINDOW_POINTER, GLFW_KEY_W) == GLFW_PRESS) {
-            walkTranslate.add(1, 0, 0);
+            walkSpeed.add(1, 0, 0);
         }
 
         if (glfwGetKey(Main.WINDOW_POINTER, GLFW_KEY_S) == GLFW_PRESS) {
-            walkTranslate.add(-1, 0, 0);
+            walkSpeed.add(-1, 0, 0);
         }
 
         if (glfwGetKey(Main.WINDOW_POINTER, GLFW_KEY_A) == GLFW_PRESS) {
-            walkTranslate.add(0, 0, -1);
+            walkSpeed.add(0, 0, -1);
         }
 
         if (glfwGetKey(Main.WINDOW_POINTER, GLFW_KEY_D) == GLFW_PRESS) {
-            walkTranslate.add(0, 0, 1);
+            walkSpeed.add(0, 0, 1);
         }
 
-        if (glfwGetKey(Main.WINDOW_POINTER, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+        if (this.running) {
             multiplier = 2;
         }
-        
-        walkTranslate
+
+        if (this.crawling) {
+            multiplier = 0.2f;
+        }
+
+        walkSpeed
                 .normalize()
                 .rotateY((float) Math.toRadians(-getYaw()))
-                .mul(MOVEMENT_SPEED * Main.TPF * multiplier);
+                .mul(MOVEMENT_SPEED * multiplier);
         
-        if (walkTranslate.isFinite()) {
-            addTranslation(walkTranslate);
+        if (walkSpeed.isFinite()) {
+            setSpeed(walkSpeed.x(), getSpeed().y(), walkSpeed.z());
+        } else {
+            setSpeed(0, getSpeed().y(), 0);
         }
-        
-        addTranslation(0, this.jumpSpeed * Main.TPF, 0);
+
+        boolean liquidStore = isOnLiquid();
         
         super.update();
-        
-        if (getGravitySpeed() == 0f) {
-            this.jumpSpeed = 0f;
-        }
     }
 
     public void keyCallback(long window, int key, int scancode, int action, int mods) {
-        if (key == GLFW_KEY_SPACE && action == GLFW_PRESS && getGravitySpeed() == 0f) {
-            this.jumpSpeed += JUMP_SPEED;
+        if (key == GLFW_KEY_SPACE && isOnLiquid()) {
+            if (action == GLFW_PRESS) {
+                
+            }
+            if (action == GLFW_RELEASE) {
+                
+            }
+        }
+        if (key == GLFW_KEY_SPACE && action == GLFW_PRESS && getCollisionBlockY() != Blocks.AIR && !isOnLiquid()) {
+            
+        }
+        if (key == GLFW_KEY_W) {
+            if (action == GLFW_PRESS) {
+                if ((System.currentTimeMillis() - this.lastTimeWPressed) <= 250) {
+                    this.running = true;
+                }
+                this.lastTimeWPressed = System.currentTimeMillis();
+            }
+            if (action == GLFW_RELEASE) {
+                this.running = false;
+            }
+        }
+        if (key == GLFW_KEY_LEFT_ALT) {
+            if (action == GLFW_PRESS) {
+                this.running = false;
+                this.crawling = true;
+            }
+            if (action == GLFW_RELEASE) {
+                this.crawling = false;
+            }
         }
     }
 

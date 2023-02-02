@@ -43,19 +43,25 @@ public class PlayerPhysics {
 
     public static final boolean DEBUG = true;
     public static final float GRAVITY = 9.8f;
+    public static final float GRAVITY_LIQUID_SPEED = 0.5f;
 
     public static final float HEIGHT = 1.65f;
     public static final float EYES_HEIGHT = 1.5f;
     public static final float WIDTH_DEPTH = 0.60f;
 
     private final Vector3d position = new Vector3d(0, 0, 0);
-    private final Vector3d translation = new Vector3d(0, 0, 0);
+    private final Vector3d speed = new Vector3d(0, 0, 0);
     private final Vector3d min = new Vector3d(-(WIDTH_DEPTH / 2f), 0, -(WIDTH_DEPTH / 2f));
     private final Vector3d max = new Vector3d((WIDTH_DEPTH / 2f), HEIGHT, (WIDTH_DEPTH / 2f));
     private final WorldCamera world;
 
-    private float gravitySpeed = 0f;
-    
+    private Block collisionBlockX = Blocks.AIR;
+    private Block collisionBlockY = Blocks.AIR;
+    private Block collisionBlockZ = Blocks.AIR;
+    private Block feetBlock = Blocks.AIR;
+
+    private boolean onLiquid = false;
+
     public PlayerPhysics(WorldCamera world) {
         this.world = world;
     }
@@ -76,8 +82,8 @@ public class PlayerPhysics {
         return position;
     }
 
-    public Vector3dc getTranslation() {
-        return translation;
+    public Vector3dc getSpeed() {
+        return speed;
     }
 
     public void setPosition(Vector3dc pos) {
@@ -91,24 +97,40 @@ public class PlayerPhysics {
         this.position.set(x, y, z);
     }
 
-    public void setTranslation(Vector3dc translation) {
-        setTranslation(translation.x(), translation.y(), translation.z());
+    public void setSpeed(Vector3dc speed) {
+        this.speed.set(speed);
     }
 
-    public void setTranslation(double x, double y, double z) {
-        this.translation.set(x, y, z);
-    }
-    
-    public void addTranslation(Vector3dc translation) {
-        this.translation.add(translation);
-    }
-    
-    public void addTranslation(double x, double y, double z) {
-        this.translation.add(x, y, z);
+    public void setSpeed(double x, double y, double z) {
+        this.speed.set(x, y, z);
     }
 
-    public float getGravitySpeed() {
-        return gravitySpeed;
+    public void addSpeed(Vector3dc speed) {
+        this.speed.add(speed);
+    }
+
+    public void addSpeed(double x, double y, double z) {
+        this.speed.add(x, y, z);
+    }
+
+    public Block getCollisionBlockX() {
+        return collisionBlockX;
+    }
+
+    public Block getCollisionBlockY() {
+        return collisionBlockY;
+    }
+
+    public Block getCollisionBlockZ() {
+        return collisionBlockZ;
+    }
+
+    public Block getFeetBlock() {
+        return feetBlock;
+    }
+
+    public boolean isOnLiquid() {
+        return onLiquid;
     }
 
     public void update() {
@@ -122,79 +144,103 @@ public class PlayerPhysics {
                     this.max.z()
             );
         }
-        this.gravitySpeed += -GRAVITY * Main.TPF;
-        this.translation.set(
-                this.translation.x(),
-                this.translation.y() + (this.gravitySpeed * Main.TPF),
-                this.translation.z()
+
+        addSpeed(0, -GRAVITY * Main.TPF, 0);
+        
+        this.feetBlock = this.world.getWorldBlock(
+                (int) Math.floor(this.position.x()),
+                (int) Math.floor(this.position.y()),
+                (int) Math.ceil(this.position.z())
         );
-        double xTranslation = this.translation.x();
-        double yTranslation = this.translation.y();
-        double zTranslation = this.translation.z();
+
+        this.collisionBlockX = Blocks.AIR;
+        this.collisionBlockY = Blocks.AIR;
+        this.collisionBlockZ = Blocks.AIR;
+        this.onLiquid = false;
+
+        double xSpeed = getSpeed().x();
+        double ySpeed = getSpeed().y();
+        double zSpeed = getSpeed().z();
         double xStore = this.position.x();
         double yStore = this.position.y();
         double zStore = this.position.z();
         for (int x = -1; x <= 1; x++) {
             for (int y = -1; y <= 2; y++) {
                 for (int z = -1; z <= 1; z++) {
-                    if (xTranslation == 0.0 && yTranslation == 0.0 && zTranslation == 0.0) {
-                        break;
-                    }
-                    
                     int blockX = (int) (x + Math.floor(this.position.x()));
                     int blockY = (int) (y + Math.floor(this.position.y()));
                     int blockZ = (int) (z + Math.ceil(this.position.z()));
 
                     Block block = this.world.getWorldBlock(blockX, blockY, blockZ);
 
-                    if (block != Blocks.AIR && !StateOfMatter.GAS.equals(block.getStateOfMatter())) {
-                        if (DEBUG) {
-                            AabRender.queueRender(
-                                    blockX,
-                                    blockY,
-                                    blockZ - 1,
-                                    blockX + 1,
-                                    blockY + 1,
-                                    blockZ
-                            );
-                        }
-                        
-                        boolean changed = false;
-                        if (xTranslation != 0.0) {
-                            setPosition(xStore + xTranslation, yStore, zStore);
-                            if (block.checkCollision(blockX, blockY, blockZ, this)) {
-                                xTranslation = 0.0;
-                            }
-                            changed = true;
-                        }
-                        if (yTranslation != 0.0) {
-                            setPosition(xStore, yStore + yTranslation, zStore);
-                            if (block.checkCollision(blockX, blockY, blockZ, this)) {
-                                yTranslation = 0.0;
-                                this.gravitySpeed = 0f;
-                            }
-                            changed = true;
-                        }
-                        if (zTranslation != 0.0) {
-                            setPosition(xStore, yStore, zStore + zTranslation);
-                            if (block.checkCollision(blockX, blockY, blockZ, this)) {
-                                zTranslation = 0.0;
-                            }
-                            changed = true;
-                        }
-                        
-                        if (changed) {
-                            setPosition(xStore, yStore, zStore);
-                        }
+                    if (block == Blocks.AIR || StateOfMatter.GAS.equals(block.getStateOfMatter())) {
+                        continue;
                     }
+                    
+                    if (StateOfMatter.LIQUID.equals(block.getStateOfMatter()) && this.onLiquid) {
+                        continue;
+                    }
+                    
+                    if (xSpeed == 0.0 && ySpeed == 0.0 && zSpeed == 0.0 && !StateOfMatter.LIQUID.equals(block.getStateOfMatter())) {
+                        continue;
+                    }
+
+                    if (DEBUG) {
+                        AabRender.queueRender(
+                                blockX,
+                                blockY,
+                                blockZ - 1,
+                                blockX + 1,
+                                blockY + 1,
+                                blockZ
+                        );
+                    }
+                    
+                    if (StateOfMatter.LIQUID.equals(block.getStateOfMatter())) {
+                        if (block.checkCollision(blockX, blockY, blockZ, this)) {
+                            this.onLiquid = true;
+                        }
+                        continue;
+                    }
+                    
+                    boolean changed = false;
+                    if (xSpeed != 0.0) {
+                        setPosition(xStore + (xSpeed * Main.TPF), yStore, zStore);
+                        if (block.checkCollision(blockX, blockY, blockZ, this)) {
+                            xSpeed = 0.0;
+                            this.collisionBlockX = block;
+                        }
+                        changed = true;
+                    }
+                    if (ySpeed != 0.0) {
+                        setPosition(xStore, yStore + (ySpeed * Main.TPF), zStore);
+                        if (block.checkCollision(blockX, blockY, blockZ, this)) {
+                            ySpeed = 0.0;
+                            this.collisionBlockY = block;
+                        }
+                        changed = true;
+                    }
+                    if (zSpeed != 0.0) {
+                        setPosition(xStore, yStore, zStore + (zSpeed * Main.TPF));
+                        if (block.checkCollision(blockX, blockY, blockZ, this)) {
+                            zSpeed = 0.0;
+                            this.collisionBlockZ = block;
+                        }
+                        changed = true;
+                    }
+
+                    if (changed) {
+                        setPosition(xStore, yStore, zStore);
+                    }
+
                 }
             }
         }
-        this.translation.set(0.0, 0.0, 0.0);
+        setSpeed(xSpeed, ySpeed, zSpeed);
         setPosition(
-                xStore + xTranslation,
-                yStore + yTranslation,
-                zStore + zTranslation
+            xStore + (xSpeed * Main.TPF),
+            yStore + (ySpeed * Main.TPF),
+            zStore + (zSpeed * Main.TPF)
         );
     }
 
