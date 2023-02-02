@@ -51,6 +51,13 @@ public class FreeCamera extends PerspectiveCamera {
     //Last mouse position
     private double lastX = 0;
     private double lastY = 0;
+
+    //Movement control
+    private boolean movementDisabled = false;
+    
+    public FreeCamera() {
+        
+    }
     
     //movimentation magic
     public void updateMovement() {
@@ -61,6 +68,10 @@ public class FreeCamera extends PerspectiveCamera {
             glfwSetInputMode(Main.WINDOW_POINTER, GLFW_CURSOR,
                         this.captureMouse ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
             System.out.println("Free Camera capture state: " + this.captureMouse);
+        }
+        
+        if (isMovementDisabled()) {
+            return;
         }
         
         int directionX = 0;
@@ -168,4 +179,13 @@ public class FreeCamera extends PerspectiveCamera {
     public float getSpeed() {
         return speed;
     }
+
+    public boolean isMovementDisabled() {
+        return movementDisabled;
+    }
+
+    public void setMovementDisabled(boolean movementDisabled) {
+        this.movementDisabled = movementDisabled;
+    }
+    
 }

@@ -26,11 +26,10 @@
  */
 package cientistavuador.ciencraftreal.ubo;
 
-import cientistavuador.ciencraftreal.ubo.UBOBindingPoints;
-import java.nio.IntBuffer;
+import cientistavuador.ciencraftreal.Main;
+import cientistavuador.ciencraftreal.util.ObjectCleaner;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import static org.lwjgl.opengl.GL33C.*;
-import static org.lwjgl.system.MemoryUtil.*;
 
 /**
  *
@@ -38,30 +37,44 @@ import static org.lwjgl.system.MemoryUtil.*;
  */
 public class MaterialUBO {
     
-    public static final MaterialUBO DEFAULT = new MaterialUBO(UBOBindingPoints.BLOCK_MATERIALS);
+    public static final MaterialUBO DEFAULT = create(UBOBindingPoints.BLOCK_MATERIALS);
     public static final int SIZE = 1024;
     public static final int NULL = -1;
 
-    private final ConcurrentLinkedQueue<Integer> availableObjects = new ConcurrentLinkedQueue<>();
-    private final ConcurrentLinkedQueue<Runnable> updateTasks = new ConcurrentLinkedQueue<>();
+    public static MaterialUBO create(int bindingPoint) {
+        int ubo = glGenBuffers();
+        MaterialUBO materialUbo = new MaterialUBO(bindingPoint, ubo);
+        ObjectCleaner.get().register(materialUbo, () -> {
+            Main.MAIN_TASKS.add(() -> {
+                glDeleteBuffers(ubo);
+            });
+        });
+        return materialUbo;
+    }
+    
     private final int ubo;
-    private final IntBuffer data;
     private final int bindingPoint;
     
-    private MaterialUBO(int bindingPoint) {
-        this.data = memCallocInt(SIZE * 4);
+    private final int[] colorPointer = new int[SIZE];
+    private final float[] frameTime = new float[SIZE];
+    private final int[] frameStart = new int[SIZE];
+    private final int[] frameEnd = new int[SIZE];
+    
+    private final boolean[] needsUpdate = new boolean[SIZE];
+    private boolean needsUpdateGlobal = false;
+    
+    private final ConcurrentLinkedQueue<Integer> availableObjects = new ConcurrentLinkedQueue<>();
+    
+    private MaterialUBO(int bindingPoint, int ubo) {
         this.bindingPoint = bindingPoint;
-        try {
-            this.ubo = glGenBuffers();
-            glBindBuffer(GL_UNIFORM_BUFFER, this.ubo);
-            glBufferData(GL_UNIFORM_BUFFER, data, GL_DYNAMIC_DRAW);
-            glBindBuffer(GL_UNIFORM_BUFFER, 0);
-            
-            glBindBufferBase(GL_UNIFORM_BUFFER, bindingPoint, this.ubo);
-        } catch (Throwable e) {
-            memFree(this.data);
-            throw e;
-        }
+        this.ubo = ubo;
+
+        glBindBuffer(GL_UNIFORM_BUFFER, this.ubo);
+        glBufferData(GL_UNIFORM_BUFFER, SIZE * 4, GL_DYNAMIC_DRAW);
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+        glBindBufferBase(GL_UNIFORM_BUFFER, bindingPoint, this.ubo);
+
         for (int i = 0; i < SIZE; i++) {
             availableObjects.add(i);
         }
@@ -71,83 +84,81 @@ public class MaterialUBO {
         return bindingPoint;
     }
 
-    public void updateUBO() {
-        if (!updateTasks.isEmpty()) {
-            glBindBuffer(GL_UNIFORM_BUFFER, this.ubo);
-            Runnable r;
-            while ((r = this.updateTasks.poll()) != null) {
-                r.run();
-            }
-            glBindBuffer(GL_UNIFORM_BUFFER, 0);
-        }
-    }
-    
     public int getUBO() {
         return ubo;
     }
-    
+
     public int allocate() {
         Integer obj = availableObjects.poll();
         if (obj == null) {
-            throw new IllegalStateException("Out of Color Objects!");
+            throw new IllegalStateException("Out of Material Objects!");
         }
         return obj;
     }
     
-    private void setValue(int materialPointer, int index, int value) {
-        long offset = (materialPointer * 4 * 4) + (index * 4);
-        long address = memAddress(this.data) + offset;
-        memPutInt(address, value);
-        updateTasks.add(() -> {
-            nglBufferSubData(GL_UNIFORM_BUFFER, offset, 4, address);
-        });
+    public void setColorPointer(int pointer, int colorPointer) {
+        this.colorPointer[pointer] = colorPointer;
+        this.needsUpdate[pointer] = true;
+        this.needsUpdateGlobal = true;
     }
     
-    private int getValue(int materialPointer, int index) {
-        long offset = (materialPointer * 4 * 4) + (index * 4);
-        long address = memAddress(this.data) + offset;
-        return memGetInt(address);
+    public void setFrameTime(int pointer, float frameTime) {
+        this.frameTime[pointer] = frameTime;
+        this.needsUpdate[pointer] = true;
+        this.needsUpdateGlobal = true;
     }
     
-    public void setColorPointer(int materialPointer, int colorPointer) {
-        setValue(materialPointer, 0, colorPointer);
+    public void setFrameStart(int pointer, int frameStart) {
+        this.frameStart[pointer] = frameStart;
+        this.needsUpdate[pointer] = true;
+        this.needsUpdateGlobal = true;
     }
     
-    public void setFrameTime(int materialPointer, float time) {
-        setValue(materialPointer, 1, Float.floatToRawIntBits(time));
+    public void setFrameEnd(int pointer, int frameEnd) {
+        this.frameEnd[pointer] = frameEnd;
+        this.needsUpdate[pointer] = true;
+        this.needsUpdateGlobal = true;
     }
     
-    public void setFrameStart(int materialPointer, int frameStart) {
-        setValue(materialPointer, 2, frameStart);
+    public int getColorPointer(int pointer) {
+        return this.colorPointer[pointer];
     }
     
-    public void setFrameEnd(int materialPointer, int frameEnd) {
-        setValue(materialPointer, 3, frameEnd);
+    public float getFrameTime(int pointer) {
+        return this.frameTime[pointer];
     }
     
-    public int getColorPointer(int materialPointer) {
-        return getValue(materialPointer, 0);
+    public int getFrameStart(int pointer) {
+        return this.frameStart[pointer];
     }
     
-    public float getFrameTime(int materialPointer) {
-        return Float.intBitsToFloat(getValue(materialPointer, 1));
+    public int getFrameEnd(int pointer) {
+        return this.frameEnd[pointer];
     }
     
-    public int getFrameStart(int materialPointer) {
-        return getValue(materialPointer, 2);
+    public void free(int pointer) {
+        this.availableObjects.add(pointer);
     }
     
-    public int getFrameEnd(int materialPointer) {
-        return getValue(materialPointer, 3);
+    public void updateUBO() {
+        if (!this.needsUpdateGlobal) {
+            return;
+        }
+        this.needsUpdateGlobal = false;
+        
+        glBindBuffer(GL_UNIFORM_BUFFER, this.ubo);
+        for (int i = 0; i < SIZE; i++) {
+            if (!this.needsUpdate[i]) {
+                continue;
+            }
+            glBufferSubData(GL_UNIFORM_BUFFER, (i * 4) * Integer.BYTES, new int[] {
+                this.colorPointer[i],
+                Float.floatToRawIntBits(this.frameTime[i]),
+                this.frameStart[i],
+                this.frameEnd[i]
+            });
+            this.needsUpdate[i] = false;
+        }
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
     }
-    
-    public void free(int materialPointer) {
-        this.availableObjects.add(materialPointer);
-    }
-
-    public void delete() {
-        glDeleteBuffers(this.ubo);
-        memFree(this.data);
-    }
-    
 }

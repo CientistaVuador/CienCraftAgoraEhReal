@@ -32,6 +32,7 @@ import cientistavuador.ciencraftreal.block.BlockSide;
 import cientistavuador.ciencraftreal.block.BlockTextures;
 import cientistavuador.ciencraftreal.block.BlockTransparency;
 import cientistavuador.ciencraftreal.block.SolidBlockCheck;
+import cientistavuador.ciencraftreal.block.StateOfMatter;
 import cientistavuador.ciencraftreal.block.material.BlockMaterial;
 import cientistavuador.ciencraftreal.chunk.Chunk;
 
@@ -45,7 +46,7 @@ public class Water implements Block, SolidBlockCheck {
     
     static {
         WATER_MATERIAL = BlockMaterial.create();
-        WATER_MATERIAL.setColor(1f, 1f, 1f, 0.65f);
+        WATER_MATERIAL.setColor(1f, 1f, 1f, 0.5f);
         WATER_MATERIAL.setFrameTime(0.75f);
         WATER_MATERIAL.setFrameStart(BlockTextures.WATER_TOP_START);
         WATER_MATERIAL.setFrameEnd(BlockTextures.WATER_TOP_END);
@@ -55,7 +56,7 @@ public class Water implements Block, SolidBlockCheck {
     
     static {
         WATER_MATERIAL_SIDE = BlockMaterial.create();
-        WATER_MATERIAL_SIDE.setColor(1f, 1f, 1f, 0.65f);
+        WATER_MATERIAL_SIDE.setColor(1f, 1f, 1f, 0.5f);
         WATER_MATERIAL_SIDE.setFrameTime(0.4f);
         WATER_MATERIAL_SIDE.setFrameStart(BlockTextures.WATER_SIDE_START);
         WATER_MATERIAL_SIDE.setFrameEnd(BlockTextures.WATER_SIDE_END);
@@ -70,6 +71,11 @@ public class Water implements Block, SolidBlockCheck {
         
     }
 
+    @Override
+    public StateOfMatter getStateOfMatter() {
+        return StateOfMatter.LIQUID;
+    }
+    
     @Override
     public boolean isSolidBlock(Block block) {
         if (block == this) {

@@ -27,6 +27,8 @@
 package cientistavuador.ciencraftreal.block;
 
 import cientistavuador.ciencraftreal.chunk.Chunk;
+import cientistavuador.ciencraftreal.player.PlayerPhysics;
+import org.joml.Intersectiond;
 
 /**
  *
@@ -41,4 +43,29 @@ public interface Block {
     void setId(int id);
     float[] generateVertices(Chunk chunk, int chunkBlockX, int chunkBlockY, int chunkBlockZ);
     BlockTransparency getBlockTransparency();
+    default StateOfMatter getStateOfMatter() {
+        return StateOfMatter.SOLID;
+    }
+    default boolean checkCollision(int blockX, int blockY, int blockZ, PlayerPhysics player) {
+        double x0 = blockX;
+        double y0 = blockY;
+        double z0 = blockZ - 1;
+        double x1 = blockX + 1;
+        double y1 = blockY + 1;
+        double z1 = blockZ;
+        return Intersectiond.testAabAab(
+                x0,
+                y0,
+                z0,
+                x1,
+                y1,
+                z1,
+                player.getMin().x(),
+                player.getMin().y(),
+                player.getMin().z(),
+                player.getMax().x(),
+                player.getMax().y(),
+                player.getMax().z()
+        );
+    }
 }
