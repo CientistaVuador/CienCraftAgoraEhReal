@@ -21,6 +21,8 @@
                 <directory>${basedir}/src/main/java</directory>
                 <includes>
                     <include>**/*.png</include>
+                    <include>**/*.txt</include>
+                    <include>**/*.ogg</include>
                 </includes>
             </resource>
         </resources>

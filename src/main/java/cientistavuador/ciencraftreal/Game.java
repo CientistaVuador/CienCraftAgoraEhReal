@@ -34,6 +34,8 @@ import cientistavuador.ciencraftreal.camera.FreeCamera;
 import cientistavuador.ciencraftreal.chunk.generation.WorldChunkGeneratorFactory;
 import cientistavuador.ciencraftreal.player.Player;
 import cientistavuador.ciencraftreal.player.PlayerPhysics;
+import cientistavuador.ciencraftreal.resources.audio.AudioResources;
+import cientistavuador.ciencraftreal.resources.audio.NativeAudio;
 import cientistavuador.ciencraftreal.ubo.CameraUBO;
 import cientistavuador.ciencraftreal.ubo.UBOBindingPoints;
 import cientistavuador.ciencraftreal.util.AabRender;
@@ -70,6 +72,11 @@ public class Game {
         
         camera.setMovementDisabled(true);
         player.setMovementDisabled(false);
+        
+        NativeAudio audio = AudioResources.load("blob.ogg");
+        System.out.println(audio.getChannels());
+        System.out.println(audio.getSampleRate());
+        System.out.println(audio.getData().limit());
     }
 
     public void loop() {
