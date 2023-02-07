@@ -24,56 +24,47 @@
  *
  * For more information, please refer to <https://unlicense.org>
  */
-package cientistavuador.ciencraftreal.resources.audio;
+package cientistavuador.ciencraftreal.audio;
 
-import java.nio.ShortBuffer;
-import org.lwjgl.system.MemoryUtil;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+import org.lwjgl.openal.AL;
+import org.lwjgl.openal.ALC;
+import static org.lwjgl.openal.ALC11.*;
+import org.lwjgl.openal.ALCCapabilities;
+import static org.lwjgl.system.MemoryUtil.NULL;
 
 /**
- * must be manually freed
+ *
  * @author Cien
  */
-public class NativeAudio {
+public class AudioSystem {
     
-    private boolean freed = false;
-    private final ShortBuffer data;
-    private final int channels;
-    private final int sampleRate;
-    private final float duration;
+    public static final boolean DEBUG_OUTPUT = true;
     
-    protected NativeAudio(ShortBuffer data, int channels, int sampleRate) {
-        this.data = data;
-        this.channels = channels;
-        this.sampleRate = sampleRate;
-        this.duration = (data.capacity() / ((float)channels)) / sampleRate;
-    }
+    static {
+        long device = alcOpenDevice((ByteBuffer) null);
+        if (device == NULL) {
+            throw new RuntimeException("No Audio Device Found");
+        }
+        ALCCapabilities deviceCaps = ALC.createCapabilities(device);
 
-    public ShortBuffer getData() {
-        throwExceptionIfFreed();
-        return data;
-    }
-
-    public int getChannels() {
-        return channels;
-    }
-
-    public int getSampleRate() {
-        return sampleRate;
-    }
-
-    public float getDuration() {
-        return duration;
-    }
-
-    private void throwExceptionIfFreed() {
-        if (this.freed) {
-            throw new RuntimeException("Image is already freed!");
+        long context = alcCreateContext(device, (IntBuffer) null);
+        alcMakeContextCurrent(context);
+        AL.createCapabilities(deviceCaps);
+        
+        if (DEBUG_OUTPUT) {
+            System.out.println("OpenAL Initialized.");
+            System.out.println(alcGetString(device, ALC_DEVICE_SPECIFIER)+" "+alcGetInteger(device, ALC_MAJOR_VERSION)+"."+alcGetInteger(device, ALC_MINOR_VERSION));
         }
     }
     
-    public void free() {
-        throwExceptionIfFreed();
-        MemoryUtil.memFree(this.data);
-        this.freed = true;
+    public static void init() {
+        
     }
+    
+    private AudioSystem() {
+        
+    }
+    
 }

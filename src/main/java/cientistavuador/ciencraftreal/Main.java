@@ -26,6 +26,8 @@
  */
 package cientistavuador.ciencraftreal;
 
+import cientistavuador.ciencraftreal.audio.AudioSystem;
+import cientistavuador.ciencraftreal.block.BlockSounds;
 import cientistavuador.ciencraftreal.block.BlockTextures;
 import cientistavuador.ciencraftreal.block.Blocks;
 import cientistavuador.ciencraftreal.ubo.UBOBindingPoints;
@@ -196,7 +198,8 @@ public class Main {
         }
 
         GL.createCapabilities();
-
+        AudioSystem.init(); //static initialize
+        
         if (DEBUG_ENABLED) {
             debug:
             {
@@ -255,9 +258,10 @@ public class Main {
         }
 
         Main.checkGLError();
-
+        
         //GLPool.init(); //static initialize
         BlockTextures.init();  //static initialize
+        BlockSounds.init(); //static initialize
         Blocks.init(); //static initialize
         Game.get(); //static initialize
 

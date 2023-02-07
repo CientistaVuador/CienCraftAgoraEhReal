@@ -35,7 +35,6 @@ import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 import org.lwjgl.system.MemoryStack;
 import static org.lwjgl.stb.STBVorbis.*;
-import org.lwjgl.stb.STBVorbisInfo;
 import static org.lwjgl.system.MemoryUtil.memAlloc;
 import static org.lwjgl.system.MemoryUtil.memFree;
 

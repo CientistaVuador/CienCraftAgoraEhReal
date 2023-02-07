@@ -24,56 +24,49 @@
  *
  * For more information, please refer to <https://unlicense.org>
  */
-package cientistavuador.ciencraftreal.resources.audio;
+package cientistavuador.ciencraftreal.block;
 
-import java.nio.ShortBuffer;
-import org.lwjgl.system.MemoryUtil;
+import cientistavuador.ciencraftreal.audio.AudioLoader;
+import cientistavuador.ciencraftreal.audio.AudioPlayer;
 
 /**
- * must be manually freed
+ *
  * @author Cien
  */
-public class NativeAudio {
+public class BlockSounds {
     
-    private boolean freed = false;
-    private final ShortBuffer data;
-    private final int channels;
-    private final int sampleRate;
-    private final float duration;
+    public static final boolean DEBUG_OUTPUT = true;
     
-    protected NativeAudio(ShortBuffer data, int channels, int sampleRate) {
-        this.data = data;
-        this.channels = channels;
-        this.sampleRate = sampleRate;
-        this.duration = (data.capacity() / ((float)channels)) / sampleRate;
-    }
-
-    public ShortBuffer getData() {
-        throwExceptionIfFreed();
-        return data;
-    }
-
-    public int getChannels() {
-        return channels;
-    }
-
-    public int getSampleRate() {
-        return sampleRate;
-    }
-
-    public float getDuration() {
-        return duration;
-    }
-
-    private void throwExceptionIfFreed() {
-        if (this.freed) {
-            throw new RuntimeException("Image is already freed!");
+    public static final int BLOB;
+    public static final int WOOD_PLACE;
+    
+    static {
+        if (DEBUG_OUTPUT) {
+            System.out.println("Loading block sounds.");
+        }
+        
+        int[] buffers = AudioLoader.load(new String[] {
+            "blob.ogg",
+            "wood_place.ogg"
+        });
+        
+        BLOB = buffers[0];
+        WOOD_PLACE = buffers[1];
+        
+        if (DEBUG_OUTPUT) {
+            System.out.println("Finished loading block sounds.");
         }
     }
     
-    public void free() {
-        throwExceptionIfFreed();
-        MemoryUtil.memFree(this.data);
-        this.freed = true;
+    public static int play(int buffer, double x, double y, double z) {
+        return AudioPlayer.play(buffer, x, y, z);
+    }
+    
+    public static void init() {
+        
+    }
+    
+    private BlockSounds() {
+        
     }
 }
