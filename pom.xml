@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>cientistavuador</groupId>
     <artifactId>CienCraftAgoraEhReal</artifactId>
-    <version>2.2-DEV</version>
+    <version>2.3-DEV</version>
     <packaging>jar</packaging>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -21,6 +21,8 @@
                 <directory>${basedir}/src/main/java</directory>
                 <includes>
                     <include>**/*.png</include>
+                    <include>**/*.txt</include>
+                    <include>**/*.ogg</include>
                 </includes>
             </resource>
         </resources>

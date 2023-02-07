@@ -64,14 +64,14 @@ public class WorldCamera {
     public WorldCamera(Camera camera, long seed, ChunkGeneratorFactory chunkGeneratorFactory) {
         this.camera = camera;
         this.seed = seed;
-        
+
         this.chunkGeneratorFactory = chunkGeneratorFactory;
     }
 
     public ChunkGeneratorFactory getChunkGeneratorFactory() {
         return chunkGeneratorFactory;
     }
-    
+
     private void updatePosition() {
         int camChunkX = (int) Math.floor(camera.getPosition().x() / Chunk.CHUNK_SIZE);
         int camChunkZ = (int) Math.ceil(camera.getPosition().z() / Chunk.CHUNK_SIZE);
@@ -83,7 +83,7 @@ public class WorldCamera {
             this.chunkZ = camChunkZ;
         }
     }
-    
+
     private void moveAreas() {
         int translationX = this.oldChunkX - this.chunkX;
         int translationZ = this.oldChunkZ - this.chunkZ;
@@ -113,7 +113,7 @@ public class WorldCamera {
             if (e == null) {
                 continue;
             }
-            
+
             //todo: fix future chunks being ignored when the camera moves.
             if (e instanceof Chunk m) {
                 int newCamRelativeX = m.getChunkX() - this.chunkX;
@@ -130,12 +130,12 @@ public class WorldCamera {
             }
         }
     }
-    
+
     private void finishUpdatePosition() {
         this.oldChunkX = this.chunkX;
         this.oldChunkZ = this.chunkZ;
     }
-    
+
     private void updateChunks() {
         for (int i = 0; i < VIEW_DISTANCE_NUMBER_OF_CHUNKS; i++) {
             int x = (i % VIEW_DISTANCE_SIZE) - VIEW_DISTANCE;
@@ -158,7 +158,7 @@ public class WorldCamera {
                     if (result instanceof Chunk f) {
                         int chunkX = f.getChunkX();
                         int chunkZ = f.getChunkZ();
-                        
+
                         deleteLayersIfPossible(chunkX + 1, chunkZ);
                         deleteLayersIfPossible(chunkX - 1, chunkZ);
                         deleteLayersIfPossible(chunkX, chunkZ + 1);
@@ -173,7 +173,7 @@ public class WorldCamera {
             }
         }
     }
-    
+
     private void deleteLayersIfPossible(int chunkX, int chunkZ) {
         Chunk c = getChunk(chunkX, chunkZ);
         if (c != null) {
@@ -191,11 +191,11 @@ public class WorldCamera {
     public Chunk getChunk(int chunkX, int chunkZ) {
         return getLocalChunk(chunkX - this.chunkX, chunkZ - this.chunkZ);
     }
-    
+
     public Chunk getLocalChunk(int chunkX, int chunkZ) {
         chunkX = chunkX + VIEW_DISTANCE;
         chunkZ = -chunkZ + VIEW_DISTANCE;
-        
+
         int index = chunkX + (chunkZ * VIEW_DISTANCE_SIZE);
         if (index < 0 || index >= this.map.length) {
             return null;
@@ -218,7 +218,7 @@ public class WorldCamera {
         }
         return null;
     }
-    
+
     private void deleteLayer(int chunkX, int chunkZ, int y) {
         Chunk c = getLocalChunk(chunkX, chunkZ);
         if (c != null) {
@@ -231,8 +231,8 @@ public class WorldCamera {
             return;
         }
 
-        int cX = (int) Math.floor((float) x / Chunk.CHUNK_SIZE);
-        int cZ = (int) Math.ceil((float) z / Chunk.CHUNK_SIZE);
+        int cX = (int) Math.floor((double) x / Chunk.CHUNK_SIZE);
+        int cZ = (int) Math.ceil((double) z / Chunk.CHUNK_SIZE);
 
         int camChunkX = cX - this.chunkX;
         int camChunkZ = cZ - this.chunkZ;
@@ -259,7 +259,7 @@ public class WorldCamera {
         } else if (chunkBlockZ == -(Chunk.CHUNK_SIZE - 1)) {
             deleteLayer(camChunkX, camChunkZ - 1, y);
         }
-        
+
         Chunk c = getLocalChunk(camChunkX, camChunkZ);
         if (c != null) {
             c.setBlock(
@@ -289,7 +289,7 @@ public class WorldCamera {
         if (camChunkZ < -VIEW_DISTANCE || camChunkZ > VIEW_DISTANCE) {
             return Blocks.AIR;
         }
-        
+
         Chunk c = getLocalChunk(camChunkX, camChunkZ);
         if (c != null) {
             return c.getBlock(
@@ -298,23 +298,23 @@ public class WorldCamera {
                     z - (cZ * Chunk.CHUNK_SIZE)
             );
         }
-        
+
         return Blocks.AIR;
     }
 
     public int render() {
         List<ChunkLayers> layers = new ArrayList<>();
-        
+
         for (int i = 0; i < length(); i++) {
             Chunk c = chunkAtIndex(i);
             if (c != null) {
                 layers.add(c.getLayers());
             }
         }
-        
+
         return ChunkLayersRender.render(this.camera, layers.toArray(ChunkLayers[]::new));
     }
-    
+
     public Camera getCamera() {
         return camera;
     }
@@ -322,5 +322,5 @@ public class WorldCamera {
     public long getSeed() {
         return seed;
     }
-    
+
 }

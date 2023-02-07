@@ -26,10 +26,78 @@
  */
 package cientistavuador.ciencraftreal.resources.audio;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+import java.nio.ShortBuffer;
+import org.lwjgl.system.MemoryStack;
+import static org.lwjgl.stb.STBVorbis.*;
+import static org.lwjgl.system.MemoryUtil.memAlloc;
+import static org.lwjgl.system.MemoryUtil.memFree;
+
 /**
  *
  * @author Cien
  */
 public class AudioResources {
     
+    public static NativeAudio load(String name) {
+        URL url = AudioResources.getAudioURL(name);
+
+        if (url == null) {
+            throw new NullPointerException("'" + name + "' not found.");
+        }
+        
+        try {
+            URLConnection conn = url.openConnection();
+            conn.connect();
+
+            InputStream in = conn.getInputStream();
+
+            ByteBuffer audioFile = memAlloc(conn.getContentLength());
+            try {
+
+                byte[] buffer = new byte[4096];
+
+                int r;
+                while ((r = in.read(buffer)) != -1) {
+                    audioFile.put(buffer, 0, r);
+                }
+
+                audioFile.flip();
+
+                NativeAudio audio;
+                
+                try (MemoryStack stack = MemoryStack.stackPush()) {
+                    IntBuffer channelsBuffer = stack.callocInt(1);
+                    IntBuffer sampleRateBuffer = stack.callocInt(1);
+                    ShortBuffer data = stb_vorbis_decode_memory(audioFile, channelsBuffer, sampleRateBuffer);
+                    int channels = channelsBuffer.get();
+                    int sampleRate = sampleRateBuffer.get();
+                    if (data == null) {
+                        throw new RuntimeException("Could not read '"+name+"'");
+                    }
+                    audio = new NativeAudio(data, channels, sampleRate);
+                }
+                
+                return audio;
+            } finally {
+                memFree(audioFile);
+            }
+
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+    
+    public static URL getAudioURL(String name) {
+        return AudioResources.class.getResource(name);
+    }
+    
+    private AudioResources() {
+        
+    }
 }

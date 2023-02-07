@@ -3,13 +3,15 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>cientistavuador</groupId>
   <artifactId>CienCraftAgoraEhReal</artifactId>
-  <version>2.1-DEV</version>
+  <version>2.3-DEV</version>
   <build>
     <resources>
       <resource>
         <directory>${basedir}/src/main/java</directory>
         <includes>
           <include>**/*.png</include>
+          <include>**/*.txt</include>
+          <include>**/*.ogg</include>
         </includes>
       </resource>
     </resources>
@@ -54,7 +56,7 @@
     </dependencies>
   </dependencyManagement>
   <properties>
-    <exec.mainClass>cientistavuador.ciencraftreal.Main</exec.mainClass>
+    <exec.mainClass>cientistavuador.ciencraftreal.MainWrapper</exec.mainClass>
     <maven.compiler.source>17</maven.compiler.source>
     <lwjgl.natives>natives-windows</lwjgl.natives>
     <joml.version>1.10.5</joml.version>

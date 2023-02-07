@@ -26,8 +26,10 @@
  */
 package cientistavuador.ciencraftreal;
 
+import cientistavuador.ciencraftreal.audio.AudioPlayer;
 import cientistavuador.ciencraftreal.block.Block;
 import cientistavuador.ciencraftreal.block.BlockRegister;
+import cientistavuador.ciencraftreal.block.BlockSounds;
 import cientistavuador.ciencraftreal.block.Blocks;
 import cientistavuador.ciencraftreal.block.StateOfMatter;
 import cientistavuador.ciencraftreal.camera.FreeCamera;
@@ -67,7 +69,7 @@ public class Game {
         camera.setPosition(0, 80, 0);
         camera.setUBO(CameraUBO.create(UBOBindingPoints.PLAYER_CAMERA));
         player.setPosition(0, 100, 0);
-        
+
         camera.setMovementDisabled(true);
         player.setMovementDisabled(false);
     }
@@ -82,7 +84,7 @@ public class Game {
         outline.render();
 
         player.update();
-        
+
         player.setYaw(camera.getRotation().y());
         if (camera.isMovementDisabled()) {
             camera.setPosition(
@@ -97,6 +99,8 @@ public class Game {
         Main.WINDOW_TITLE += " (Block: " + BlockRegister.getBlock(this.currentBlockId).getName() + ")";
         Main.WINDOW_TITLE += " (x:" + (int) Math.floor(camera.getPosition().x()) + ",y:" + (int) Math.floor(camera.getPosition().y()) + ",z:" + (int) Math.ceil(camera.getPosition().z()) + ")";
         Main.WINDOW_TITLE += " (DrawCalls: " + drawCalls + ")";
+
+        AudioPlayer.update(camera);
     }
 
     public void mouseCursorMoved(double x, double y) {
@@ -109,13 +113,21 @@ public class Game {
 
     public void keyCallback(long window, int key, int scancode, int action, int mods) {
         player.keyCallback(window, key, scancode, action, mods);
-        
+
         if (key == GLFW_KEY_F && action == GLFW_PRESS) {
-            camera.setPosition(
-                    Math.random() * 100000000,
-                    camera.getPosition().y(),
-                    Math.random() * 100000000
-            );
+            if (player.isMovementDisabled()) {
+                camera.setPosition(
+                        Math.random() * 100000000,
+                        90,
+                        Math.random() * 100000000
+                );
+            } else {
+                player.setPosition(
+                        Math.random() * 100000000,
+                        90,
+                        Math.random() * 100000000
+                );
+            }
         }
         if (key == GLFW_KEY_G && action == GLFW_PRESS) {
             System.out.println(world.getWorldBlock(
@@ -152,6 +164,11 @@ public class Game {
                     outline.getCastPos().z(),
                     Blocks.AIR
             );
+            BlockSounds.play(BlockSounds.BLOB,
+                    outline.getCastPos().x() + 0.5,
+                    outline.getCastPos().y() + 0.5,
+                    outline.getCastPos().z() - 0.5
+            );
         }
         if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS && outline.getBlock() != Blocks.AIR) {
             int blockX = outline.getSidePos().x();
@@ -168,6 +185,11 @@ public class Game {
                     blockY,
                     blockZ,
                     block
+            );
+            BlockSounds.play(BlockSounds.WOOD_PLACE,
+                    blockX + 0.5,
+                    blockY + 0.5,
+                    blockZ - 0.5
             );
         }
     }
