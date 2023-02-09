@@ -37,19 +37,33 @@ import static org.lwjgl.opengl.GL33C.*;
 public class ProgramCompiler {
 
     private static final boolean ONLY_OUTPUT_ERRORS = false;
-    
+
     public static int compile(String vertexSource, String fragmentSource) {
         return compile(vertexSource, fragmentSource, null);
     }
-    
+
     private static String replace(String s, Map<String, String> replacements) {
-        for (Entry<String, String> e:replacements.entrySet()) {
+        for (Entry<String, String> e : replacements.entrySet()) {
             s = s.replace(e.getKey(), e.getValue());
         }
         return s;
     }
-    
+
     public static int compile(String vertexSource, String fragmentSource, Map<String, String> replacements) {
+        if (!ONLY_OUTPUT_ERRORS) {
+            StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+            for (int i = 0; i < stackTrace.length; i++) {
+                if (i == 0) {
+                    continue;
+                }
+                StackTraceElement e = stackTrace[i];
+                if (!e.getClassName().contains(ProgramCompiler.class.getName())) {
+                    System.out.println("Compiling shader in "+e);
+                    break;
+                }
+            }
+        }
+
         if (replacements != null) {
             vertexSource = replace(vertexSource, replacements);
             fragmentSource = replace(fragmentSource, replacements);
@@ -92,7 +106,7 @@ public class ProgramCompiler {
 
         glDeleteShader(vertexShader);
         glDeleteShader(fragmentShader);
-        
+
         return program;
     }
 
