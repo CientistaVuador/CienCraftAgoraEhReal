@@ -26,6 +26,7 @@
  */
 package cientistavuador.ciencraftreal.block.blocks;
 
+import cientistavuador.ciencraftreal.block.BlockSounds;
 import cientistavuador.ciencraftreal.block.BlockTextures;
 import cientistavuador.ciencraftreal.block.SimpleBlock;
 
@@ -39,4 +40,8 @@ public class Mycelium extends SimpleBlock {
         super("ciencraft_mycelium", BlockTextures.MYCELIUM_TOP, BlockTextures.MYCELIUM, BlockTextures.DIRT);
     }
     
+    @Override
+    public int getStepSound() {
+        return BlockSounds.GRASS_STEP;
+    }
 }

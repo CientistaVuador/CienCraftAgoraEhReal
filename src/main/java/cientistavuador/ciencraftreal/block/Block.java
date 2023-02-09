@@ -68,4 +68,7 @@ public interface Block {
                 player.getMax().z()
         );
     }
+    default int getStepSound() {
+        return BlockSounds.NULL;
+    }
 }

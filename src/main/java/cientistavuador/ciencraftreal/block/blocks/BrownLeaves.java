@@ -26,6 +26,7 @@
  */
 package cientistavuador.ciencraftreal.block.blocks;
 
+import cientistavuador.ciencraftreal.block.BlockSounds;
 import cientistavuador.ciencraftreal.block.BlockTextures;
 import cientistavuador.ciencraftreal.block.BlockTransparency;
 import cientistavuador.ciencraftreal.block.SimpleBlock;
@@ -55,4 +56,11 @@ public class BrownLeaves extends SimpleBlock {
     public BlockTransparency getBlockTransparency() {
         return BlockTransparency.FOLIAGE;
     }
+
+    @Override
+    public int getStepSound() {
+        return BlockSounds.FOLIAGE_STEP;
+    }
+    
+    
 }
