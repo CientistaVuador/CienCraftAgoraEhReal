@@ -26,6 +26,7 @@
  */
 package cientistavuador.ciencraftreal.block.blocks;
 
+import cientistavuador.ciencraftreal.block.BlockSounds;
 import cientistavuador.ciencraftreal.block.BlockTextures;
 import cientistavuador.ciencraftreal.block.SimpleBlock;
 
@@ -38,5 +39,12 @@ public class Sand extends SimpleBlock {
     public Sand() {
         super("ciencraft_sand", BlockTextures.SAND);
     }
+
+    @Override
+    public int getStepSound() {
+        return BlockSounds.SAND_STEP;
+    }
+    
+    
     
 }

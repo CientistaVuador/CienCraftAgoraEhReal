@@ -37,8 +37,12 @@ public class BlockSounds {
     
     public static final boolean DEBUG_OUTPUT = true;
     
+    public static final int NULL = 0;
     public static final int BLOB;
     public static final int WOOD_PLACE;
+    public static final int GRASS_STEP;
+    public static final int FOLIAGE_STEP;
+    public static final int SAND_STEP;
     
     static {
         if (DEBUG_OUTPUT) {
@@ -47,11 +51,17 @@ public class BlockSounds {
         
         int[] buffers = AudioLoader.load(new String[] {
             "blob.ogg",
-            "wood_place.ogg"
+            "wood_place.ogg",
+            "grass_step.ogg",
+            "foliage_step.ogg",
+            "sand_step.ogg"
         });
         
         BLOB = buffers[0];
         WOOD_PLACE = buffers[1];
+        GRASS_STEP = buffers[2];
+        FOLIAGE_STEP = buffers[3];
+        SAND_STEP = buffers[4];
         
         if (DEBUG_OUTPUT) {
             System.out.println("Finished loading block sounds.");
@@ -60,6 +70,10 @@ public class BlockSounds {
     
     public static int play(int buffer, double x, double y, double z) {
         return AudioPlayer.play(buffer, x, y, z);
+    }
+    
+    public static int play(int buffer, double x, double y, double z, Runnable deletedCallback) {
+        return AudioPlayer.play(buffer, x, y, z, deletedCallback);
     }
     
     public static void init() {
