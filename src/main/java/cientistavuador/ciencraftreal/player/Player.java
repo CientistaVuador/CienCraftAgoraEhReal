@@ -26,6 +26,9 @@
  */
 package cientistavuador.ciencraftreal.player;
 
+import cientistavuador.ciencraftreal.block.Block;
+import cientistavuador.ciencraftreal.block.BlockSounds;
+import cientistavuador.ciencraftreal.block.Blocks;
 import cientistavuador.ciencraftreal.world.WorldCamera;
 
 /**
@@ -33,9 +36,50 @@ import cientistavuador.ciencraftreal.world.WorldCamera;
  * @author Cien
  */
 public class Player extends PlayerPhysicsInput {
-    
+
+    private boolean canPlayStepSound = true;
+    private int stepBlockX = -1;
+    private int stepBlockY = -1;
+    private int stepBlockZ = -1;
+    private int lastStepBlockX = -1;
+    private int lastStepBlockY = -1;
+    private int lastStepBlockZ = -1;
+
     public Player(WorldCamera world) {
         super(world);
     }
-    
+
+    @Override
+    public void update() {
+        super.update();
+
+        this.stepBlockX = (int) Math.floor(getPosition().x());
+        this.stepBlockY = (int) Math.floor(getPosition().y());
+        this.stepBlockZ = (int) Math.ceil(getPosition().z());
+        if (this.stepBlockX != this.lastStepBlockX || this.stepBlockY != this.lastStepBlockY || this.stepBlockZ != this.lastStepBlockZ) {
+            Block collisionBlock = getCollisionBlockY();
+            if (collisionBlock != Blocks.AIR) {
+                double speedX = getSpeed().x();
+                double speedZ = getSpeed().z();
+                double lengthSquared = (speedX * speedX) + (speedZ * speedZ);
+
+                if (this.canPlayStepSound && lengthSquared > 0.01) {
+                    this.canPlayStepSound = false;
+                    BlockSounds.play(collisionBlock.getStepSound(),
+                            getPosition().x(),
+                            getPosition().y(),
+                            getPosition().z(),
+                            () -> {
+                                this.canPlayStepSound = true;
+                            }
+                    );
+                }
+            }
+
+        }
+        this.lastStepBlockX = this.stepBlockX;
+        this.lastStepBlockY = this.stepBlockY;
+        this.lastStepBlockZ = this.stepBlockZ;
+    }
+
 }

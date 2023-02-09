@@ -41,7 +41,7 @@ import org.joml.Vector3dc;
  */
 public class PlayerPhysics {
 
-    public static final boolean DEBUG = true;
+    public static final boolean DEBUG = false;
     public static final float GRAVITY = 14f;
 
     public static final float HEIGHT = 1.65f;
