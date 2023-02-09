@@ -30,9 +30,9 @@ import cientistavuador.ciencraftreal.Main;
 import cientistavuador.ciencraftreal.camera.Camera;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 import org.joml.Vector3d;
 import static org.lwjgl.openal.AL11.*;
 import org.lwjgl.system.MemoryStack;
@@ -42,11 +42,22 @@ import org.lwjgl.system.MemoryStack;
  * @author Cien
  */
 public class AudioPlayer {
-    
-    private static final Set<Integer> sourceList = new HashSet<>();
+     
+    private static final Map<Integer, Runnable> sourceMap = new HashMap<>();
     private static final Vector3d cameraPos = new Vector3d(0, 0, 0);
     
     public static int play(int buffer, double x, double y, double z) {
+        return play(buffer, x, y, z, null);
+    }
+    
+    public static int play(int buffer, double x, double y, double z, Runnable deletedCallback) {
+        if (buffer == 0) {
+            if (deletedCallback != null) {
+                deletedCallback.run();
+            }
+            return 0;
+        }
+        
         int source = alGenSources();
         alSourcei(source, AL_LOOPING, AL_FALSE);
         alSourcei(source, AL_BUFFER, buffer);
@@ -57,7 +68,7 @@ public class AudioPlayer {
         );
         
         alSourcePlay(source);
-        sourceList.add(source);
+        sourceMap.put(source, deletedCallback);
         
         return source;
     }
@@ -81,7 +92,7 @@ public class AudioPlayer {
         
         List<Integer> toDelete = new ArrayList<>();
         
-        for (Integer source:sourceList) {
+        for (Integer source:sourceMap.keySet()) {
             if (alGetSourcei(source, AL_SOURCE_STATE) == AL_STOPPED) {
                 toDelete.add(source);
                 continue;
@@ -104,7 +115,11 @@ public class AudioPlayer {
         
         for (Integer delete:toDelete) {
             alDeleteSources(delete);
-            sourceList.remove(delete);
+            Runnable callback = sourceMap.get(delete);
+            if (callback != null) {
+                callback.run();
+            }
+            sourceMap.remove(delete);
         }
         
         cameraPos.set(camera.getPosition());
