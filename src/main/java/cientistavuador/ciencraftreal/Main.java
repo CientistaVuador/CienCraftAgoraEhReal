@@ -351,7 +351,7 @@ public class Main {
 
             Main.FRAME++;
         }
-        if (DEBUG_ENABLED) {
+        if (DEBUG_CALLBACK != null) {
             DEBUG_CALLBACK.free();
         }
 
