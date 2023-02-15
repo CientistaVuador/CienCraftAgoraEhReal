@@ -92,6 +92,9 @@ public class FreeCamera extends PerspectiveCamera {
         
         float diagonal = (Math.abs(directionX) == 1 && Math.abs(directionZ) == 1) ? 0.707106781186f : 1f;
         float currentSpeed = isKeyDown(GLFW_KEY_LEFT_SHIFT) ? runSpeed : speed;
+        if (isKeyDown(GLFW_KEY_LEFT_ALT)) {
+            currentSpeed /= 4f;
+        }
         
         //acceleration in X and Z axis
         float xa = currentSpeed * diagonal * directionX;

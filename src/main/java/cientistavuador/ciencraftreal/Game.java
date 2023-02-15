@@ -38,7 +38,9 @@ import cientistavuador.ciencraftreal.player.Player;
 import cientistavuador.ciencraftreal.player.PlayerPhysics;
 import cientistavuador.ciencraftreal.ubo.CameraUBO;
 import cientistavuador.ciencraftreal.ubo.UBOBindingPoints;
-import cientistavuador.ciencraftreal.util.AabRender;
+import cientistavuador.ciencraftreal.debug.AabRender;
+import cientistavuador.ciencraftreal.debug.SDFQuad;
+import cientistavuador.ciencraftreal.resources.image.ImageResources;
 import cientistavuador.ciencraftreal.util.BlockOutline;
 import cientistavuador.ciencraftreal.world.WorldCamera;
 import static org.lwjgl.glfw.GLFW.*;
@@ -60,6 +62,7 @@ public class Game {
     private final BlockOutline outline = new BlockOutline(world, camera);
     private final Player player = new Player(world);
     private int currentBlockId = Blocks.HAPPY_2023.getId();
+    private final SDFQuad quadTest = new SDFQuad(ImageResources.load("ciencraftSDF.png", 4));
 
     private Game() {
 
@@ -72,6 +75,9 @@ public class Game {
 
         camera.setMovementDisabled(true);
         player.setMovementDisabled(false);
+        
+        quadTest.setPosition(0, 70, 0);
+        quadTest.setScale(10, 10, 10);
     }
 
     public void loop() {
@@ -95,6 +101,9 @@ public class Game {
         }
 
         drawCalls += AabRender.renderQueue(camera);
+        
+        SDFQuad.render(camera, new SDFQuad[] {quadTest});
+        drawCalls++;
 
         Main.WINDOW_TITLE += " (Block: " + BlockRegister.getBlock(this.currentBlockId).getName() + ")";
         Main.WINDOW_TITLE += " (x:" + (int) Math.floor(camera.getPosition().x()) + ",y:" + (int) Math.floor(camera.getPosition().y()) + ",z:" + (int) Math.ceil(camera.getPosition().z()) + ")";

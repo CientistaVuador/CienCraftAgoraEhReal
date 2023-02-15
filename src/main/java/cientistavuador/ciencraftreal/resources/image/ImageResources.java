@@ -93,12 +93,17 @@ public class ImageResources {
                     if (imageData == null) {
                         throw new NullPointerException("Failed to load '" + name + "': " + stbi_failure_reason());
                     }
-
+                    
+                    int resultChannels = channels.get();
+                    if (desiredChannels != 0) {
+                        resultChannels = desiredChannels;
+                    }
+                    
                     image = new NativeImage(
                             imageData,
                             widthBuffer.get(),
                             heightBuffer.get(),
-                            channels.get()
+                            resultChannels
                     );
                 }
                 

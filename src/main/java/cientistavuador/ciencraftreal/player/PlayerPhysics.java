@@ -30,7 +30,7 @@ import cientistavuador.ciencraftreal.Main;
 import cientistavuador.ciencraftreal.block.Block;
 import cientistavuador.ciencraftreal.block.Blocks;
 import cientistavuador.ciencraftreal.block.StateOfMatter;
-import cientistavuador.ciencraftreal.util.AabRender;
+import cientistavuador.ciencraftreal.debug.AabRender;
 import cientistavuador.ciencraftreal.world.WorldCamera;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
