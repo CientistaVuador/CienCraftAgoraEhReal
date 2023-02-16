@@ -78,14 +78,26 @@ public class SDFQuad {
             
             uniform vec4 color;
             uniform sampler2D quadTexture;
+            uniform bool multiChannelSDF;
+            uniform float thickness;
             
             in vec2 texCoords;
             
             layout (location = 0) out vec4 fragColor;
             
+            float median(float r, float g, float b) {
+                return max(min(r, g), min(max(r, g), b));
+            }
+            
             void main() {
-                float distance = 1.0 - texture(quadTexture, texCoords).r;
-                if (distance > 0.5) {
+                vec3 sdfColor = texture(quadTexture, texCoords).rgb;
+                float distance = 0.0;
+                if (multiChannelSDF) {
+                    distance = median(sdfColor.r, sdfColor.g, sdfColor.b);
+                } else {
+                    distance = sdfColor.r;
+                }
+                if (distance < (1.0 - thickness)) {
                     discard;
                 }
                 fragColor = color;
@@ -98,6 +110,8 @@ public class SDFQuad {
     private static final int SCALE_INDEX = glGetUniformLocation(SHADER_PROGRAM, "scale");
     private static final int COLOR_INDEX = glGetUniformLocation(SHADER_PROGRAM, "color");
     private static final int QUAD_TEXTURE_INDEX = glGetUniformLocation(SHADER_PROGRAM, "quadTexture");
+    private static final int MULTI_CHANNEL_SDF_INDEX = glGetUniformLocation(SHADER_PROGRAM, "multiChannelSDF");
+    private static final int THICKNESS_INDEX = glGetUniformLocation(SHADER_PROGRAM, "thickness");
     private static final int CAMERA_UBO_INDEX = glGetUniformBlockIndex(SHADER_PROGRAM, "Camera");
     
     private static final int VAO;
@@ -162,15 +176,38 @@ public class SDFQuad {
 
     private final Vector3i intPart = new Vector3i(0);
     private final Vector3f decPart = new Vector3f(0);
+    private boolean multiChannelSDF;
+    private float thickness = 0.5f;
 
-    public SDFQuad(NativeImage image) {
+    public SDFQuad(NativeImage image, boolean multiChannelSDF) {
         this.image = image;
+        this.multiChannelSDF = multiChannelSDF;
+    }
+    
+    public SDFQuad(NativeImage image) {
+        this(image, false);
     }
 
     public NativeImage getImage() {
         return image;
     }
 
+    public boolean isMultiChannelSDF() {
+        return multiChannelSDF;
+    }
+
+    public void setMultiChannelSDF(boolean multiChannelSDF) {
+        this.multiChannelSDF = multiChannelSDF;
+    }
+
+    public float getThickness() {
+        return thickness;
+    }
+
+    public void setThickness(float thickness) {
+        this.thickness = thickness;
+    }
+    
     public Vector3dc getPosition() {
         return position;
     }
@@ -227,6 +264,8 @@ public class SDFQuad {
         glUniform3f(DEC_POS_INDEX, this.decPart.x(), this.decPart.y(), this.decPart.z());
         glUniform3f(SCALE_INDEX, this.scale.x(), this.scale.y(), this.scale.z());
         glUniform4f(COLOR_INDEX, this.color.x(), this.color.y(), this.color.z(), this.color.w());
+        glUniform1i(MULTI_CHANNEL_SDF_INDEX, (this.multiChannelSDF ? 1 : 0));
+        glUniform1f(THICKNESS_INDEX, this.thickness);
         
         glDrawArrays(GL_TRIANGLES, 0, 12);
     }

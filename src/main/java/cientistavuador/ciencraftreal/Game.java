@@ -62,7 +62,8 @@ public class Game {
     private final BlockOutline outline = new BlockOutline(world, camera);
     private final Player player = new Player(world);
     private int currentBlockId = Blocks.HAPPY_2023.getId();
-    private final SDFQuad quadTest = new SDFQuad(ImageResources.load("ciencraftSDF.png", 4));
+    private final SDFQuad atlasTest = new SDFQuad(ImageResources.load("atlas.png", 4), true);
+    private final SDFQuad logoTest = new SDFQuad(ImageResources.load("ciencraftSDF.png", 4), false);
 
     private Game() {
 
@@ -76,8 +77,16 @@ public class Game {
         camera.setMovementDisabled(true);
         player.setMovementDisabled(false);
         
-        quadTest.setPosition(0, 70, 0);
-        quadTest.setScale(10, 10, 10);
+        atlasTest.setPosition(0, 70, 0);
+        atlasTest.setScale(10, 10, 10);
+        logoTest.setPosition(-10, 70, 0);
+        logoTest.setScale(10, 10, 10);
+        logoTest.setColor(
+                125f / 255f,
+                249f / 255f,
+                255f / 255f,
+                1f
+        );
     }
 
     public void loop() {
@@ -102,7 +111,10 @@ public class Game {
 
         drawCalls += AabRender.renderQueue(camera);
         
-        SDFQuad.render(camera, new SDFQuad[] {quadTest});
+        SDFQuad.render(camera, new SDFQuad[] {
+            atlasTest,
+            logoTest
+        });
         drawCalls++;
 
         Main.WINDOW_TITLE += " (Block: " + BlockRegister.getBlock(this.currentBlockId).getName() + ")";
