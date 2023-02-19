@@ -26,32 +26,16 @@
  */
 package cientistavuador.ciencraftreal.block.blocks;
 
-import cientistavuador.ciencraftreal.block.BlockSounds;
 import cientistavuador.ciencraftreal.block.BlockTextures;
-import cientistavuador.ciencraftreal.block.BlockTransparency;
-import cientistavuador.ciencraftreal.block.SimpleBlock;
 
 /**
  *
  * @author Cien
  */
-public class Leaves extends SimpleBlock {
+public class AspenPlanks extends Planks {
     
-    public Leaves(String name, int texture) {
-        super(name, texture);
-    }
-    
-    public Leaves() {
-        super("ciencraft_leaves", BlockTextures.LEAVES);
-    }
-
-    @Override
-    public BlockTransparency getBlockTransparency() {
-        return BlockTransparency.LIKE_FOLIAGE;
+    public AspenPlanks() {
+        super("ciencraft_aspen_planks", BlockTextures.ASPEN_PLANKS);
     }
     
-    @Override
-    public int getStepSound() {
-        return BlockSounds.FOLIAGE_STEP;
-    }
 }

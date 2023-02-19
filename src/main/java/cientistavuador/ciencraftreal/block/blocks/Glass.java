@@ -26,7 +26,6 @@
  */
 package cientistavuador.ciencraftreal.block.blocks;
 
-import cientistavuador.ciencraftreal.block.BlockSounds;
 import cientistavuador.ciencraftreal.block.BlockTextures;
 import cientistavuador.ciencraftreal.block.BlockTransparency;
 import cientistavuador.ciencraftreal.block.SimpleBlock;
@@ -35,23 +34,15 @@ import cientistavuador.ciencraftreal.block.SimpleBlock;
  *
  * @author Cien
  */
-public class Leaves extends SimpleBlock {
+public class Glass extends SimpleBlock {
     
-    public Leaves(String name, int texture) {
-        super(name, texture);
-    }
-    
-    public Leaves() {
-        super("ciencraft_leaves", BlockTextures.LEAVES);
+    public Glass() {
+        super("ciencraft_glass", BlockTextures.GLASS);
     }
 
     @Override
     public BlockTransparency getBlockTransparency() {
-        return BlockTransparency.LIKE_FOLIAGE;
+        return BlockTransparency.LIKE_GLASS;
     }
     
-    @Override
-    public int getStepSound() {
-        return BlockSounds.FOLIAGE_STEP;
-    }
 }

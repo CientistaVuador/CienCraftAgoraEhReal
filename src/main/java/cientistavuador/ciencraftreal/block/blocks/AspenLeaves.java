@@ -26,41 +26,16 @@
  */
 package cientistavuador.ciencraftreal.block.blocks;
 
-import cientistavuador.ciencraftreal.block.BlockSounds;
 import cientistavuador.ciencraftreal.block.BlockTextures;
-import cientistavuador.ciencraftreal.block.BlockTransparency;
-import cientistavuador.ciencraftreal.block.SimpleBlock;
-import cientistavuador.ciencraftreal.block.material.BlockMaterial;
 
 /**
  *
  * @author Cien
  */
-public class BrownLeaves extends SimpleBlock {
+public class AspenLeaves extends Leaves {
     
-    public static final BlockMaterial BROWN_LEAVES;
-    
-    static {
-        BROWN_LEAVES = BlockMaterial.create();
-        BROWN_LEAVES.setColor(233 / 255f, 116 / 255f, 81 / 255f, 1f);
-        BROWN_LEAVES.setFrameTime(0f);
-        BROWN_LEAVES.setFrameStart(BlockTextures.LEAVES_BW);
-        BROWN_LEAVES.setFrameEnd(-1);
-    }
-    
-    public BrownLeaves() {
-        super("ciencraft_brown_leaves", BROWN_LEAVES.getTextureID());
+    public AspenLeaves() {
+        super("ciencraft_aspen_leaves", BlockTextures.ASPEN_LEAVES);
     }
 
-    @Override
-    public BlockTransparency getBlockTransparency() {
-        return BlockTransparency.FOLIAGE;
-    }
-
-    @Override
-    public int getStepSound() {
-        return BlockSounds.FOLIAGE_STEP;
-    }
-    
-    
 }

@@ -31,10 +31,10 @@ package cientistavuador.ciencraftreal.block;
  * @author Cien
  */
 public enum BlockTransparency {
-    SOLID(false),
-    GLASS(true),
-    FOLIAGE(true),
-    COLORED_GLASS(true);
+    LIKE_SOLID(false),
+    LIKE_GLASS(true),
+    LIKE_FOLIAGE(true),
+    LIKE_COLORED_GLASS(true);
     
     private final boolean transparent;
 

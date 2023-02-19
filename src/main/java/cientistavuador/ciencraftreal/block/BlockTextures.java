@@ -64,6 +64,13 @@ public class BlockTextures {
     public static final int WATER_SIDE_END = WATER_SIDE_START + 4;
     public static final int PLANKS = BlockTextureLoader.push("vulpes_planks.png");
     
+    //2.5-DEV
+    public static final int GLASS = BlockTextureLoader.push("vulpes_glass.png");
+    public static final int ASPEN_TREE = BlockTextureLoader.push("vulpes_aspen_tree.png");
+    public static final int ASPEN_TREE_TOP = BlockTextureLoader.push("vulpes_aspen_tree_top.png");
+    public static final int ASPEN_PLANKS = BlockTextureLoader.push("vulpes_aspen_wood.png");
+    public static final int ASPEN_LEAVES = BlockTextureLoader.push("vulpes_aspen_leaves.png");
+    
     public static final int GL_TEXTURE_ARRAY;
     
     static {

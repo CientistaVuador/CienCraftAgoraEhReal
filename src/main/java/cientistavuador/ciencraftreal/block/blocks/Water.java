@@ -147,6 +147,6 @@ public class Water implements Block, SolidBlockCheck {
     
     @Override
     public BlockTransparency getBlockTransparency() {
-        return BlockTransparency.COLORED_GLASS;
+        return BlockTransparency.LIKE_COLORED_GLASS;
     }
 }
