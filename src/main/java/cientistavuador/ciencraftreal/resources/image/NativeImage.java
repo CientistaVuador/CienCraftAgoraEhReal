@@ -26,6 +26,7 @@
  */
 package cientistavuador.ciencraftreal.resources.image;
 
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import static org.lwjgl.opengl.EXTTextureFilterAnisotropic.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT;
 import static org.lwjgl.opengl.EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT;
@@ -40,15 +41,15 @@ import static org.lwjgl.opengl.GL33C.*;
 public class NativeImage {
 
     public static final boolean USE_ANISOTROPIC_FILTERING = true;
-    
+
     private boolean freed = false;
     private int texture = 0;
-    
+
     private final ByteBuffer data;
     private final int width;
     private final int height;
     private final int channels;
-    
+
     protected NativeImage(ByteBuffer data, int width, int height, int channels) {
         this.data = data;
         this.width = width;
@@ -75,13 +76,13 @@ public class NativeImage {
         throwExceptionIfFreed();
         return channels;
     }
-    
+
     private void throwExceptionIfFreed() {
         if (this.freed) {
             throw new RuntimeException("Image is already freed!");
         }
     }
-    
+
     public void createTexture() {
         throwExceptionIfFreed();
         if (this.texture != 0) {
@@ -90,7 +91,7 @@ public class NativeImage {
         this.texture = glGenTextures();
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, this.texture);
-        
+
         int internalFormat;
         int format;
         switch (this.channels) {
@@ -114,7 +115,7 @@ public class NativeImage {
                 throw new RuntimeException("Unknown Number of Channels: "+this.channels);
             }
         }
-        
+
         glTexImage2D(
                 GL_TEXTURE_2D,
                 0,
@@ -126,30 +127,30 @@ public class NativeImage {
                 GL_UNSIGNED_BYTE,
                 this.data
         );
-        glGenerateMipmap(GL_TEXTURE_2D);
-        
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glGenerateMipmap(GL_TEXTURE_2D);
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-        if (USE_ANISOTROPIC_FILTERING && GL.getCapabilities().GL_EXT_texture_filter_anisotropic) {
-            glTexParameterf(
-                    GL_TEXTURE_2D,
-                    GL_TEXTURE_MAX_ANISOTROPY_EXT,
-                    glGetFloat(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT)
-            );
-        }
-        
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+            if (USE_ANISOTROPIC_FILTERING && GL.getCapabilities().GL_EXT_texture_filter_anisotropic) {
+                glTexParameterf(
+                        GL_TEXTURE_2D,
+                        GL_TEXTURE_MAX_ANISOTROPY_EXT,
+                        glGetFloat(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT)
+                );
+            }
+
         glBindTexture(GL_TEXTURE_2D, 0);
     }
-    
+
     public int getTexture() {
         throwExceptionIfFreed();
         return this.texture;
     }
-    
+
     public void free() {
         throwExceptionIfFreed();
         MemoryUtil.memFree(this.data);
@@ -158,5 +159,5 @@ public class NativeImage {
         }
         this.freed = true;
     }
-    
+
 }

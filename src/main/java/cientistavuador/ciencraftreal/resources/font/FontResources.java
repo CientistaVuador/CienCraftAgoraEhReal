@@ -24,22 +24,17 @@
  *
  * For more information, please refer to <https://unlicense.org>
  */
-package cientistavuador.ciencraftreal.ubo;
+package cientistavuador.ciencraftreal.resources.font;
 
 /**
  *
  * @author Cien
  */
-public class UBOBindingPoints {
+public class FontResources {
     
-    public static final int MIN_NUMBER_OF_UBO_BINDING_POINTS = 36;
     
-    public static final int BLOCK_COLORS = 0;
-    public static final int BLOCK_MATERIALS = 1;
-    public static final int PLAYER_CAMERA = 2;
-    public static final int GENERIC_FONT = 3;
     
-    private UBOBindingPoints() {
+    private FontResources() {
         
     }
 }
