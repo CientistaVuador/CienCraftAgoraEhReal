@@ -35,13 +35,16 @@ import java.util.Map;
  * @author Cien
  */
 public class Font {
+
+    private final String name;
     
     private final NativeImage atlasImage;
     private final FontCharacter[] characters;
     private final Map<Integer, Integer> unicodeToIndexMap = new HashMap<>();
     private final int unknownCharacterIndex;
 
-    protected Font(NativeImage atlasImage, FontCharacter[] characters, int unknownCharacterUnicode) {
+    protected Font(String name, NativeImage atlasImage, FontCharacter[] characters, int unknownCharacterUnicode) {
+        this.name = name;
         this.atlasImage = atlasImage;
         this.characters = characters;
         
@@ -56,6 +59,10 @@ public class Font {
         this.unknownCharacterIndex = unknownCharacterUnicodeIndex;
     }
 
+    public String getName() {
+        return name;
+    }
+    
     public NativeImage getAtlasImage() {
         return atlasImage;
     }

@@ -12,6 +12,7 @@
           <include>**/*.png</include>
           <include>**/*.txt</include>
           <include>**/*.ogg</include>
+          <include>**/*.zip</include>
         </includes>
       </resource>
     </resources>
