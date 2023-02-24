@@ -164,11 +164,12 @@ public class GLFontLoader {
         index = 0;
         while ((futureFontAtlasData = futureFontAtlasBoundsDeque.poll()) != null) {
             Font font = result[index];
-            int size = fontAtlasBoundsSizes[index];
+            int size;
             
             float[] data;
             try {
                 data = futureFontAtlasData.get();
+                size = fontAtlasBoundsSizes[index];
             } catch (InterruptedException | ExecutionException ex) {
                 for (int i = 0; i < index; i++) {
                     glDeleteTextures(fontAtlasBoundsTextures[i]);
