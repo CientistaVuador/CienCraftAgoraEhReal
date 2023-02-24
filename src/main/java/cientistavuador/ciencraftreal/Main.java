@@ -30,6 +30,7 @@ import cientistavuador.ciencraftreal.audio.AudioSystem;
 import cientistavuador.ciencraftreal.block.BlockSounds;
 import cientistavuador.ciencraftreal.block.BlockTextures;
 import cientistavuador.ciencraftreal.block.Blocks;
+import cientistavuador.ciencraftreal.text.GLFonts;
 import cientistavuador.ciencraftreal.ubo.UBOBindingPoints;
 import java.io.PrintStream;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -261,6 +262,7 @@ public class Main {
         
         //GLPool.init(); //static initialize
         BlockTextures.init();  //static initialize
+        GLFonts.init(); //static initialize
         BlockSounds.init(); //static initialize
         Blocks.init(); //static initialize
         Game.get(); //static initialize

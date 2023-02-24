@@ -75,7 +75,7 @@ public class Font {
         return this.characters[index];
     }
     
-    public int getIndexByUnicode(int unicode) {
+    public int getIndexOfUnicode(int unicode) {
         Integer index = this.unicodeToIndexMap.get(unicode);
         if (index == null) {
             return this.unknownCharacterIndex;

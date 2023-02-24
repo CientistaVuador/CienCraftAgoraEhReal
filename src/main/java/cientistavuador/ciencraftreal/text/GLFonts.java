@@ -24,22 +24,40 @@
  *
  * For more information, please refer to <https://unlicense.org>
  */
-package cientistavuador.ciencraftreal.ubo;
+package cientistavuador.ciencraftreal.text;
 
 /**
  *
  * @author Cien
  */
-public class UBOBindingPoints {
+public class GLFonts {
     
-    public static final int MIN_NUMBER_OF_UBO_BINDING_POINTS = 36;
+    public static final boolean DEBUG_OUTPUT = true;
     
-    public static final int BLOCK_COLORS = 0;
-    public static final int BLOCK_MATERIALS = 1;
-    public static final int PLAYER_CAMERA = 2;
-    public static final int FONT_TEXT = 3;
+    public static final GLFont ROBOTO_BOLD;
     
-    private UBOBindingPoints() {
+    static {
+        if (DEBUG_OUTPUT) {
+            System.out.println("Loading fonts.");
+        }
+        
+        GLFont[] fonts = GLFontLoader.load(new String[] {
+            "Roboto-Bold.zip"
+        });
+        
+        ROBOTO_BOLD = fonts[0];
+        
+        if (DEBUG_OUTPUT) {
+            System.out.println("Finished loading fonts.");
+        }
+    }
+    
+    public static void init() {
         
     }
+    
+    private GLFonts() {
+        
+    }
+    
 }

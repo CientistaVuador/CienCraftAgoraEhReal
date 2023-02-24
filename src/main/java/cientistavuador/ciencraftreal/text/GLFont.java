@@ -26,10 +26,60 @@
  */
 package cientistavuador.ciencraftreal.text;
 
+import java.util.Map;
+
 /**
  *
  * @author Cien
  */
 public class GLFont {
+    
+    private final String name;
+    private final int atlasTexture;
+    private final int atlasBoundsTexture;
+    private final float[] advance;
+    private final int unknownCharacterIndex;
+    private final Map<Integer, Integer> unicodeMap;
+
+    protected GLFont(String name, int atlasTexture, int atlasBoundsTexture, float[] advance, int unknownCharacterIndex, Map<Integer, Integer> unicodeMap) {
+        this.name = name;
+        this.atlasTexture = atlasTexture;
+        this.atlasBoundsTexture = atlasBoundsTexture;
+        this.advance = advance;
+        this.unknownCharacterIndex = unknownCharacterIndex;
+        this.unicodeMap = unicodeMap;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+    
+    public int getAtlasTexture() {
+        return this.atlasTexture;
+    }
+
+    public int getAtlasBoundsTexture() {
+        return this.atlasBoundsTexture;
+    }
+
+    public int length() {
+        return this.advance.length;
+    }
+    
+    public float getAdvance(int index) {
+        return this.advance[index];
+    }
+    
+    public int getUnknownCharacterIndex() {
+        return this.unknownCharacterIndex;
+    }
+    
+    public int getIndexOfUnicode(int unicode) {
+        Integer index = this.unicodeMap.get(unicode);
+        if (index == null) {
+            return this.unknownCharacterIndex;
+        }
+        return index;
+    }
     
 }

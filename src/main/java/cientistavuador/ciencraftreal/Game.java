@@ -39,10 +39,8 @@ import cientistavuador.ciencraftreal.player.PlayerPhysics;
 import cientistavuador.ciencraftreal.ubo.CameraUBO;
 import cientistavuador.ciencraftreal.ubo.UBOBindingPoints;
 import cientistavuador.ciencraftreal.debug.AabRender;
+import cientistavuador.ciencraftreal.debug.DebugCharacter;
 import cientistavuador.ciencraftreal.debug.SDFQuad;
-import cientistavuador.ciencraftreal.resources.font.Font;
-import cientistavuador.ciencraftreal.resources.font.FontCharacter;
-import cientistavuador.ciencraftreal.resources.font.FontResources;
 import cientistavuador.ciencraftreal.resources.image.ImageResources;
 import cientistavuador.ciencraftreal.util.BlockOutline;
 import cientistavuador.ciencraftreal.world.WorldCamera;
@@ -67,7 +65,8 @@ public class Game {
     private int currentBlockId = Blocks.HAPPY_2023.getId();
     private final SDFQuad atlasTest = new SDFQuad(ImageResources.load("atlas.png", 4), true);
     private final SDFQuad logoTest = new SDFQuad(ImageResources.load("ciencraftSDF.png", 4), false);
-
+    private final DebugCharacter character = new DebugCharacter();
+    
     private Game() {
 
     }
@@ -119,7 +118,30 @@ public class Game {
             logoTest
         });
         drawCalls++;
-
+        
+        String text = "Olá, isso é um texto de teste!\noutra linha.\ne mais outra!\n\t(um tab)";
+        float size = 0.15f;
+        float x = -1f;
+        float y = 0.0f;
+        for (int i = 0; i < text.length(); i++) {
+            int unicode = text.codePointAt(i);
+            
+            if (unicode == '\n') {
+                x = -1f;
+                y -= size;
+                continue;
+            }
+            
+            if (unicode == '\t') {
+                x += (this.character.getFont().getAdvance(this.character.getFont().getIndexOfUnicode(' ')) * size) * 4;
+                continue;
+            }
+            
+            this.character.render(unicode, size, x, y);
+            
+            x += (this.character.getFont().getAdvance(this.character.getFont().getIndexOfUnicode(unicode)) * size);
+        }
+        
         Main.WINDOW_TITLE += " (Block: " + BlockRegister.getBlock(this.currentBlockId).getName() + ")";
         Main.WINDOW_TITLE += " (x:" + (int) Math.floor(camera.getPosition().x()) + ",y:" + (int) Math.floor(camera.getPosition().y()) + ",z:" + (int) Math.ceil(camera.getPosition().z()) + ")";
         Main.WINDOW_TITLE += " (DrawCalls: " + drawCalls + ")";
