@@ -42,6 +42,7 @@ import cientistavuador.ciencraftreal.debug.AabRender;
 import cientistavuador.ciencraftreal.debug.DebugCharacter;
 import cientistavuador.ciencraftreal.debug.SDFQuad;
 import cientistavuador.ciencraftreal.resources.image.ImageResources;
+import cientistavuador.ciencraftreal.text.GLFonts;
 import cientistavuador.ciencraftreal.util.BlockOutline;
 import cientistavuador.ciencraftreal.world.WorldCamera;
 import static org.lwjgl.glfw.GLFW.*;
@@ -89,6 +90,8 @@ public class Game {
                 255f / 255f,
                 1f
         );
+        
+        character.setFont(GLFonts.OPENSANS_LIGHT_ITALIC);
     }
 
     public void loop() {
@@ -119,7 +122,7 @@ public class Game {
         });
         drawCalls++;
         
-        String text = "Olá, isso é um texto de teste!\noutra linha.\ne mais outra!\n\t(um tab)";
+        String text = "Olá, isso é um texto de teste!\noutra linha.\ne mais outra!\n\t(um tab)□(desconhecido)";
         float size = 0.15f;
         float x = -1f;
         float y = 0.0f;
