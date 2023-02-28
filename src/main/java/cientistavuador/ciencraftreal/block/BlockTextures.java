@@ -57,7 +57,6 @@ public class BlockTextures {
     public static final int SAND = BlockTextureLoader.push("vulpes_sand.png");
     public static final int WATER_TOP_START = BlockTextureLoader.push("vulpes_water_source_animated_noalpha.png", 4);
     public static final int WATER_TOP_END = WATER_TOP_START + 4;
-    public static final int LEAVES_BW = BlockTextureLoader.push("vulpescien_leaves_bw.png");
     
     //2.1-DEV
     public static final int WATER_SIDE_START = BlockTextureLoader.push("vulpes_water_flowing_animated_noalpha.png", 4);
