@@ -35,6 +35,10 @@ import cientistavuador.ciencraftreal.block.SimpleBlock;
  */
 public class Planks extends SimpleBlock {
     
+    public Planks(String name, int texture) {
+        super(name, texture);
+    }
+    
     public Planks() {
         super("ciencraft_planks", BlockTextures.PLANKS);
     }

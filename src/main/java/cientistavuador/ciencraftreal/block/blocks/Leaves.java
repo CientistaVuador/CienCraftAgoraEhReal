@@ -37,13 +37,17 @@ import cientistavuador.ciencraftreal.block.SimpleBlock;
  */
 public class Leaves extends SimpleBlock {
     
+    public Leaves(String name, int texture) {
+        super(name, texture);
+    }
+    
     public Leaves() {
         super("ciencraft_leaves", BlockTextures.LEAVES);
     }
 
     @Override
     public BlockTransparency getBlockTransparency() {
-        return BlockTransparency.FOLIAGE;
+        return BlockTransparency.LIKE_FOLIAGE;
     }
     
     @Override

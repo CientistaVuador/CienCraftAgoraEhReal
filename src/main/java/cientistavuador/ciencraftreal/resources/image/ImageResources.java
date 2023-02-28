@@ -44,6 +44,7 @@ public class ImageResources {
 
     /**
      * Loads an image
+     *
      * @param name the resource name
      * @param desiredChannels desired number of channels (0 1 2 3 4)
      * @return a native image that must be manually freed
@@ -59,56 +60,67 @@ public class ImageResources {
             URLConnection conn = url.openConnection();
             conn.connect();
 
-            InputStream in = conn.getInputStream();
-
-            ByteBuffer imageFile = memAlloc(conn.getContentLength());
-            try {
-
-                byte[] buffer = new byte[4096];
-
-                int r;
-                while ((r = in.read(buffer)) != -1) {
-                    imageFile.put(buffer, 0, r);
-                }
-
-                imageFile.flip();
-
-                NativeImage image;
-                
-                try (MemoryStack stack = MemoryStack.stackPush()) {
-                    IntBuffer widthBuffer = stack.callocInt(1);
-                    IntBuffer heightBuffer = stack.callocInt(1);
-                    IntBuffer channels = stack.callocInt(1);
-
-                    stbi_set_flip_vertically_on_load_thread(1);
-
-                    ByteBuffer imageData = stbi_load_from_memory(
-                            imageFile,
-                            widthBuffer,
-                            heightBuffer,
-                            channels,
-                            desiredChannels
-                    );
-
-                    if (imageData == null) {
-                        throw new NullPointerException("Failed to load '" + name + "': " + stbi_failure_reason());
-                    }
-
-                    image = new NativeImage(
-                            imageData,
-                            widthBuffer.get(),
-                            heightBuffer.get(),
-                            channels.get()
-                    );
-                }
-                
-                return image;
-            } finally {
-                memFree(imageFile);
+            try (InputStream in = conn.getInputStream()) {
+                return load(name, in, conn.getContentLength(), desiredChannels);
             }
-
         } catch (IOException ex) {
             throw new RuntimeException(ex);
+        }
+    }
+
+    public static NativeImage load(String name, InputStream stream, int size, int desiredChannels) {
+        ByteBuffer imageFile = memAlloc(size);
+        try {
+            byte[] buffer = new byte[4096];
+
+            try {
+                int r;
+                while ((r = stream.read(buffer)) != -1) {
+                    imageFile.put(buffer, 0, r);
+                }
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+
+            imageFile.flip();
+
+            NativeImage image;
+
+            try (MemoryStack stack = MemoryStack.stackPush()) {
+                IntBuffer widthBuffer = stack.callocInt(1);
+                IntBuffer heightBuffer = stack.callocInt(1);
+                IntBuffer channels = stack.callocInt(1);
+
+                stbi_set_flip_vertically_on_load_thread(1);
+
+                ByteBuffer imageData = stbi_load_from_memory(
+                        imageFile,
+                        widthBuffer,
+                        heightBuffer,
+                        channels,
+                        desiredChannels
+                );
+
+                if (imageData == null) {
+                    throw new NullPointerException("Failed to load '" + name + "': " + stbi_failure_reason());
+                }
+
+                int resultChannels = channels.get();
+                if (desiredChannels != 0) {
+                    resultChannels = desiredChannels;
+                }
+
+                image = new NativeImage(
+                        imageData,
+                        widthBuffer.get(),
+                        heightBuffer.get(),
+                        resultChannels
+                );
+            }
+
+            return image;
+        } finally {
+            memFree(imageFile);
         }
     }
 

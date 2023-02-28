@@ -26,11 +26,14 @@
  */
 package cientistavuador.ciencraftreal.block;
 
+import cientistavuador.ciencraftreal.block.blocks.AspenLeaves;
+import cientistavuador.ciencraftreal.block.blocks.AspenPlanks;
+import cientistavuador.ciencraftreal.block.blocks.AspenWood;
 import cientistavuador.ciencraftreal.block.blocks.Bedrock;
-import cientistavuador.ciencraftreal.block.blocks.BrownLeaves;
 import cientistavuador.ciencraftreal.block.blocks.CoalOre;
 import cientistavuador.ciencraftreal.block.blocks.DeadWood;
 import cientistavuador.ciencraftreal.block.blocks.Dirt;
+import cientistavuador.ciencraftreal.block.blocks.Glass;
 import cientistavuador.ciencraftreal.block.blocks.Grass;
 import cientistavuador.ciencraftreal.block.blocks.Happy2023;
 import cientistavuador.ciencraftreal.block.blocks.IronOre;
@@ -69,10 +72,15 @@ public class Blocks {
     public static final Mycelium MYCELIUM = new Mycelium();
     public static final Sand SAND = new Sand();
     public static final Water WATER = new Water();
-    public static final BrownLeaves BROWN_LEAVES = new BrownLeaves();
     
     //2.1-DEV
     public static final Planks PLANKS = new Planks();
+    
+    //2.5-DEV
+    public static final Glass GLASS = new Glass();
+    public static final AspenLeaves ASPEN_LEAVES = new AspenLeaves();
+    public static final AspenPlanks ASPEN_PLANKS = new AspenPlanks();
+    public static final AspenWood ASPEN_WOOD = new AspenWood();
     
     static {
         //0.5-DEV
@@ -95,10 +103,15 @@ public class Blocks {
         BlockRegister.register(MYCELIUM);
         BlockRegister.register(SAND);
         BlockRegister.register(WATER);
-        BlockRegister.register(BROWN_LEAVES);
         
         //2.1-DEV
         BlockRegister.register(PLANKS);
+        
+        //2.5-DEV
+        BlockRegister.register(GLASS);
+        BlockRegister.register(ASPEN_LEAVES);
+        BlockRegister.register(ASPEN_PLANKS);
+        BlockRegister.register(ASPEN_WOOD);
     }
     
     public static final Block[] ORES = new Block[] {

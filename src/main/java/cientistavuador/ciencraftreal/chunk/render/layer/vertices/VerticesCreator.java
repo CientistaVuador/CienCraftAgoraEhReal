@@ -56,11 +56,11 @@ public class VerticesCreator {
                         continue;
                     }
 
-                    if (coloredGlassOnly && !BlockTransparency.COLORED_GLASS.equals(block.getBlockTransparency())) {
+                    if (coloredGlassOnly && !BlockTransparency.LIKE_COLORED_GLASS.equals(block.getBlockTransparency())) {
                         continue;
                     }
 
-                    if (!coloredGlassOnly && BlockTransparency.COLORED_GLASS.equals(block.getBlockTransparency())) {
+                    if (!coloredGlassOnly && BlockTransparency.LIKE_COLORED_GLASS.equals(block.getBlockTransparency())) {
                         continue;
                     }
 

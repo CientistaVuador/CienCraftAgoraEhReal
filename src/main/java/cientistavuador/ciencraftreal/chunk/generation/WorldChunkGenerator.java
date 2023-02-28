@@ -350,7 +350,7 @@ public class WorldChunkGenerator implements ChunkGenerator {
         }
     }
 
-    private void placeTree(int x, int y, int z, boolean brownType) {
+    private void placeTree(int x, int y, int z, boolean aspenType) {
         if (
                 ((x-2) < 0 || (x+2) >= Chunk.CHUNK_SIZE) ||
                 ((z-2) <= -Chunk.CHUNK_SIZE || (z+2) > 0)
@@ -358,12 +358,12 @@ public class WorldChunkGenerator implements ChunkGenerator {
             return;
         }
         int treeHeight = 4;
-        if (brownType) {
-            treeHeight = 5;
+        if (aspenType) {
+            treeHeight = 6;
         }
         Block leaves = Blocks.LEAVES;
-        if (brownType) {
-            leaves = Blocks.BROWN_LEAVES;
+        if (aspenType) {
+            leaves = Blocks.ASPEN_LEAVES;
         }
         int height = this.treeRandom.nextInt(treeHeight) + 4;
         for (int localZ = -2; localZ <= 2; localZ++) {
@@ -377,7 +377,7 @@ public class WorldChunkGenerator implements ChunkGenerator {
             }
         }
         for (int i = 0; i < height; i++) {
-            this.chunk.setBlock(x, y + i, z, Blocks.WOOD);
+            this.chunk.setBlock(x, y + i, z, (aspenType ? Blocks.ASPEN_WOOD : Blocks.WOOD));
         }
         for (int i = 0; i < 2; i++) {
             this.chunk.setBlock(x, y + i + height, z, leaves);

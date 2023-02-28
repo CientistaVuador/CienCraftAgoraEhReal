@@ -35,6 +35,10 @@ import cientistavuador.ciencraftreal.block.SimpleBlock;
  */
 public class Wood extends SimpleBlock {
     
+    public Wood(String name, int topBottomTexture, int sideTexture) {
+        super(name, topBottomTexture, sideTexture);
+    } 
+    
     public Wood() {
         super("ciencraft_wood", BlockTextures.TREE_TOP, BlockTextures.TREE);
     }

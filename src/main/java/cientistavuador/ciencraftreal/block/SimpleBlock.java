@@ -80,13 +80,21 @@ public abstract class SimpleBlock implements Block, SolidBlockCheck {
         sideTextures[side.index()] = texture;
     }
 
+    @Override
+    public boolean isSolidBlock(Block block) {
+        if (block != Blocks.AIR && BlockTransparency.LIKE_GLASS.equals(getBlockTransparency()) && BlockTransparency.LIKE_GLASS.equals(block.getBlockTransparency())) {
+            return true;
+        }
+        return SolidBlockCheck.super.isSolidBlock(block);
+    }
+    
     public int getBlockSideTexture(BlockSide side) {
         return sideTextures[side.index()];
     }
 
     @Override
     public BlockTransparency getBlockTransparency() {
-        return BlockTransparency.SOLID;
+        return BlockTransparency.LIKE_SOLID;
     }
     
     @Override

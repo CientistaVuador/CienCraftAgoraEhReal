@@ -24,10 +24,11 @@
  *
  * For more information, please refer to <https://unlicense.org>
  */
-package cientistavuador.ciencraftreal.util;
+package cientistavuador.ciencraftreal.debug;
 
 import cientistavuador.ciencraftreal.camera.Camera;
 import cientistavuador.ciencraftreal.ubo.CameraUBO;
+import cientistavuador.ciencraftreal.util.ProgramCompiler;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import static org.lwjgl.opengl.GL33C.*;
 
@@ -55,7 +56,7 @@ public class AabRender {
             layout (location = 0) in vec3 vertexPos;
             
             void main() {
-                vec3 resultVertex = (vertexPos * aabScale) + vec3(iaabPos - icamPos.xyz) + vec3(daabPos - dcamPos.xyz);
+                vec3 resultVertex = (vertexPos * aabScale) + vec3(iaabPos - icamPos.xyz) + (daabPos - dcamPos.xyz);
                 gl_Position = projection * view * vec4(resultVertex, 1.0);
             }
             """;
