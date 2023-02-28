@@ -28,6 +28,7 @@ package cientistavuador.ciencraftreal.ubo;
 
 import cientistavuador.ciencraftreal.Main;
 import cientistavuador.ciencraftreal.util.ObjectCleaner;
+import java.util.Arrays;
 import static org.lwjgl.opengl.GL33C.*;
 
 /**
@@ -63,7 +64,7 @@ public class FontTextUBO {
         this.ubo = ubo;
         
         glBindBuffer(GL_UNIFORM_BUFFER, this.ubo);
-        glBufferData(GL_UNIFORM_BUFFER, this.data, GL_DYNAMIC_DRAW);
+        glBufferData(GL_UNIFORM_BUFFER, this.data, GL_STATIC_DRAW);
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
         glBindBufferBase(GL_UNIFORM_BUFFER, bindingPoint, this.ubo);
@@ -85,19 +86,17 @@ public class FontTextUBO {
         return ubo;
     }
     
-    public boolean push(int unicodeIndex, float originX, float originY, int unused) {
-        if (this.index >= this.data.length) {
-            return false;
-        }
+    public boolean canPush() {
+        return this.index < this.data.length;
+    }
+    
+    public void push(int unicodeIndex, int unused, float originX, float originY) {
+        this.data[(this.index * 4) + 0] = unicodeIndex;
+        this.data[(this.index * 4) + 1] = unused;
+        this.data[(this.index * 4) + 2] = Float.floatToRawIntBits(originX);
+        this.data[(this.index * 4) + 3] = Float.floatToRawIntBits(originY);
         
-        this.data[this.index + 0] = unicodeIndex;
-        this.data[this.index + 1] = Float.floatToRawIntBits(originX);
-        this.data[this.index + 2] = Float.floatToRawIntBits(originY);
-        this.data[this.index + 3] = unused;
-        
-        this.index += 4;
-        
-        return true;
+        this.index++;
     }
     
     public void flipAndUpdate() {
@@ -105,7 +104,7 @@ public class FontTextUBO {
         this.index = 0;
         
         glBindBuffer(GL_UNIFORM_BUFFER, this.ubo);
-        glBufferData(GL_UNIFORM_BUFFER, this.data, GL_DYNAMIC_DRAW);
+        glBufferData(GL_UNIFORM_BUFFER, this.data, GL_STATIC_DRAW);
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
     }
     

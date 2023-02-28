@@ -42,6 +42,9 @@ import cientistavuador.ciencraftreal.debug.AabRender;
 import cientistavuador.ciencraftreal.debug.DebugCharacter;
 import cientistavuador.ciencraftreal.debug.SDFQuad;
 import cientistavuador.ciencraftreal.resources.image.ImageResources;
+import cientistavuador.ciencraftreal.text.GLFontRenderer;
+import cientistavuador.ciencraftreal.text.GLFontSpecification;
+import cientistavuador.ciencraftreal.text.GLFontSpecifications;
 import cientistavuador.ciencraftreal.text.GLFonts;
 import cientistavuador.ciencraftreal.util.BlockOutline;
 import cientistavuador.ciencraftreal.world.WorldCamera;
@@ -67,7 +70,7 @@ public class Game {
     private final SDFQuad atlasTest = new SDFQuad(ImageResources.load("atlas.png", 4), true);
     private final SDFQuad logoTest = new SDFQuad(ImageResources.load("ciencraftSDF.png", 4), false);
     private final DebugCharacter character = new DebugCharacter();
-    
+
     private Game() {
 
     }
@@ -79,7 +82,7 @@ public class Game {
 
         camera.setMovementDisabled(true);
         player.setMovementDisabled(false);
-        
+
         atlasTest.setPosition(0, 70, 0);
         atlasTest.setScale(10, 10, 10);
         logoTest.setPosition(-10, 70, 0);
@@ -90,7 +93,7 @@ public class Game {
                 255f / 255f,
                 1f
         );
-        
+
         character.setFont(GLFonts.OPENSANS_LIGHT_ITALIC);
     }
 
@@ -115,41 +118,58 @@ public class Game {
         }
 
         drawCalls += AabRender.renderQueue(camera);
-        
-        SDFQuad.render(camera, new SDFQuad[] {
+
+        SDFQuad.render(camera, new SDFQuad[]{
             atlasTest,
             logoTest
         });
         drawCalls++;
-        
-        String text = "Olá, isso é um texto de teste!\noutra linha.\ne mais outra!\n\t(um tab)□(desconhecido)";
-        float size = 0.15f;
-        float x = -1f;
-        float y = 0.0f;
-        for (int i = 0; i < text.length(); i++) {
-            int unicode = text.codePointAt(i);
-            
-            if (unicode == '\n') {
-                x = -1f;
-                y -= size;
-                continue;
-            }
-            
-            if (unicode == '\t') {
-                x += (this.character.getFont().getAdvance(this.character.getFont().getIndexOfUnicode(' ')) * size) * 4;
-                continue;
-            }
-            
-            this.character.render(unicode, size, x, y);
-            
-            x += (this.character.getFont().getAdvance(this.character.getFont().getIndexOfUnicode(unicode)) * size);
-        }
-        
+
         Main.WINDOW_TITLE += " (Block: " + BlockRegister.getBlock(this.currentBlockId).getName() + ")";
         Main.WINDOW_TITLE += " (x:" + (int) Math.floor(camera.getPosition().x()) + ",y:" + (int) Math.floor(camera.getPosition().y()) + ",z:" + (int) Math.ceil(camera.getPosition().z()) + ")";
         Main.WINDOW_TITLE += " (DrawCalls: " + drawCalls + ")";
 
         AudioPlayer.update(camera);
+
+        String lookingAt = "---";
+        Block lookingAtBlock = this.outline.getBlock();
+        if (lookingAtBlock != Blocks.AIR) {
+            lookingAt = "Looking at " + lookingAtBlock.getName() + " at X: " + outline.getCastPos().x() + ", Y: " + outline.getCastPos().y() + ", Z: " + outline.getCastPos().z();
+        }
+
+        GLFontRenderer.render(-1f, 0.90f,
+                new GLFontSpecification[]{
+                    GLFontSpecifications.OPENSANS_ITALIC_0_10_BANANA_YELLOW,
+                    GLFontSpecifications.ROBOTO_THIN_0_05_WHITE
+                },
+                new String[]{
+                    "CienCraft-2.5-DEV\n",
+                    new StringBuilder()
+                            .append("FPS: ").append(Main.FPS).append('\n')
+                            .append("X: ").append(format(camera.getPosition().x())).append(" ")
+                            .append("Y: ").append(format(camera.getPosition().y())).append(" ")
+                            .append("Z: ").append(format(camera.getPosition().z())).append('\n')
+                            .append("Current Block: ").append(BlockRegister.getBlock(this.currentBlockId).getName()).append('\n')
+                            .append(lookingAt).append('\n')
+                            .append("Controls:\n")
+                            .append("\tWASD + Space + Mouse - Move\n")
+                            .append("\tShift - Run\n")
+                            .append("\tAlt - Wander\n")
+                            .append("\tCtrl - Unlock/Lock mouse\n")
+                            .append("\tLeft Click - Destroy block.\n")
+                            .append("\tRight Click - Place block.\n")
+                            .append("\tF - Random teleport.\n")
+                            .append("\tR - Change current block.\n")
+                            .append("\tV - Freecam\n")
+                            .append("\n\n\n\n")
+                            .toString()
+                }
+        );
+
+    }
+
+    private String format(double d) {
+        return String.format("%.2f", d);
     }
 
     public void mouseCursorMoved(double x, double y) {
