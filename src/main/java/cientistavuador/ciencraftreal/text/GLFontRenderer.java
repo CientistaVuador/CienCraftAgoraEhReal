@@ -38,7 +38,8 @@ import static org.lwjgl.opengl.GL33C.*;
 public class GLFontRenderer {
 
     private static final String VERTEX_SHADER
-            = """
+            = 
+            """
             #version 330 core
             
             uniform sampler2D atlasBounds;
@@ -94,8 +95,8 @@ public class GLFontRenderer {
             
             void main() {
                 vec3 sdfColor = texture(atlas, texCoords).rgb;
-                float distance = 1.0 - median(sdfColor.r, sdfColor.g, sdfColor.b);
-                if (distance > weight) {
+                float distance = median(sdfColor.r, sdfColor.g, sdfColor.b);
+                if (distance < (1.0 - weight)) {
                     discard;
                 }
                 fragColor = color;

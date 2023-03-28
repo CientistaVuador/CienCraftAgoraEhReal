@@ -76,6 +76,10 @@ public class Game {
         camera.setMovementDisabled(true);
         player.setMovementDisabled(false);
     }
+    
+    public void guiLoop() {
+        
+    }
 
     public void loop() {
         camera.updateMovement();

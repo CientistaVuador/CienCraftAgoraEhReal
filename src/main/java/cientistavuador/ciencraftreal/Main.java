@@ -268,7 +268,7 @@ public class Main {
         Game.get(); //static initialize
 
         Main.checkGLError();
-
+        
         GLFWFramebufferSizeCallbackI frameBufferSizecb = (window, width, height) -> {
             glViewport(0, 0, width, height);
             Main.WIDTH = width;

@@ -26,7 +26,7 @@
  */
 package cientistavuador.ciencraftreal.text;
 
-import java.util.Map;
+import cientistavuador.ciencraftreal.resources.font.Font;
 
 /**
  *
@@ -34,24 +34,18 @@ import java.util.Map;
  */
 public class GLFont {
     
-    private final String name;
+    private final Font font;
     private final int atlasTexture;
     private final int atlasBoundsTexture;
-    private final float[] advance;
-    private final int unknownCharacterIndex;
-    private final Map<Integer, Integer> unicodeMap;
 
-    protected GLFont(String name, int atlasTexture, int atlasBoundsTexture, float[] advance, int unknownCharacterIndex, Map<Integer, Integer> unicodeMap) {
-        this.name = name;
+    protected GLFont(Font font, int atlasTexture, int atlasBoundsTexture) {
+        this.font = font;
         this.atlasTexture = atlasTexture;
         this.atlasBoundsTexture = atlasBoundsTexture;
-        this.advance = advance;
-        this.unknownCharacterIndex = unknownCharacterIndex;
-        this.unicodeMap = unicodeMap;
     }
 
-    public String getName() {
-        return this.name;
+    public Font getFont() {
+        return font;
     }
     
     public int getAtlasTexture() {
@@ -61,25 +55,25 @@ public class GLFont {
     public int getAtlasBoundsTexture() {
         return this.atlasBoundsTexture;
     }
+    
+    public String getName() {
+        return this.font.getName();
+    }
 
     public int length() {
-        return this.advance.length;
+        return this.font.getCharactersLength();
     }
     
     public float getAdvance(int index) {
-        return this.advance[index];
+        return this.font.getCharacter(index).getAdvance();
     }
     
     public int getUnknownCharacterIndex() {
-        return this.unknownCharacterIndex;
+        return this.font.getUnknownCharacterIndex();
     }
     
     public int getIndexOfUnicode(int unicode) {
-        Integer index = this.unicodeMap.get(unicode);
-        if (index == null) {
-            return this.unknownCharacterIndex;
-        }
-        return index;
+        return this.font.getIndexOfUnicode(unicode);
     }
     
 }
