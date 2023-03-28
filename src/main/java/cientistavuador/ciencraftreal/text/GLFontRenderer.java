@@ -26,6 +26,9 @@
  */
 package cientistavuador.ciencraftreal.text;
 
+import cientistavuador.ciencraftreal.Main;
+import cientistavuador.ciencraftreal.resources.font.Font;
+import cientistavuador.ciencraftreal.resources.font.FontCharacter;
 import cientistavuador.ciencraftreal.ubo.FontTextUBO;
 import cientistavuador.ciencraftreal.util.ProgramCompiler;
 import java.util.HashMap;
@@ -47,7 +50,7 @@ public class GLFontRenderer {
             
             struct UnicodePoint {
                 int unicodeIndex;
-                int unused;
+                float pxRange;
                 vec2 origin;
             };
             
@@ -59,6 +62,7 @@ public class GLFontRenderer {
             layout (location = 1) in int bottomTop; //0-1
             
             out vec2 texCoords;
+            flat out float pxRange;
             
             void main() {
                 UnicodePoint point = text[gl_InstanceID];
@@ -74,11 +78,13 @@ public class GLFontRenderer {
                 
                 gl_Position = vec4((planeBounds[leftRight] * size) + translation.x, (planeBounds[2 + bottomTop] * size) + translation.y, -1.0, 1.0);
                 texCoords = vec2(atlasBounds[leftRight], atlasBounds[2 + bottomTop]);
+                pxRange = point.pxRange;
             }
             """;
 
     private static final String FRAGMENT_SHADER
-            = """
+            = 
+            """
             #version 330 core
             
             uniform sampler2D atlas;
@@ -86,6 +92,7 @@ public class GLFontRenderer {
             uniform float weight;
             
             in vec2 texCoords;
+            flat in float pxRange;
             
             layout (location = 0) out vec4 fragColor;
             
@@ -96,10 +103,13 @@ public class GLFontRenderer {
             void main() {
                 vec3 sdfColor = texture(atlas, texCoords).rgb;
                 float distance = median(sdfColor.r, sdfColor.g, sdfColor.b);
-                if (distance < (1.0 - weight)) {
+                float inverseWeight = 1.0 - weight;
+                float screenPxDistance = pxRange * (distance - inverseWeight);
+                float opacity = clamp(screenPxDistance + inverseWeight, 0.0, 1.0);
+                if (opacity == 0.0) {
                     discard;
                 }
-                fragColor = color;
+                fragColor = color * vec4(vec3(1.0), opacity);
             }
             """;
 
@@ -168,6 +178,7 @@ public class GLFontRenderer {
         for (int i = 0; i < fonts.length; i++) {
             GLFontSpecification spec = fonts[i];
             GLFont font = spec.getFont();
+            Font rawFont = font.getFont();
 
             float fontSize = spec.getSize();
             float spaceAdvance = font.getAdvance(font.getIndexOfUnicode(' '));
@@ -188,7 +199,8 @@ public class GLFontRenderer {
             for (int j = 0; j < length; j++) {
                 int unicode = text.codePointAt(j);
                 int unicodeIndex = font.getIndexOfUnicode(unicode);
-                float advance = font.getAdvance(unicodeIndex);
+                FontCharacter rawCharacter = rawFont.getCharacter(unicodeIndex);
+                float advance = rawCharacter.getAdvance();
 
                 boolean skipPush = false;
 
@@ -213,7 +225,14 @@ public class GLFontRenderer {
                 }
                 
                 if (!skipPush) {
-                    ubo.push(unicodeIndex, 0, x, y);
+                    float charWidth = rawCharacter.getAtlasBoundsRight() - rawCharacter.getAtlasBoundsLeft();
+                    float charHeight = rawCharacter.getAtlasBoundsTop() - rawCharacter.getAtlasBoundsBottom();
+                    float quadWidth = ((rawCharacter.getPlaneBoundsRight() - rawCharacter.getPlaneBoundsLeft()) * fontSize) * Main.WIDTH;
+                    float quadHeight = ((rawCharacter.getPlaneBoundsTop() - rawCharacter.getPlaneBoundsBottom()) * fontSize) * Main.HEIGHT;
+                    
+                    float pxRange = (((quadWidth/charWidth) * 4f) + ((quadHeight/charHeight) * 4f)) / 2f;
+                    
+                    ubo.push(unicodeIndex, pxRange, x, y);
                     x += (fontSize * advance);
                 }
 

@@ -28,7 +28,6 @@ package cientistavuador.ciencraftreal.ubo;
 
 import cientistavuador.ciencraftreal.Main;
 import cientistavuador.ciencraftreal.util.ObjectCleaner;
-import java.util.Arrays;
 import static org.lwjgl.opengl.GL33C.*;
 
 /**
@@ -90,9 +89,9 @@ public class FontTextUBO {
         return this.index < this.data.length;
     }
     
-    public void push(int unicodeIndex, int unused, float originX, float originY) {
+    public void push(int unicodeIndex, float pxRange, float originX, float originY) {
         this.data[(this.index * 4) + 0] = unicodeIndex;
-        this.data[(this.index * 4) + 1] = unused;
+        this.data[(this.index * 4) + 1] = Float.floatToRawIntBits(pxRange);
         this.data[(this.index * 4) + 2] = Float.floatToRawIntBits(originX);
         this.data[(this.index * 4) + 3] = Float.floatToRawIntBits(originY);
         
