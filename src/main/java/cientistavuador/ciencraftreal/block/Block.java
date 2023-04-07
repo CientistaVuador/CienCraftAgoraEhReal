@@ -71,4 +71,10 @@ public interface Block {
     default int getStepSound() {
         return BlockSounds.NULL;
     }
+    default boolean hasAO() {
+        return false;
+    }
+    default boolean isAOSolid() {
+        return false;
+    }
 }

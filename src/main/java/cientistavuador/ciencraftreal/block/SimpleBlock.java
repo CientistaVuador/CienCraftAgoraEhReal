@@ -130,12 +130,21 @@ public abstract class SimpleBlock implements Block, SolidBlockCheck {
         float[] vertices = new float[verticesSize];
         int pos = 0;
 
+        AmbientOcclusion ao = null;
+        if (hasAO()) {
+            ao = new AmbientOcclusion();
+            ao.setBlock(chunk, chunkBlockX, chunkBlockY, chunkBlockZ);
+        }
+        
         for (int i = 0; i < sides.length; i++) {
             if (sides[i]) {
                 continue;
             }
             BlockSide side = BlockSide.sideOf(i);
-            float[] sideVertices = BlockFacesVertices.generateFaceVertices(side, chunkX, chunkY, chunkZ, sideTextures[i]);
+            if (ao != null) {
+                ao.generateAO(side);
+            }
+            float[] sideVertices = BlockFacesVertices.generateFaceVertices(side, chunkX, chunkY, chunkZ, sideTextures[i], ao);
             System.arraycopy(sideVertices, 0, vertices, pos, sideVertices.length);
             pos += sideVertices.length;
         }
@@ -148,6 +157,16 @@ public abstract class SimpleBlock implements Block, SolidBlockCheck {
         return this.name;
     }
 
+    @Override
+    public boolean hasAO() {
+        return true;
+    }
+
+    @Override
+    public boolean isAOSolid() {
+        return true;
+    }
+    
     @Override
     public String toString() {
         return getName();
