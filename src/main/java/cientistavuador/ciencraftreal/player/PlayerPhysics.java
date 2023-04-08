@@ -153,8 +153,8 @@ public class PlayerPhysics {
 
     public double getUnfairTPF() {
         double tpf = Main.TPF;
-        if ((1.0 / tpf) < 60.0) {
-            return 1.0 / 60.0;
+        if ((1.0 / tpf) < 30.0) {
+            return 1.0 / 30.0;
         }
         return tpf;
     }

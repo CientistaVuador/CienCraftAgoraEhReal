@@ -170,6 +170,7 @@ public class Game {
                         90,
                         Math.random() * 100000000
                 );
+                player.setSpeed(0f, 0f, 0f);
             }
         }
         if (key == GLFW_KEY_G && action == GLFW_PRESS) {
@@ -192,6 +193,8 @@ public class Game {
             if (player.isMovementDisabled()) {
                 camera.setMovementDisabled(true);
                 player.setMovementDisabled(false);
+                player.setPosition(camera.getPosition());
+                player.setSpeed(0, 0, 0);
             } else {
                 camera.setMovementDisabled(false);
                 player.setMovementDisabled(true);
