@@ -111,10 +111,10 @@ public class PlayerPhysicsInput extends PlayerPhysics {
         
         if (walkSpeed.isFinite()) {
             if (Math.abs(getSpeed().x()) < Math.abs(walkSpeed.x())) {
-                addSpeed(walkSpeed.x() * Main.TPF * MOVEMENT_FORCE, 0, 0);
+                addSpeed(walkSpeed.x() * getUnfairTPF() * MOVEMENT_FORCE, 0, 0);
             }
             if (Math.abs(getSpeed().z()) < Math.abs(walkSpeed.z())) {
-                addSpeed(0, 0, walkSpeed.z() * Main.TPF * MOVEMENT_FORCE);
+                addSpeed(0, 0, walkSpeed.z() * getUnfairTPF() * MOVEMENT_FORCE);
             }
         }
 
@@ -124,7 +124,7 @@ public class PlayerPhysicsInput extends PlayerPhysics {
         }
         
         if (isOnLiquid() && glfwGetKey(Main.WINDOW_POINTER, GLFW_KEY_SPACE) == GLFW_PRESS && getSpeed().y() < SWIM_UP_SPEED) {
-            addSpeed(0, SWIM_UP_SPEED * Main.TPF * MOVEMENT_FORCE, 0);
+            addSpeed(0, SWIM_UP_SPEED * getUnfairTPF() * MOVEMENT_FORCE, 0);
         }
         
         boolean liquidStore = isOnLiquid();

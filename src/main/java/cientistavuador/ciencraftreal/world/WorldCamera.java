@@ -150,7 +150,7 @@ public class WorldCamera {
                     return chunk;
                 });
             } else if (m instanceof Future<?> e) {
-                if (!e.isDone()) {
+                if (!e.isDone() && x < -1 && x > 1 && z < -1 && z > 1) {
                     continue;
                 }
                 try {

@@ -151,27 +151,35 @@ public class PlayerPhysics {
         this.movementDisabled = movementDisabled;
     }
 
+    public double getUnfairTPF() {
+        double tpf = Main.TPF;
+        if ((1.0 / tpf) < 60.0) {
+            return 1.0 / 60.0;
+        }
+        return tpf;
+    }
+    
     public void update() {
-        addSpeed(0, -GRAVITY * Main.TPF, 0);
+        addSpeed(0, -GRAVITY * getUnfairTPF(), 0);
 
         if (isOnLiquid()) {
             addSpeed(
-                    -getSpeed().x() * LIQUID_RESISTANCE * Main.TPF,
-                    -getSpeed().y() * LIQUID_RESISTANCE * Main.TPF,
-                    -getSpeed().z() * LIQUID_RESISTANCE * Main.TPF
+                    -getSpeed().x() * LIQUID_RESISTANCE * getUnfairTPF(),
+                    -getSpeed().y() * LIQUID_RESISTANCE * getUnfairTPF(),
+                    -getSpeed().z() * LIQUID_RESISTANCE * getUnfairTPF()
             );
         } else {
             if (isOnAir()) {
                 addSpeed(
-                        -getSpeed().x() * AIR_RESISTANCE * Main.TPF,
+                        -getSpeed().x() * AIR_RESISTANCE * getUnfairTPF(),
                         0,
-                        -getSpeed().z() * AIR_RESISTANCE * Main.TPF
+                        -getSpeed().z() * AIR_RESISTANCE * getUnfairTPF()
                 );
             } else {
                 addSpeed(
-                        -getSpeed().x() * GROUND_RESISTANCE * Main.TPF,
+                        -getSpeed().x() * GROUND_RESISTANCE * getUnfairTPF(),
                         0,
-                        -getSpeed().z() * GROUND_RESISTANCE * Main.TPF
+                        -getSpeed().z() * GROUND_RESISTANCE * getUnfairTPF()
                 );
             }
         }
@@ -246,7 +254,7 @@ public class PlayerPhysics {
 
                     boolean changed = false;
                     if (xSpeed != 0.0) {
-                        setPosition(xStore + (xSpeed * Main.TPF), yStore, zStore);
+                        setPosition(xStore + (xSpeed * getUnfairTPF()), yStore, zStore);
                         if (block.checkCollision(blockX, blockY, blockZ, this)) {
                             xSpeed = 0.0;
                             this.collisionBlockX = block;
@@ -254,7 +262,7 @@ public class PlayerPhysics {
                         changed = true;
                     }
                     if (ySpeed != 0.0) {
-                        setPosition(xStore, yStore + (ySpeed * Main.TPF), zStore);
+                        setPosition(xStore, yStore + (ySpeed * getUnfairTPF()), zStore);
                         if (block.checkCollision(blockX, blockY, blockZ, this)) {
                             ySpeed = 0.0;
                             this.collisionBlockY = block;
@@ -262,7 +270,7 @@ public class PlayerPhysics {
                         changed = true;
                     }
                     if (zSpeed != 0.0) {
-                        setPosition(xStore, yStore, zStore + (zSpeed * Main.TPF));
+                        setPosition(xStore, yStore, zStore + (zSpeed * getUnfairTPF()));
                         if (block.checkCollision(blockX, blockY, blockZ, this)) {
                             zSpeed = 0.0;
                             this.collisionBlockZ = block;
@@ -282,9 +290,9 @@ public class PlayerPhysics {
         }
         setSpeed(xSpeed, ySpeed, zSpeed);
         setPosition(
-                xStore + (xSpeed * Main.TPF),
-                yStore + (ySpeed * Main.TPF),
-                zStore + (zSpeed * Main.TPF)
+                xStore + (xSpeed * getUnfairTPF()),
+                yStore + (ySpeed * getUnfairTPF()),
+                zStore + (zSpeed * getUnfairTPF())
         );
     }
 
