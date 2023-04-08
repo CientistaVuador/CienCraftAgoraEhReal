@@ -154,7 +154,13 @@ public class ChunkLayerShaderProgram {
                     }
                     outputColor.a = 1.0;
                 }
+                
+                const float gamma = 2.2;
+                outputColor.rgb = pow(outputColor.rgb, vec3(gamma));
+                
                 outputColor.rgb *= 1.0 - FIn.ao;
+                
+                outputColor.rgb = pow(outputColor.rgb, vec3(1.0/gamma));
                 out_Color = outputColor;
             }
             """;

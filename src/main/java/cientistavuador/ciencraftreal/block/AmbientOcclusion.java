@@ -34,10 +34,14 @@ import java.util.Arrays;
 /**
  *
  * @author Cien
+ * https://0fps.net/2013/07/03/ambient-occlusion-for-minecraft-like-worlds/
  */
 public class AmbientOcclusion {
 
-    public static final float AO_STEP = 0.12f;
+    public static final float AO_LEVEL_0 = 0.00f;
+    public static final float AO_LEVEL_1 = 0.30f;
+    public static final float AO_LEVEL_2 = 0.50f;
+    public static final float AO_LEVEL_3 = 0.75f;
     
     public static final AmbientOcclusion NO_OCCLUSION = new AmbientOcclusion() {
         @Override
@@ -54,7 +58,11 @@ public class AmbientOcclusion {
         public float getSideVertexAO(boolean xPositive, boolean yPositive, boolean zPositive) {
             return 0f;
         }
-        
+
+        @Override
+        public boolean generateFlippedQuad() {
+            return false;
+        }
     };
     
     private Chunk chunk;
@@ -64,6 +72,7 @@ public class AmbientOcclusion {
     private final int[] aoSolidCache = new int[3 * 3 * 3];
     private BlockSide side;
     private final float[] sideVertexAO = new float[4];
+    private boolean generateFlippedQuad;
 
     public AmbientOcclusion() {
         Arrays.fill(this.aoSolidCache, -1);
@@ -87,6 +96,10 @@ public class AmbientOcclusion {
 
     public BlockSide getSide() {
         return side;
+    }
+
+    public boolean generateFlippedQuad() {
+        return this.generateFlippedQuad;
     }
     
     public void setBlock(Chunk chunk, int chunkBlockX, int chunkBlockY, int chunkBlockZ) {
@@ -127,10 +140,32 @@ public class AmbientOcclusion {
     }
     
     private float vertexAO(int side1, int side2, int corner) {
+        int aoLevel;
         if (side1 == 1 && side2 == 1) {
-            return AO_STEP * 3;
+            aoLevel = 3;
+        } else {
+            aoLevel = (side1 + side2 + corner);
         }
-        return AO_STEP * (side1 + side2 + corner);
+        switch (aoLevel) {
+            case 0 -> {
+                return AO_LEVEL_0;
+            }
+            case 1 -> {
+                return AO_LEVEL_1;
+            }
+            case 2 -> {
+                return AO_LEVEL_2;
+            }
+            case 3 -> {
+                return AO_LEVEL_3;
+            }
+        }
+        
+        return 0f;
+    }
+    
+    private boolean shouldFlipQuad(float a00, float a01, float a11, float a10) {
+        return !((a00 + a11) > (a01 + a10));
     }
     
     public void generateSideAO(BlockSide side) {
@@ -159,6 +194,7 @@ public class AmbientOcclusion {
             }
             default -> throw new UnsupportedOperationException("Unsupported Side "+side);
         }
+        this.generateFlippedQuad = shouldFlipQuad(this.sideVertexAO[0], this.sideVertexAO[3], this.sideVertexAO[2], this.sideVertexAO[1]);
     }
     
     public float getSideVertexAO(boolean xPositive, boolean yPositive, boolean zPositive) {

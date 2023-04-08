@@ -32,7 +32,6 @@ import cientistavuador.ciencraftreal.block.Blocks;
 import cientistavuador.ciencraftreal.chunk.Chunk;
 import static cientistavuador.ciencraftreal.chunk.Chunk.CHUNK_SIZE;
 import cientistavuador.ciencraftreal.chunk.render.layer.ChunkLayer;
-import cientistavuador.ciencraftreal.debug.DebugCounter;
 import java.util.ArrayDeque;
 
 /**
@@ -40,8 +39,6 @@ import java.util.ArrayDeque;
  * @author Cien
  */
 public class VerticesCreator {
-
-    static DebugCounter c = new DebugCounter("test");
 
     public static VerticesStream generateStream(ChunkLayer layer, boolean coloredGlassOnly) {
         VerticesStream stream = new VerticesStream(layer.getY());

@@ -222,7 +222,11 @@ public class WorldCamera {
     private void deleteLayer(int chunkX, int chunkZ, int y) {
         Chunk c = getLocalChunk(chunkX, chunkZ);
         if (c != null) {
-            c.getLayers().layerAtY(y).delete();
+            ChunkLayers layers = c.getLayers();
+            
+            layers.layerAtY(y).delete();
+            layers.layerAtY(y+1).delete();
+            layers.layerAtY(y-1).delete();
         }
     }
 
