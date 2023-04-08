@@ -27,6 +27,7 @@
 package cientistavuador.ciencraftreal.block;
 
 import cientistavuador.ciencraftreal.chunk.Chunk;
+import cientistavuador.ciencraftreal.chunk.render.layer.vertices.VerticesStream;
 import java.util.Arrays;
 
 /**
@@ -108,6 +109,43 @@ public abstract class SimpleBlock implements Block, SolidBlockCheck {
             throw new RuntimeException("Block not Registered.");
         }
         return blockId;
+    }
+
+    @Override
+    public void generateVertices(VerticesStream stream, Chunk chunk, int chunkBlockX, int chunkBlockY, int chunkBlockZ) {
+        boolean[] sides = isSolidBlockSides(chunk, chunkBlockX, chunkBlockY, chunkBlockZ);
+        
+        boolean empty = true;
+        for (int i = 0; i < sides.length; i++) {
+            if (!sides[i]) {
+                empty = false;
+                break;
+            }
+        }
+        if (empty) {
+            return;
+        }
+
+        float chunkX = chunkBlockX + 0.5f;
+        float chunkY = chunkBlockY + 0.5f;
+        float chunkZ = chunkBlockZ - 0.5f;
+        
+        AmbientOcclusion ao = null;
+        if (hasAO()) {
+            ao = new AmbientOcclusion();
+            ao.setBlock(chunk, chunkBlockX, chunkBlockY, chunkBlockZ);
+        }
+        
+        for (int i = 0; i < sides.length; i++) {
+            if (sides[i]) {
+                continue;
+            }
+            BlockSide side = BlockSide.sideOf(i);
+            if (ao != null) {
+                ao.generateSideAO(side);
+            }
+            BlockFacesVertices.generateFaceVertices(stream, side, chunkX, chunkY, chunkZ, this.sideTextures[i], ao);
+        }
     }
     
     @Override

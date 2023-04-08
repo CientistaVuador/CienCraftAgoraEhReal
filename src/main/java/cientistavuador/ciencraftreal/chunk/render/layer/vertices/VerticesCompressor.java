@@ -34,6 +34,7 @@ import cientistavuador.ciencraftreal.chunk.render.layer.ChunkLayer;
  *
  * @author Cien
  */
+@Deprecated
 public class VerticesCompressor {
 
     private static short floatToShort(float f) {

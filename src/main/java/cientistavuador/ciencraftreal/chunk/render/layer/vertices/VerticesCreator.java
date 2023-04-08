@@ -32,6 +32,7 @@ import cientistavuador.ciencraftreal.block.Blocks;
 import cientistavuador.ciencraftreal.chunk.Chunk;
 import static cientistavuador.ciencraftreal.chunk.Chunk.CHUNK_SIZE;
 import cientistavuador.ciencraftreal.chunk.render.layer.ChunkLayer;
+import cientistavuador.ciencraftreal.debug.DebugCounter;
 import java.util.ArrayDeque;
 
 /**
@@ -40,6 +41,47 @@ import java.util.ArrayDeque;
  */
 public class VerticesCreator {
 
+    static DebugCounter c = new DebugCounter("test");
+
+    public static VerticesStream generateStream(ChunkLayer layer, boolean coloredGlassOnly) {
+        VerticesStream stream = new VerticesStream(layer.getY());
+
+        Chunk chunk = layer.getChunk();
+        int yPos = layer.getY();
+        
+        for (int y = (yPos + (ChunkLayer.HEIGHT - 1)); y >= yPos; y--) {
+            for (int x = 0; x < CHUNK_SIZE; x++) {
+                for (int z = 0; z >= -(CHUNK_SIZE - 1); z--) {
+                    Block block = chunk.getBlock(x, y, z);
+
+                    if (block == Blocks.AIR) {
+                        continue;
+                    }
+
+                    if (coloredGlassOnly && !BlockTransparency.LIKE_COLORED_GLASS.equals(block.getBlockTransparency())) {
+                        continue;
+                    }
+
+                    if (!coloredGlassOnly && BlockTransparency.LIKE_COLORED_GLASS.equals(block.getBlockTransparency())) {
+                        continue;
+                    }
+
+                    block.generateVertices(
+                            stream,
+                            chunk,
+                            x,
+                            y,
+                            z
+                    );
+
+                }
+            }
+        }
+        
+        return stream;
+    }
+
+    @Deprecated
     public static float[] create(ChunkLayer layer, boolean coloredGlassOnly) {
         Chunk chunk = layer.getChunk();
         int yPos = layer.getY();

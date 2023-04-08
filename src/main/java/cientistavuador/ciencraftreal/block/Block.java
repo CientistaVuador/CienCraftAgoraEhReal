@@ -27,6 +27,7 @@
 package cientistavuador.ciencraftreal.block;
 
 import cientistavuador.ciencraftreal.chunk.Chunk;
+import cientistavuador.ciencraftreal.chunk.render.layer.vertices.VerticesStream;
 import cientistavuador.ciencraftreal.player.PlayerPhysics;
 import org.joml.Intersectiond;
 
@@ -41,7 +42,9 @@ public interface Block {
     String getName();
     int getId();
     void setId(int id);
+    @Deprecated
     float[] generateVertices(Chunk chunk, int chunkBlockX, int chunkBlockY, int chunkBlockZ);
+    default void generateVertices(VerticesStream stream, Chunk chunk, int chunkBlockX, int chunkBlockY, int chunkBlockZ) {};
     BlockTransparency getBlockTransparency();
     default StateOfMatter getStateOfMatter() {
         return StateOfMatter.SOLID;

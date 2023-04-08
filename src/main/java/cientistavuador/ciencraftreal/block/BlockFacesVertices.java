@@ -26,42 +26,137 @@
  */
 package cientistavuador.ciencraftreal.block;
 
+import static cientistavuador.ciencraftreal.block.BlockSide.BOTTOM;
+import static cientistavuador.ciencraftreal.block.BlockSide.EAST;
+import static cientistavuador.ciencraftreal.block.BlockSide.NORTH;
+import static cientistavuador.ciencraftreal.block.BlockSide.SOUTH;
+import static cientistavuador.ciencraftreal.block.BlockSide.TOP;
+import static cientistavuador.ciencraftreal.block.BlockSide.WEST;
+import cientistavuador.ciencraftreal.chunk.render.layer.vertices.VerticesStream;
+
 /**
  *
  * @author Cien
  */
 public class BlockFacesVertices {
 
-    public static float[] generateFaceVertices(BlockSide side, float x, float y, float z, int texture) {
-        return generateFaceVertices(side, x, y, z, texture, 1f, 1f, 1f);
+    public static void generateFaceVertices(VerticesStream stream, BlockSide side, float x, float y, float z, int texture) {
+        generateFaceVertices(stream, side, x, y, z, texture, 1f, 1f, 1f);
     }
-    
-    public static float[] generateFaceVertices(BlockSide side, float x, float y, float z, int texture, AmbientOcclusion ao) {
-        return generateFaceVertices(side, x, y, z, texture, 1f, 1f, 1f, ao);
+
+    public static void generateFaceVertices(VerticesStream stream, BlockSide side, float x, float y, float z, int texture, AmbientOcclusion ao) {
+        generateFaceVertices(stream, side, x, y, z, texture, 1f, 1f, 1f, ao);
     }
-    
-    public static float[] generateFaceVertices(BlockSide side, float x, float y, float z, int texture, float scaleX, float scaleY, float scaleZ)  {
-        return generateFaceVertices(side, x, y, z, texture, scaleX, scaleY, scaleZ, null);
+
+    public static void generateFaceVertices(VerticesStream stream, BlockSide side, float x, float y, float z, int texture, float scaleX, float scaleY, float scaleZ) {
+        generateFaceVertices(stream, side, x, y, z, texture, scaleX, scaleY, scaleZ, null);
     }
-    
-    public static float[] generateFaceVertices(BlockSide side, float x, float y, float z, int texture, float scaleX, float scaleY, float scaleZ, AmbientOcclusion ao) {
+
+    public static void generateFaceVertices(VerticesStream stream, BlockSide side, float x, float y, float z, int texture, float scaleX, float scaleY, float scaleZ, AmbientOcclusion ao) {
         if (ao == null) {
             ao = AmbientOcclusion.NO_OCCLUSION;
         }
-        
-        float textureFloat = Float.intBitsToFloat(texture);
-        
+
         float sizeX = 0.5f * scaleX;
         float sizeY = 0.5f * scaleY;
         float sizeZ = 0.5f * scaleZ;
-        
+
         float xP = sizeX + x;
         float xN = -sizeX + x;
         float yP = sizeY + y;
         float yN = -sizeY + y;
         float zP = sizeZ + z;
         float zN = -sizeZ + z;
-        
+
+        stream.offset();
+
+        switch (side) {
+            case NORTH -> {
+                stream.vertex(xN, yP, zN, 1f, 1f, texture, ao.getSideVertexAO(false, true, false));
+                stream.vertex(xP, yN, zN, 0f, 0f, texture, ao.getSideVertexAO(true, false, false));
+                stream.vertex(xN, yN, zN, 1f, 0f, texture, ao.getSideVertexAO(false, false, false));
+                stream.vertex(xP, yP, zN, 0f, 1f, texture, ao.getSideVertexAO(true, true, false));
+                stream.index(new int[]{0, 1, 2, 0, 3, 1});
+                return;
+            }
+            case SOUTH -> {
+                stream.vertex(xN, yP, zP, 0f, 1f, texture, ao.getSideVertexAO(false, true, true));
+                stream.vertex(xN, yN, zP, 0f, 0f, texture, ao.getSideVertexAO(false, false, true));
+                stream.vertex(xP, yN, zP, 1f, 0f, texture, ao.getSideVertexAO(true, false, true));
+                stream.vertex(xP, yP, zP, 1f, 1f, texture, ao.getSideVertexAO(true, true, true));
+                stream.index(new int[]{0, 1, 2, 0, 2, 3});
+                return;
+            }
+            case EAST -> {
+                stream.vertex(xP, yP, zN, 1f, 1f, texture, ao.getSideVertexAO(true, true, false));
+                stream.vertex(xP, yN, zP, 0f, 0f, texture, ao.getSideVertexAO(true, false, true));
+                stream.vertex(xP, yN, zN, 1f, 0f, texture, ao.getSideVertexAO(true, false, false));
+                stream.vertex(xP, yP, zP, 0f, 1f, texture, ao.getSideVertexAO(true, true, true));
+                stream.index(new int[]{0, 1, 2, 3, 1, 0});
+                return;
+            }
+            case WEST -> {
+                stream.vertex(xN, yP, zN, 0f, 1f, texture, ao.getSideVertexAO(false, true, false));
+                stream.vertex(xN, yN, zN, 0f, 0f, texture, ao.getSideVertexAO(false, false, false));
+                stream.vertex(xN, yN, zP, 1f, 0f, texture, ao.getSideVertexAO(false, false, true));
+                stream.vertex(xN, yP, zP, 1f, 1f, texture, ao.getSideVertexAO(false, true, true));
+                stream.index(new int[]{0, 1, 2, 3, 0, 2});
+                return;
+            }
+            case TOP -> {
+                stream.vertex(xN, yP, zP, 0f, 0f, texture, ao.getSideVertexAO(false, true, true));
+                stream.vertex(xP, yP, zP, 1f, 0f, texture, ao.getSideVertexAO(true, true, true));
+                stream.vertex(xN, yP, zN, 0f, 1f, texture, ao.getSideVertexAO(false, true, false));
+                stream.vertex(xP, yP, zN, 1f, 1f, texture, ao.getSideVertexAO(true, true, false));
+                stream.index(new int[]{0, 1, 2, 2, 1, 3});
+                return;
+            }
+            case BOTTOM -> {
+                stream.vertex(xN, yN, zP, 0f, 1f, texture, ao.getSideVertexAO(false, false, true));
+                stream.vertex(xN, yN, zN, 0f, 0f, texture, ao.getSideVertexAO(false, false, false));
+                stream.vertex(xP, yN, zP, 1f, 1f, texture, ao.getSideVertexAO(true, false, true));
+                stream.vertex(xP, yN, zN, 1f, 0f, texture, ao.getSideVertexAO(true, false, false));
+                stream.index(new int[]{0, 1, 2, 1, 3, 2});
+                return;
+            }
+        }
+        throw new RuntimeException("Unknown side: " + side.name());
+    }
+
+    @Deprecated
+    public static float[] generateFaceVertices(BlockSide side, float x, float y, float z, int texture) {
+        return generateFaceVertices(side, x, y, z, texture, 1f, 1f, 1f);
+    }
+
+    @Deprecated
+    public static float[] generateFaceVertices(BlockSide side, float x, float y, float z, int texture, AmbientOcclusion ao) {
+        return generateFaceVertices(side, x, y, z, texture, 1f, 1f, 1f, ao);
+    }
+
+    @Deprecated
+    public static float[] generateFaceVertices(BlockSide side, float x, float y, float z, int texture, float scaleX, float scaleY, float scaleZ) {
+        return generateFaceVertices(side, x, y, z, texture, scaleX, scaleY, scaleZ, null);
+    }
+
+    @Deprecated
+    public static float[] generateFaceVertices(BlockSide side, float x, float y, float z, int texture, float scaleX, float scaleY, float scaleZ, AmbientOcclusion ao) {
+        if (ao == null) {
+            ao = AmbientOcclusion.NO_OCCLUSION;
+        }
+
+        float textureFloat = Float.intBitsToFloat(texture);
+
+        float sizeX = 0.5f * scaleX;
+        float sizeY = 0.5f * scaleY;
+        float sizeZ = 0.5f * scaleZ;
+
+        float xP = sizeX + x;
+        float xN = -sizeX + x;
+        float yP = sizeY + y;
+        float yN = -sizeY + y;
+        float zP = sizeZ + z;
+        float zN = -sizeZ + z;
+
         switch (side) {
             case NORTH -> {
                 return new float[]{
@@ -123,9 +218,6 @@ public class BlockFacesVertices {
                     xP, yN, zP, 1f, 1f, textureFloat, ao.getSideVertexAO(true, false, true)
                 };
             }
-
-
-
 
         }
         throw new RuntimeException("Unknown side: " + side.name());

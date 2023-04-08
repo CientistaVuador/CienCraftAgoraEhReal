@@ -32,6 +32,7 @@ import cientistavuador.ciencraftreal.chunk.render.layer.shaders.ChunkLayerShader
 import cientistavuador.ciencraftreal.chunk.render.layer.vertices.IndicesGenerator;
 import cientistavuador.ciencraftreal.chunk.render.layer.vertices.VerticesCompressor;
 import cientistavuador.ciencraftreal.chunk.render.layer.vertices.VerticesCreator;
+import cientistavuador.ciencraftreal.chunk.render.layer.vertices.VerticesStream;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -80,14 +81,18 @@ public class ChunkLayer {
     private boolean eliminate = false;
     private boolean deleted = true;
 
+    @Deprecated
     private Future<Map.Entry<short[], int[]>> futureVerticesIndices = null;
+    private Future<VerticesStream> futureVertices = null;
     private short[] vertices = null;
     private int[] indices = null;
     private int vao = 0;
     private int vbo = 0;
     private int ebo = 0;
     
+    @Deprecated
     private Future<Map.Entry<short[], int[]>> futureVerticesIndicesAlpha = null;
+    private Future<VerticesStream> futureVerticesAlpha = null;
     private short[] verticesAlpha = null;
     private int[] indicesAlpha = null;
     private int vaoAlpha = 0;
@@ -167,19 +172,22 @@ public class ChunkLayer {
     }
     
     public boolean prepareVerticesStage2() {
-        this.futureVerticesIndices = CompletableFuture.supplyAsync(() -> {
-            float[] verticesCreated = VerticesCreator.create(this, false);
-            short[] compressedVertices = VerticesCompressor.compress(this, verticesCreated);
-            Map.Entry<short[], int[]> indicesVertices = IndicesGenerator.generate(compressedVertices);
-            return indicesVertices;
+        /*this.futureVerticesIndices = CompletableFuture.supplyAsync(() -> {
+        float[] verticesCreated = VerticesCreator.create(this, false);
+        short[] compressedVertices = VerticesCompressor.compress(this, verticesCreated);
+        Map.Entry<short[], int[]> indicesVertices = IndicesGenerator.generate(compressedVertices);
+        return indicesVertices;
         });
         
         this.futureVerticesIndicesAlpha = CompletableFuture.supplyAsync(() -> {
-            float[] verticesCreated = VerticesCreator.create(this, true);
-            short[] compressedVertices = VerticesCompressor.compress(this, verticesCreated);
-            Map.Entry<short[], int[]> indicesVertices = IndicesGenerator.generate(compressedVertices);
-            return indicesVertices;
-        });
+        float[] verticesCreated = VerticesCreator.create(this, true);
+        short[] compressedVertices = VerticesCompressor.compress(this, verticesCreated);
+        Map.Entry<short[], int[]> indicesVertices = IndicesGenerator.generate(compressedVertices);
+        return indicesVertices;
+        });*/
+        
+        this.futureVertices = CompletableFuture.supplyAsync(() -> VerticesCreator.generateStream(this, false));
+        this.futureVerticesAlpha = CompletableFuture.supplyAsync(() -> VerticesCreator.generateStream(this, true));
 
         return true;
     }
@@ -207,15 +215,24 @@ public class ChunkLayer {
     }
     
     private boolean prepareVaoVbo() {
-        Map.Entry<short[], int[]> result;
+        /*Map.Entry<short[], int[]> result;
         try {
-            result = this.futureVerticesIndices.get();
+        result = this.futureVerticesIndices.get();
+        } catch (InterruptedException | ExecutionException ex) {
+        throw new RuntimeException(ex);
+        }*/
+
+        VerticesStream result;
+        try {
+            result = this.futureVertices.get();
         } catch (InterruptedException | ExecutionException ex) {
             throw new RuntimeException(ex);
         }
-
-        this.vertices = result.getKey();
-        this.indices = result.getValue();
+        
+        /*this.vertices = result.getKey();
+        this.indices = result.getValue();*/
+        this.vertices = result.vertices();
+        this.indices = result.indices();
 
         if (this.vertices.length == 0) {
             return false;
@@ -241,15 +258,24 @@ public class ChunkLayer {
     }
     
     private boolean prepareVaoVboAlpha() {
-        Map.Entry<short[], int[]> result;
+        /*Map.Entry<short[], int[]> result;
         try {
-            result = this.futureVerticesIndicesAlpha.get();
+        result = this.futureVerticesIndicesAlpha.get();
+        } catch (InterruptedException | ExecutionException ex) {
+        throw new RuntimeException(ex);
+        }*/
+
+        VerticesStream result;
+        try {
+            result = this.futureVerticesAlpha.get();
         } catch (InterruptedException | ExecutionException ex) {
             throw new RuntimeException(ex);
         }
-
-        this.verticesAlpha = result.getKey();
-        this.indicesAlpha = result.getValue();
+        
+        /*this.verticesAlpha = result.getKey();
+        this.indicesAlpha = result.getValue();*/
+        this.verticesAlpha = result.vertices();
+        this.indicesAlpha = result.indices();
         
         if (this.verticesAlpha.length == 0) {
             return false;
@@ -330,6 +356,7 @@ public class ChunkLayer {
         }
 
         this.futureVerticesIndices = null;
+        this.futureVertices = null;
         this.vertices = null;
         this.indices = null;
         this.vao = 0;
@@ -347,6 +374,7 @@ public class ChunkLayer {
         }
         
         this.futureVerticesIndicesAlpha = null;
+        this.futureVerticesAlpha = null;
         this.verticesAlpha = null;
         this.indicesAlpha = null;
         this.vaoAlpha = 0;
