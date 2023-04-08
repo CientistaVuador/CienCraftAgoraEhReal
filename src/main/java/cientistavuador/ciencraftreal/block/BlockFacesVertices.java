@@ -44,10 +44,6 @@ public class BlockFacesVertices {
         return generateFaceVertices(side, x, y, z, texture, scaleX, scaleY, scaleZ, null);
     }
     
-    private static float getAO(AmbientOcclusion ao, boolean x, boolean y, boolean z) {
-        return ao.getAO(AmbientOcclusion.getIndexByXYZ(x, y, z));
-    }
-    
     public static float[] generateFaceVertices(BlockSide side, float x, float y, float z, int texture, float scaleX, float scaleY, float scaleZ, AmbientOcclusion ao) {
         if (ao == null) {
             ao = AmbientOcclusion.NO_OCCLUSION;
@@ -69,62 +65,62 @@ public class BlockFacesVertices {
         switch (side) {
             case NORTH -> {
                 return new float[]{
-                    xN, yP, zN, 1f, 1f, textureFloat, getAO(ao, false, true, false),
-                    xP, yN, zN, 0f, 0f, textureFloat, getAO(ao, true, false, false),
-                    xN, yN, zN, 1f, 0f, textureFloat, getAO(ao, false, false, false),
-                    xN, yP, zN, 1f, 1f, textureFloat, getAO(ao, false, true, false),
-                    xP, yP, zN, 0f, 1f, textureFloat, getAO(ao, true, true, false),
-                    xP, yN, zN, 0f, 0f, textureFloat, getAO(ao, true, false, false)
+                    xN, yP, zN, 1f, 1f, textureFloat, ao.getSideVertexAO(false, true, false),
+                    xP, yN, zN, 0f, 0f, textureFloat, ao.getSideVertexAO(true, false, false),
+                    xN, yN, zN, 1f, 0f, textureFloat, ao.getSideVertexAO(false, false, false),
+                    xN, yP, zN, 1f, 1f, textureFloat, ao.getSideVertexAO(false, true, false),
+                    xP, yP, zN, 0f, 1f, textureFloat, ao.getSideVertexAO(true, true, false),
+                    xP, yN, zN, 0f, 0f, textureFloat, ao.getSideVertexAO(true, false, false)
                 };
             }
             case SOUTH -> {
                 return new float[]{
-                    xN, yP, zP, 0f, 1f, textureFloat, getAO(ao, false, true, true),
-                    xN, yN, zP, 0f, 0f, textureFloat, getAO(ao, false, false, true),
-                    xP, yN, zP, 1f, 0f, textureFloat, getAO(ao, true, false, true),
-                    xN, yP, zP, 0f, 1f, textureFloat, getAO(ao, false, true, true),
-                    xP, yN, zP, 1f, 0f, textureFloat, getAO(ao, true, false, true),
-                    xP, yP, zP, 1f, 1f, textureFloat, getAO(ao, true, true, true)
+                    xN, yP, zP, 0f, 1f, textureFloat, ao.getSideVertexAO(false, true, true),
+                    xN, yN, zP, 0f, 0f, textureFloat, ao.getSideVertexAO(false, false, true),
+                    xP, yN, zP, 1f, 0f, textureFloat, ao.getSideVertexAO(true, false, true),
+                    xN, yP, zP, 0f, 1f, textureFloat, ao.getSideVertexAO(false, true, true),
+                    xP, yN, zP, 1f, 0f, textureFloat, ao.getSideVertexAO(true, false, true),
+                    xP, yP, zP, 1f, 1f, textureFloat, ao.getSideVertexAO(true, true, true)
                 };
             }
             case EAST -> {
                 return new float[]{
-                    xP, yP, zN, 1f, 1f, textureFloat, getAO(ao, true, true, false),
-                    xP, yN, zP, 0f, 0f, textureFloat, getAO(ao, true, false, true),
-                    xP, yN, zN, 1f, 0f, textureFloat, getAO(ao, true, false, false),
-                    xP, yP, zP, 0f, 1f, textureFloat, getAO(ao, true, true, true),
-                    xP, yN, zP, 0f, 0f, textureFloat, getAO(ao, true, false, true),
-                    xP, yP, zN, 1f, 1f, textureFloat, getAO(ao, true, true, false)
+                    xP, yP, zN, 1f, 1f, textureFloat, ao.getSideVertexAO(true, true, false),
+                    xP, yN, zP, 0f, 0f, textureFloat, ao.getSideVertexAO(true, false, true),
+                    xP, yN, zN, 1f, 0f, textureFloat, ao.getSideVertexAO(true, false, false),
+                    xP, yP, zP, 0f, 1f, textureFloat, ao.getSideVertexAO(true, true, true),
+                    xP, yN, zP, 0f, 0f, textureFloat, ao.getSideVertexAO(true, false, true),
+                    xP, yP, zN, 1f, 1f, textureFloat, ao.getSideVertexAO(true, true, false)
                 };
             }
             case WEST -> {
                 return new float[]{
-                    xN, yP, zN, 0f, 1f, textureFloat, getAO(ao, false, true, false),
-                    xN, yN, zN, 0f, 0f, textureFloat, getAO(ao, false, false, false),
-                    xN, yN, zP, 1f, 0f, textureFloat, getAO(ao, false, false, true),
-                    xN, yP, zP, 1f, 1f, textureFloat, getAO(ao, false, true, true),
-                    xN, yP, zN, 0f, 1f, textureFloat, getAO(ao, false, true, false),
-                    xN, yN, zP, 1f, 0f, textureFloat, getAO(ao, false, false, true)
+                    xN, yP, zN, 0f, 1f, textureFloat, ao.getSideVertexAO(false, true, false),
+                    xN, yN, zN, 0f, 0f, textureFloat, ao.getSideVertexAO(false, false, false),
+                    xN, yN, zP, 1f, 0f, textureFloat, ao.getSideVertexAO(false, false, true),
+                    xN, yP, zP, 1f, 1f, textureFloat, ao.getSideVertexAO(false, true, true),
+                    xN, yP, zN, 0f, 1f, textureFloat, ao.getSideVertexAO(false, true, false),
+                    xN, yN, zP, 1f, 0f, textureFloat, ao.getSideVertexAO(false, false, true)
                 };
             }
             case TOP -> {
                 return new float[]{
-                    xN, yP, zP, 0f, 0f, textureFloat, getAO(ao, false, true, true),
-                    xP, yP, zP, 1f, 0f, textureFloat, getAO(ao, true, true, true),
-                    xN, yP, zN, 0f, 1f, textureFloat, getAO(ao, false, true, false),
-                    xN, yP, zN, 0f, 1f, textureFloat, getAO(ao, false, true, false),
-                    xP, yP, zP, 1f, 0f, textureFloat, getAO(ao, true, true, true),
-                    xP, yP, zN, 1f, 1f, textureFloat, getAO(ao, true, true, false)
+                    xN, yP, zP, 0f, 0f, textureFloat, ao.getSideVertexAO(false, true, true),
+                    xP, yP, zP, 1f, 0f, textureFloat, ao.getSideVertexAO(true, true, true),
+                    xN, yP, zN, 0f, 1f, textureFloat, ao.getSideVertexAO(false, true, false),
+                    xN, yP, zN, 0f, 1f, textureFloat, ao.getSideVertexAO(false, true, false),
+                    xP, yP, zP, 1f, 0f, textureFloat, ao.getSideVertexAO(true, true, true),
+                    xP, yP, zN, 1f, 1f, textureFloat, ao.getSideVertexAO(true, true, false)
                 };
             }
             case BOTTOM -> {
                 return new float[]{
-                    xN, yN, zP, 0f, 1f, textureFloat, getAO(ao, false, false, true),
-                    xN, yN, zN, 0f, 0f, textureFloat, getAO(ao, false, false, false),
-                    xP, yN, zP, 1f, 1f, textureFloat, getAO(ao, true, false, true),
-                    xN, yN, zN, 0f, 0f, textureFloat, getAO(ao, false, false, false),
-                    xP, yN, zN, 1f, 0f, textureFloat, getAO(ao, true, false, false),
-                    xP, yN, zP, 1f, 1f, textureFloat, getAO(ao, true, false, true)
+                    xN, yN, zP, 0f, 1f, textureFloat, ao.getSideVertexAO(false, false, true),
+                    xN, yN, zN, 0f, 0f, textureFloat, ao.getSideVertexAO(false, false, false),
+                    xP, yN, zP, 1f, 1f, textureFloat, ao.getSideVertexAO(true, false, true),
+                    xN, yN, zN, 0f, 0f, textureFloat, ao.getSideVertexAO(false, false, false),
+                    xP, yN, zN, 1f, 0f, textureFloat, ao.getSideVertexAO(true, false, false),
+                    xP, yN, zP, 1f, 1f, textureFloat, ao.getSideVertexAO(true, false, true)
                 };
             }
 

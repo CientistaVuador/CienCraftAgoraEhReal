@@ -142,7 +142,7 @@ public abstract class SimpleBlock implements Block, SolidBlockCheck {
             }
             BlockSide side = BlockSide.sideOf(i);
             if (ao != null) {
-                ao.generateAO(side);
+                ao.generateSideAO(side);
             }
             float[] sideVertices = BlockFacesVertices.generateFaceVertices(side, chunkX, chunkY, chunkZ, sideTextures[i], ao);
             System.arraycopy(sideVertices, 0, vertices, pos, sideVertices.length);

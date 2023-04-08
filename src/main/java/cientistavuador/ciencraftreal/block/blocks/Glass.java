@@ -44,5 +44,15 @@ public class Glass extends SimpleBlock {
     public BlockTransparency getBlockTransparency() {
         return BlockTransparency.LIKE_GLASS;
     }
+
+    @Override
+    public boolean isAOSolid() {
+        return false;
+    }
+
+    @Override
+    public boolean hasAO() {
+        return false;
+    }
     
 }
