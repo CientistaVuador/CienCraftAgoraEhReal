@@ -46,7 +46,7 @@ import org.joml.Vector3fc;
  */
 public class PerspectiveCamera implements Camera {
 
-    public static final float DEFAULT_FOV = 75f;
+    public static final float DEFAULT_FOV = 80f;
     
     //Camera fields
     private final Vector2f dimensions = new Vector2f(Main.WIDTH, Main.HEIGHT);
