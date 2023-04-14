@@ -27,6 +27,8 @@
 package cientistavuador.ciencraftreal.chunk.render.layer;
 
 import cientistavuador.ciencraftreal.camera.Camera;
+import cientistavuador.ciencraftreal.chunk.Chunk;
+import cientistavuador.ciencraftreal.world.WorldCamera;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
@@ -110,8 +112,15 @@ public class ChunkLayersRender {
 
         int layersToProcess = 0;
         for (DistancedChunkLayer e : layerList) {
+            final double maxDistance = (WorldCamera.VIEW_DISTANCE + 0.5) * Chunk.CHUNK_SIZE;
+            double xx = e.getCamera().getPosition().x() - e.getLayer().getCenter().x();
+            double zz = e.getCamera().getPosition().z() - e.getLayer().getCenter().z();
+            if (Math.sqrt((xx*xx) + (zz*zz)) > maxDistance) {
+                continue;
+            }
+            
             ChunkLayer layer = e.getLayer();
-
+            
             if (!layer.checkVerticesStage1(camera)) {
                 if (layer.renderStage4()) {
                     drawCalls++;
