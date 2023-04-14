@@ -72,74 +72,74 @@ public class BlockFacesVertices {
 
         switch (side) {
             case NORTH -> {
-                stream.vertex(xN, yP, zN, 1f, 1f, texture, ao.getSideVertexAO(false, true, false));
-                stream.vertex(xP, yN, zN, 0f, 0f, texture, ao.getSideVertexAO(true, false, false));
-                stream.vertex(xN, yN, zN, 1f, 0f, texture, ao.getSideVertexAO(false, false, false));
-                stream.vertex(xP, yP, zN, 0f, 1f, texture, ao.getSideVertexAO(true, true, false));
+                stream.vertex(xN, yP, zN, 0f, 0f, -1f, 1f, 1f, texture, ao.getSideVertexAO(false, true, false));
+                stream.vertex(xP, yN, zN, 0f, 0f, -1f, 0f, 0f, texture, ao.getSideVertexAO(true, false, false));
+                stream.vertex(xN, yN, zN, 0f, 0f, -1f, 1f, 0f, texture, ao.getSideVertexAO(false, false, false));
+                stream.vertex(xP, yP, zN, 0f, 0f, -1f, 0f, 1f, texture, ao.getSideVertexAO(true, true, false));
                 if (ao.generateFlippedQuad()) {
-                    stream.index(new int[]{0, 3, 2, 3, 1, 2});
+                    stream.quad(0, 3, 2, 3, 1, 2);
                 } else {
-                    stream.index(new int[]{0, 1, 2, 0, 3, 1});
+                    stream.quad(0, 1, 2, 0, 3, 1);
                 }
                 return;
             }
             case SOUTH -> {
-                stream.vertex(xN, yP, zP, 0f, 1f, texture, ao.getSideVertexAO(false, true, true));
-                stream.vertex(xN, yN, zP, 0f, 0f, texture, ao.getSideVertexAO(false, false, true));
-                stream.vertex(xP, yN, zP, 1f, 0f, texture, ao.getSideVertexAO(true, false, true));
-                stream.vertex(xP, yP, zP, 1f, 1f, texture, ao.getSideVertexAO(true, true, true));
+                stream.vertex(xN, yP, zP, 0f, 0f, 1f, 0f, 1f, texture, ao.getSideVertexAO(false, true, true));
+                stream.vertex(xN, yN, zP, 0f, 0f, 1f, 0f, 0f, texture, ao.getSideVertexAO(false, false, true));
+                stream.vertex(xP, yN, zP, 0f, 0f, 1f, 1f, 0f, texture, ao.getSideVertexAO(true, false, true));
+                stream.vertex(xP, yP, zP, 0f, 0f, 1f, 1f, 1f, texture, ao.getSideVertexAO(true, true, true));
                 if (ao.generateFlippedQuad()) {
-                    stream.index(new int[]{0, 1, 3, 3, 1, 2});
+                    stream.quad(0, 1, 3, 3, 1, 2);
                 } else {
-                    stream.index(new int[]{0, 1, 2, 0, 2, 3});
+                    stream.quad(0, 1, 2, 0, 2, 3);
                 }
                 return;
             }
             case EAST -> {
-                stream.vertex(xP, yP, zN, 1f, 1f, texture, ao.getSideVertexAO(true, true, false));
-                stream.vertex(xP, yN, zP, 0f, 0f, texture, ao.getSideVertexAO(true, false, true));
-                stream.vertex(xP, yN, zN, 1f, 0f, texture, ao.getSideVertexAO(true, false, false));
-                stream.vertex(xP, yP, zP, 0f, 1f, texture, ao.getSideVertexAO(true, true, true));
+                stream.vertex(xP, yP, zN, 1f, 0f, 0f, 1f, 1f, texture, ao.getSideVertexAO(true, true, false));
+                stream.vertex(xP, yN, zP, 1f, 0f, 0f, 0f, 0f, texture, ao.getSideVertexAO(true, false, true));
+                stream.vertex(xP, yN, zN, 1f, 0f, 0f, 1f, 0f, texture, ao.getSideVertexAO(true, false, false));
+                stream.vertex(xP, yP, zP, 1f, 0f, 0f, 0f, 1f, texture, ao.getSideVertexAO(true, true, true));
                 if (ao.generateFlippedQuad()) {
-                    stream.index(new int[]{0, 3, 2, 2, 3, 1});
+                    stream.quad(0, 3, 2, 2, 3, 1);
                 } else {
-                    stream.index(new int[]{0, 1, 2, 3, 1, 0});
+                    stream.quad(0, 1, 2, 3, 1, 0);
                 }
                 return;
             }
             case WEST -> {
-                stream.vertex(xN, yP, zN, 0f, 1f, texture, ao.getSideVertexAO(false, true, false));
-                stream.vertex(xN, yN, zN, 0f, 0f, texture, ao.getSideVertexAO(false, false, false));
-                stream.vertex(xN, yN, zP, 1f, 0f, texture, ao.getSideVertexAO(false, false, true));
-                stream.vertex(xN, yP, zP, 1f, 1f, texture, ao.getSideVertexAO(false, true, true));
+                stream.vertex(xN, yP, zN, -1f, 0f, 0f, 0f, 1f, texture, ao.getSideVertexAO(false, true, false));
+                stream.vertex(xN, yN, zN, -1f, 0f, 0f, 0f, 0f, texture, ao.getSideVertexAO(false, false, false));
+                stream.vertex(xN, yN, zP, -1f, 0f, 0f, 1f, 0f, texture, ao.getSideVertexAO(false, false, true));
+                stream.vertex(xN, yP, zP, -1f, 0f, 0f, 1f, 1f, texture, ao.getSideVertexAO(false, true, true));
                 if (ao.generateFlippedQuad()) {
-                    stream.index(new int[]{0, 1, 3, 1, 2, 3});
+                    stream.quad(0, 1, 3, 1, 2, 3);
                 } else {
-                    stream.index(new int[]{0, 1, 2, 3, 0, 2});
+                    stream.quad(0, 1, 2, 3, 0, 2);
                 }
                 return;
             }
             case TOP -> {
-                stream.vertex(xN, yP, zP, 0f, 0f, texture, ao.getSideVertexAO(false, true, true));
-                stream.vertex(xP, yP, zP, 1f, 0f, texture, ao.getSideVertexAO(true, true, true));
-                stream.vertex(xN, yP, zN, 0f, 1f, texture, ao.getSideVertexAO(false, true, false));
-                stream.vertex(xP, yP, zN, 1f, 1f, texture, ao.getSideVertexAO(true, true, false));
+                stream.vertex(xN, yP, zP, 0f, 1f, 0f, 0f, 0f, texture, ao.getSideVertexAO(false, true, true));
+                stream.vertex(xP, yP, zP, 0f, 1f, 0f, 1f, 0f, texture, ao.getSideVertexAO(true, true, true));
+                stream.vertex(xN, yP, zN, 0f, 1f, 0f, 0f, 1f, texture, ao.getSideVertexAO(false, true, false));
+                stream.vertex(xP, yP, zN, 0f, 1f, 0f, 1f, 1f, texture, ao.getSideVertexAO(true, true, false));
                 if (ao.generateFlippedQuad()) {
-                    stream.index(new int[]{0, 3, 2, 0, 1, 3});
+                    stream.quad(0, 3, 2, 0, 1, 3);
                 } else {
-                    stream.index(new int[]{0, 1, 2, 2, 1, 3});
+                    stream.quad(0, 1, 2, 2, 1, 3);
                 }
                 return;
             }
             case BOTTOM -> {
-                stream.vertex(xN, yN, zP, 0f, 1f, texture, ao.getSideVertexAO(false, false, true));
-                stream.vertex(xN, yN, zN, 0f, 0f, texture, ao.getSideVertexAO(false, false, false));
-                stream.vertex(xP, yN, zP, 1f, 1f, texture, ao.getSideVertexAO(true, false, true));
-                stream.vertex(xP, yN, zN, 1f, 0f, texture, ao.getSideVertexAO(true, false, false));
+                stream.vertex(xN, yN, zP, 0f, -1f, 0f, 0f, 1f, texture, ao.getSideVertexAO(false, false, true));
+                stream.vertex(xN, yN, zN, 0f, -1f, 0f, 0f, 0f, texture, ao.getSideVertexAO(false, false, false));
+                stream.vertex(xP, yN, zP, 0f, -1f, 0f, 1f, 1f, texture, ao.getSideVertexAO(true, false, true));
+                stream.vertex(xP, yN, zN, 0f, -1f, 0f, 1f, 0f, texture, ao.getSideVertexAO(true, false, false));
                 if (ao.generateFlippedQuad()) {
-                    stream.index(new int[]{0, 3, 2, 0, 1, 3});
+                    stream.quad(0, 3, 2, 0, 1, 3);
                 } else {
-                    stream.index(new int[]{0, 1, 2, 1, 3, 2});
+                    stream.quad(0, 1, 2, 1, 3, 2);
                 }
                 return;
             }

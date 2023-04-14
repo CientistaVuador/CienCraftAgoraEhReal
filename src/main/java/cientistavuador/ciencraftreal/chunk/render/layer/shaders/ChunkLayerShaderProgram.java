@@ -52,9 +52,10 @@ public class ChunkLayerShaderProgram {
             uniform float time;
             
             layout (location = 0) in vec3 inVertexPos;
-            layout (location = 1) in vec2 inTexCoords;
-            layout (location = 2) in int inVertexTextureID;
-            layout (location = 3) in float inVertexAO;
+            layout (location = 1) in vec4 inVertexNormal;
+            layout (location = 2) in vec2 inTexCoords;
+            layout (location = 3) in int inVertexTextureID;
+            layout (location = 4) in float inVertexAO;
             
             layout (std140) uniform Camera {
                 mat4 projection;
@@ -78,10 +79,12 @@ public class ChunkLayerShaderProgram {
                 BlockMaterial materials[MATERIALS_UBO_SIZE];
             };
             
-            out VS_OUT {
+            out Vertex {
+                vec3 position;
+                vec3 normal;
                 vec2 texCoords;
-                flat int textureID;
                 float ao;
+                flat int textureID;
                 flat int hasColor;
                 flat vec4 color;
             } VOut;
@@ -118,6 +121,8 @@ public class ChunkLayerShaderProgram {
                     }
                 }
                 
+                VOut.position = vertexPos;
+                VOut.normal = (inVertexNormal.xyz - 0.5) * 2.0;
                 VOut.texCoords = texCoords;
                 VOut.textureID = texture;
                 VOut.ao = inVertexAO;
@@ -132,10 +137,12 @@ public class ChunkLayerShaderProgram {
             uniform bool useAlpha;
             uniform sampler2DArray textures;
             
-            in VS_OUT {
+            in Vertex {
+                vec3 position;
+                vec3 normal;
                 vec2 texCoords;
-                flat int textureID;
                 float ao;
+                flat int textureID;
                 flat int hasColor;
                 flat vec4 color;
             } FIn;
