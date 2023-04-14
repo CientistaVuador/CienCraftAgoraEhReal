@@ -310,10 +310,10 @@ public class Main {
                     System.out.println("[Spike Lag Warning] From "+Main.FPS+" FPS to "+tpfFps+" FPS; current frame TPF: "+String.format("%.3f", Main.TPF)+"s");
                 }
             }
-
+            
             glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
             glfwPollEvents();
-
+            
             Main.WINDOW_TITLE = "CienCraft - FPS: " + Main.FPS;
 
             Game.get().loop();
