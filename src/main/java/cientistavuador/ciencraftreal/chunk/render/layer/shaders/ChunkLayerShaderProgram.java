@@ -166,7 +166,7 @@ public class ChunkLayerShaderProgram {
             """;
     
     public static final int SHADER_PROGRAM = ProgramCompiler.compile(
-            VERTEX_SHADER, 
+            VERTEX_SHADER,
             FRAGMENT_SHADER,
             Map.of(
                     "CHUNK_SIZE", Integer.toString(Chunk.CHUNK_SIZE) + ".0",
