@@ -60,6 +60,7 @@ public class WorldCamera {
     private int chunkX = 0;
     private int chunkZ = 0;
     private final ChunkGeneratorFactory chunkGeneratorFactory;
+    private final WorldSky sky = new WorldSky();
 
     public WorldCamera(Camera camera, long seed, ChunkGeneratorFactory chunkGeneratorFactory) {
         this.camera = camera;
@@ -72,6 +73,10 @@ public class WorldCamera {
         return chunkGeneratorFactory;
     }
 
+    public WorldSky getSky() {
+        return sky;
+    }
+    
     private void updatePosition() {
         int camChunkX = (int) Math.floor(camera.getPosition().x() / Chunk.CHUNK_SIZE);
         int camChunkZ = (int) Math.ceil(camera.getPosition().z() / Chunk.CHUNK_SIZE);

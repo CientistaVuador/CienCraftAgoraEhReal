@@ -38,10 +38,7 @@ import java.util.Arrays;
  */
 public class AmbientOcclusion {
 
-    public static final float AO_LEVEL_0 = 0.00f;
-    public static final float AO_LEVEL_1 = 0.30f;
-    public static final float AO_LEVEL_2 = 0.50f;
-    public static final float AO_LEVEL_3 = 0.75f;
+    public static final float AO_STEP = 0.15f;
     
     public static final AmbientOcclusion NO_OCCLUSION = new AmbientOcclusion() {
         @Override
@@ -146,22 +143,7 @@ public class AmbientOcclusion {
         } else {
             aoLevel = (side1 + side2 + corner);
         }
-        switch (aoLevel) {
-            case 0 -> {
-                return AO_LEVEL_0;
-            }
-            case 1 -> {
-                return AO_LEVEL_1;
-            }
-            case 2 -> {
-                return AO_LEVEL_2;
-            }
-            case 3 -> {
-                return AO_LEVEL_3;
-            }
-        }
-        
-        return 0f;
+        return aoLevel * AO_STEP;
     }
     
     private boolean shouldFlipQuad(float a00, float a01, float a11, float a10) {

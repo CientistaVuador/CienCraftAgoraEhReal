@@ -35,7 +35,10 @@ import cientistavuador.ciencraftreal.chunk.Chunk;
 import cientistavuador.ciencraftreal.chunk.render.layer.ChunkLayer;
 import cientistavuador.ciencraftreal.ubo.CameraUBO;
 import cientistavuador.ciencraftreal.util.ProgramCompiler;
+import cientistavuador.ciencraftreal.world.WorldSky;
 import java.util.Map;
+import org.joml.Vector3f;
+import org.joml.Vector3fc;
 import static org.lwjgl.opengl.GL33C.*;
 
 /**
@@ -137,6 +140,10 @@ public class ChunkLayerShaderProgram {
             uniform bool useAlpha;
             uniform sampler2DArray textures;
             
+            uniform vec3 directionalDiffuseColor;
+            uniform vec3 directionalAmbientColor;
+            uniform vec3 directionalDirection;
+            
             in Vertex {
                 vec3 position;
                 vec3 normal;
@@ -148,6 +155,19 @@ public class ChunkLayerShaderProgram {
             } FIn;
             
             layout (location = 0) out vec4 out_Color;
+            
+            vec3 calculateDirectional(vec3 textureColor) {
+                vec3 lightDir = normalize(-directionalDirection);
+                vec3 viewDir = normalize(-FIn.position);
+                vec3 halfwayDir = normalize(lightDir + viewDir);
+                
+                float diffuseValue = max(dot(FIn.normal, lightDir), 0.0);
+                
+                vec3 ambient = directionalAmbientColor * pow(1.0 - FIn.ao, 3.0) * textureColor;
+                vec3 diffuse = directionalDiffuseColor * diffuseValue * textureColor;
+                
+                return (ambient + diffuse);
+            }
             
             void main() {
                 vec4 color = texture(textures, vec3(FIn.texCoords, float(FIn.textureID)));
@@ -163,11 +183,11 @@ public class ChunkLayerShaderProgram {
                 }
                 
                 const float gamma = 2.2;
+                
                 outputColor.rgb = pow(outputColor.rgb, vec3(gamma));
-                
-                outputColor.rgb *= 1.0 - FIn.ao;
-                
+                outputColor.rgb = calculateDirectional(outputColor.rgb);
                 outputColor.rgb = pow(outputColor.rgb, vec3(1.0/gamma));
+                
                 out_Color = outputColor;
             }
             """;
@@ -193,13 +213,23 @@ public class ChunkLayerShaderProgram {
     public static final int USE_ALPHA_PROGRAM_INDEX = glGetUniformLocation(SHADER_PROGRAM, "useAlpha");
     public static final int TIME_PROGRAM_INDEX = glGetUniformLocation(SHADER_PROGRAM, "time");
     public static final int CAMERA_UBO_INDEX = glGetUniformBlockIndex(SHADER_PROGRAM, "Camera");
+    public static final int DIRECTIONAL_DIFFUSE_COLOR_INDEX = glGetUniformLocation(SHADER_PROGRAM, "directionalDiffuseColor");
+    public static final int DIRECTIONAL_AMBIENT_COLOR_INDEX = glGetUniformLocation(SHADER_PROGRAM, "directionalAmbientColor");
+    public static final int DIRECTIONAL_DIRECTION_INDEX = glGetUniformLocation(SHADER_PROGRAM, "directionalDirection");
     
-    public static void sendPerFrameUniforms(Camera camera) {
+    public static void sendPerFrameUniforms(Camera camera, WorldSky sky) {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D_ARRAY, BlockTextures.GL_TEXTURE_ARRAY);
         
         glUniform1i(TEXTURES_PROGRAM_INDEX, 0);
         glUniform1f(TIME_PROGRAM_INDEX, (float) Main.ONE_MINUTE_COUNTER);
+        
+        Vector3fc diffuse = sky.getDirectionalDiffuseColor();
+        Vector3fc ambient = sky.getDirectionalAmbientColor();
+        Vector3fc direction = sky.getDirectionalDirection();
+        glUniform3f(DIRECTIONAL_DIFFUSE_COLOR_INDEX, diffuse.x(), diffuse.y(), diffuse.z());
+        glUniform3f(DIRECTIONAL_AMBIENT_COLOR_INDEX, ambient.x(), ambient.y(), ambient.z());
+        glUniform3f(DIRECTIONAL_DIRECTION_INDEX, direction.x(), direction.y(), direction.z());
         
         CameraUBO cameraUbo = camera.getUBO();
         if (cameraUbo == null) {

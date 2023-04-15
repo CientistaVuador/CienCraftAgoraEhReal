@@ -29,6 +29,7 @@ package cientistavuador.ciencraftreal.chunk.render.layer;
 import cientistavuador.ciencraftreal.camera.Camera;
 import cientistavuador.ciencraftreal.chunk.Chunk;
 import cientistavuador.ciencraftreal.world.WorldCamera;
+import cientistavuador.ciencraftreal.world.WorldSky;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
@@ -73,6 +74,11 @@ public class ChunkLayersRender {
     }
 
     public static int render(Camera camera, ChunkLayers[] chunks) {
+        if (chunks.length == 0) {
+            return 0;
+        }
+        WorldSky sky = chunks[0].getChunk().getWorld().getSky();
+        
         List<DistancedChunkLayer> layerList = new ArrayList<>(64);
 
         for (int i = 0; i < chunks.length; i++) {
@@ -107,7 +113,7 @@ public class ChunkLayersRender {
         ArrayDeque<ChunkLayer> toProcess = new ArrayDeque<>(64);
 
         ChunkLayer.useDefaultProgram();
-        ChunkLayer.sendPerFrameUniforms(camera);
+        ChunkLayer.sendPerFrameUniforms(camera, sky);
         ChunkLayer.sendUseAlphaUniform(false);
 
         int layersToProcess = 0;

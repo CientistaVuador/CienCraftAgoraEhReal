@@ -33,6 +33,7 @@ import cientistavuador.ciencraftreal.chunk.render.layer.vertices.IndicesGenerato
 import cientistavuador.ciencraftreal.chunk.render.layer.vertices.VerticesCompressor;
 import cientistavuador.ciencraftreal.chunk.render.layer.vertices.VerticesCreator;
 import cientistavuador.ciencraftreal.chunk.render.layer.vertices.VerticesStream;
+import cientistavuador.ciencraftreal.world.WorldSky;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -51,8 +52,8 @@ public class ChunkLayer {
         glUseProgram(ChunkLayerShaderProgram.SHADER_PROGRAM);
     }
     
-    public static void sendPerFrameUniforms(Camera camera) {
-        ChunkLayerShaderProgram.sendPerFrameUniforms(camera);
+    public static void sendPerFrameUniforms(Camera camera, WorldSky sky) {
+        ChunkLayerShaderProgram.sendPerFrameUniforms(camera, sky);
     }
     
     public static void sendUseAlphaUniform(boolean useAlpha) {
