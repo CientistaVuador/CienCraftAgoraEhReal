@@ -28,12 +28,8 @@ package cientistavuador.ciencraftreal.chunk.render.layer;
 
 import cientistavuador.ciencraftreal.camera.Camera;
 import cientistavuador.ciencraftreal.chunk.Chunk;
-import cientistavuador.ciencraftreal.chunk.render.layer.shaders.ChunkLayerShaderProgram;
-import cientistavuador.ciencraftreal.chunk.render.layer.vertices.IndicesGenerator;
-import cientistavuador.ciencraftreal.chunk.render.layer.vertices.VerticesCompressor;
 import cientistavuador.ciencraftreal.chunk.render.layer.vertices.VerticesCreator;
 import cientistavuador.ciencraftreal.chunk.render.layer.vertices.VerticesStream;
-import cientistavuador.ciencraftreal.world.WorldSky;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -48,26 +44,6 @@ import static org.lwjgl.opengl.GL33C.*;
  */
 public class ChunkLayer {
 
-    public static void useDefaultProgram() {
-        glUseProgram(ChunkLayerShaderProgram.SHADER_PROGRAM);
-    }
-    
-    public static void sendPerFrameUniforms(Camera camera, WorldSky sky) {
-        ChunkLayerShaderProgram.sendPerFrameUniforms(camera, sky);
-    }
-    
-    public static void sendUseAlphaUniform(boolean useAlpha) {
-        ChunkLayerShaderProgram.sendUseAlphaUniform(useAlpha);
-    }
-    
-    public static void finishRendering() {
-        ChunkLayerShaderProgram.finishRendering();
-    }
-    
-    public static void discardProgram() {
-        glUseProgram(0);
-    }
-    
     //pos, normal, tex coords, tex id, ao
     public static final int VERTEX_SIZE_ELEMENTS = 3 + 2 + 1 + 1 + 1 + 1;
     public static final int TEX_COORDS_MAX = 10;
@@ -307,13 +283,15 @@ public class ChunkLayer {
         return a || b;
     }
 
+    public boolean hasVertices() {
+        return this.vertices != null && this.vertices.length != 0;
+    }
+    
+    public boolean hasVerticesAlpha() {
+        return this.verticesAlpha != null && this.verticesAlpha.length != 0;
+    }
+    
     public boolean renderStage4() {
-        if (this.vertices.length == 0) {
-            return false;
-        }
-        
-        ChunkLayerShaderProgram.sendPerDrawUniforms(this.chunk.getChunkX(), this.y, this.chunk.getChunkZ());
-        
         glBindVertexArray(this.vao);
         glDrawElements(GL_TRIANGLES, this.indices.length, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
@@ -322,12 +300,6 @@ public class ChunkLayer {
     }
     
     public boolean renderAlphaStage5() {
-        if (this.verticesAlpha.length == 0) {
-            return false;
-        }
-        
-        ChunkLayerShaderProgram.sendPerDrawUniforms(this.chunk.getChunkX(), this.y, this.chunk.getChunkZ());
-        
         glBindVertexArray(this.vaoAlpha);
         glDrawElements(GL_TRIANGLES, this.indicesAlpha.length, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
