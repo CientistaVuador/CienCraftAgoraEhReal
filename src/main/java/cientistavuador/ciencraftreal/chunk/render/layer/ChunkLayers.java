@@ -61,9 +61,9 @@ public class ChunkLayers {
         return layerAt(y);
     }
 
-    public void delete() {
+    public void delete(boolean lazy) {
         for (int i = 0; i < this.layers.length; i++) {
-            this.layers[i].delete();
+            this.layers[i].delete(lazy);
         }
     }
     
