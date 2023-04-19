@@ -77,6 +77,10 @@ public class Game {
         player.setMovementDisabled(false);
     }
     
+    public void shadowLoop() {
+        
+    }
+    
     public void loop() {
         camera.updateMovement();
 

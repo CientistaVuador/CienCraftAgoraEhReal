@@ -265,6 +265,7 @@ public class Main {
         GLFonts.init(); //static initialize
         BlockSounds.init(); //static initialize
         Blocks.init(); //static initialize
+        ShadowFBO.init(); //static initialize
         Game.get(); //static initialize
 
         Main.checkGLError();
@@ -311,6 +312,13 @@ public class Main {
                 }
             }
             
+            glBindFramebuffer(GL_FRAMEBUFFER, ShadowFBO.FBO);
+            glClear(GL_DEPTH_BUFFER_BIT);
+            glViewport(0, 0, ShadowFBO.width(), ShadowFBO.height());
+            Game.get().shadowLoop();
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            
+            glViewport(0, 0, Main.WIDTH, Main.HEIGHT);
             glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
             glfwPollEvents();
             
