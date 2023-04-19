@@ -76,34 +76,36 @@ public class ChunkLayersPipeline {
         public boolean requiresUpdate() {
             return requiresUpdate;
         }
-        
+
     }
-    
+
     public static int render(Camera camera, ChunkLayers[] chunks) {
         long time = System.nanoTime();
-        
+
         if (chunks.length == 0) {
             return 0;
         }
         WorldSky sky = chunks[0].getChunk().getWorld().getSky();
 
         List<DistancedChunkLayer> layerList = new ArrayList<>(chunks.length * (Chunk.CHUNK_HEIGHT / ChunkLayer.HEIGHT));
-        
+
+        final double maxDistance = (WorldCamera.VIEW_DISTANCE + 0.5) * Chunk.CHUNK_SIZE;
         for (int i = 0; i < chunks.length; i++) {
             ChunkLayers layers = chunks[i];
 
+            double xx = camera.getPosition().x() - ((layers.getChunk().getChunkX() + 0.5) * Chunk.CHUNK_SIZE);
+            double zz = camera.getPosition().z() - ((layers.getChunk().getChunkZ() - 0.5) * Chunk.CHUNK_SIZE);
+            if (Math.sqrt((xx * xx) + (zz * zz)) >= maxDistance) {
+                continue;
+            }
+            if (!layers.testAab(camera)) {
+                continue;
+            }
             for (int j = 0; j < layers.length(); j++) {
                 ChunkLayer layer = layers.layerAt(j);
-
                 boolean requiresUpdate = layer.requiresUpdate(camera);
                 if ((!layer.isCulled() && !layer.isEmpty()) || requiresUpdate) {
-                    DistancedChunkLayer e = new DistancedChunkLayer(layer, camera, requiresUpdate);
-                    final double maxDistance = (WorldCamera.VIEW_DISTANCE + 0.5) * Chunk.CHUNK_SIZE;
-                    double xx = e.getCamera().getPosition().x() - e.getLayer().getCenter().x();
-                    double zz = e.getCamera().getPosition().z() - e.getLayer().getCenter().z();
-                    if (Math.sqrt((xx * xx) + (zz * zz)) <= maxDistance) {
-                        layerList.add(e);
-                    }
+                    layerList.add(new DistancedChunkLayer(layer, camera, requiresUpdate));
                 }
             }
         }
@@ -134,7 +136,7 @@ public class ChunkLayersPipeline {
             if (e.requiresUpdate() && ((System.nanoTime() - time) / 1E9d) < (1.0 / 90.0)) {
                 k.update();
             }
-            
+
             ChunkLayerShaderProgram.sendPerDrawUniforms(k.getChunk().getChunkX(), k.getY(), k.getChunk().getChunkZ());
             if (k.render(false)) {
                 drawCalls++;
@@ -143,7 +145,7 @@ public class ChunkLayersPipeline {
 
         ChunkLayerShaderProgram.sendUseAlphaUniform(true);
 
-        for (int i = (layerList.size()-1); i >= 0; i--) {
+        for (int i = (layerList.size() - 1); i >= 0; i--) {
             ChunkLayer k = layerList.get(i).getLayer();
             ChunkLayerShaderProgram.sendPerDrawUniforms(k.getChunk().getChunkX(), k.getY(), k.getChunk().getChunkZ());
             if (k.render(true)) {

@@ -42,18 +42,14 @@ public interface Camera {
 
     float DEFAULT_FAR_PLANE = 1000f;
     float DEFAULT_NEAR_PLANE = 0.1f;
-    float DEFAULT_PITCH = 0f;
     Vector3fc DEFAULT_POSITION = new Vector3f(0, 0, 0);
     Vector3fc DEFAULT_WORLD_UP = new Vector3f(0, 1, 0);
-    float DEFAULT_YAW = -90f;
 
     Vector2fc getDimensions();
 
     float getFarPlane();
     
     float getNearPlane();
-
-    Vector3fc getRotation();
 
     Vector3fc getFront();
     
@@ -83,10 +79,6 @@ public interface Camera {
 
     void setPosition(Vector3fc position);
 
-    void setRotation(float pitch, float yaw, float roll);
-
-    void setRotation(Vector3fc rotation);
-    
     void setUBO(CameraUBO ubo);
 
 }
