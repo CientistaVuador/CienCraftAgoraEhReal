@@ -38,6 +38,7 @@ public class UBOBindingPoints {
     public static final int BLOCK_MATERIALS = 1;
     public static final int PLAYER_CAMERA = 2;
     public static final int FONT_TEXT = 3;
+    public static final int SHADOW_CAMERA = 4;
     
     private UBOBindingPoints() {
         

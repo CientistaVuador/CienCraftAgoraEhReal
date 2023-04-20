@@ -34,6 +34,7 @@ import cientistavuador.ciencraftreal.chunk.generation.ChunkGenerator;
 import cientistavuador.ciencraftreal.chunk.generation.ChunkGeneratorFactory;
 import cientistavuador.ciencraftreal.chunk.render.layer.ChunkLayers;
 import cientistavuador.ciencraftreal.chunk.render.layer.ChunkLayersPipeline;
+import cientistavuador.ciencraftreal.chunk.render.layer.ChunkLayersShadowPipeline;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -47,7 +48,7 @@ import java.util.concurrent.Future;
  */
 public class WorldCamera {
 
-    public static final int VIEW_DISTANCE = 24;
+    public static final int VIEW_DISTANCE = 4;
     public static final int VIEW_DISTANCE_SIZE = (VIEW_DISTANCE * 2) + 1;
     public static final int VIEW_DISTANCE_NUMBER_OF_CHUNKS = VIEW_DISTANCE_SIZE * VIEW_DISTANCE_SIZE;
 
@@ -374,7 +375,7 @@ public class WorldCamera {
         return Blocks.AIR;
     }
 
-    public int render() {
+    public int render(Camera shadowCamera) {
         List<ChunkLayers> layers = new ArrayList<>();
 
         for (int i = 0; i < length(); i++) {
@@ -384,9 +385,22 @@ public class WorldCamera {
             }
         }
 
-        return ChunkLayersPipeline.render(this.camera, layers.toArray(ChunkLayers[]::new));
+        return ChunkLayersPipeline.render(this.camera, layers.toArray(ChunkLayers[]::new), shadowCamera);
     }
 
+    public int renderShadow(Camera camera) {
+        List<ChunkLayers> layers = new ArrayList<>();
+
+        for (int i = 0; i < length(); i++) {
+            Chunk c = chunkAtIndex(i);
+            if (c != null) {
+                layers.add(c.getLayers());
+            }
+        }
+
+        return ChunkLayersShadowPipeline.render(camera, layers.toArray(ChunkLayers[]::new));
+    }
+    
     public Camera getCamera() {
         return camera;
     }

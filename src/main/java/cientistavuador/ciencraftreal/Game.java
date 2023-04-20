@@ -33,6 +33,7 @@ import cientistavuador.ciencraftreal.block.BlockSounds;
 import cientistavuador.ciencraftreal.block.Blocks;
 import cientistavuador.ciencraftreal.block.StateOfMatter;
 import cientistavuador.ciencraftreal.camera.FreeCamera;
+import cientistavuador.ciencraftreal.camera.OrthoCamera;
 import cientistavuador.ciencraftreal.chunk.generation.WorldChunkGeneratorFactory;
 import cientistavuador.ciencraftreal.player.Player;
 import cientistavuador.ciencraftreal.player.PlayerPhysics;
@@ -59,10 +60,13 @@ public class Game {
     }
 
     private final FreeCamera camera = new FreeCamera();
+    private final OrthoCamera shadowCamera = new OrthoCamera();
     private final WorldCamera world = new WorldCamera(camera, 65487321654L, new WorldChunkGeneratorFactory());
     private final BlockOutline outline = new BlockOutline(world, camera);
     private final Player player = new Player(world);
+    
     private int currentBlockId = Blocks.HAPPY_2023.getId();
+    private int drawCalls = 0;
     
     private Game() {
 
@@ -75,23 +79,20 @@ public class Game {
 
         camera.setMovementDisabled(true);
         player.setMovementDisabled(false);
-    }
-    
-    public void shadowLoop() {
         
+        shadowCamera.setDimensions(16f, 16f);
+        shadowCamera.setUBO(CameraUBO.create(UBOBindingPoints.SHADOW_CAMERA));
     }
     
     public void loop() {
+        drawCalls = 0;
+        
         camera.updateMovement();
-
+        
         world.update();
-        int drawCalls = world.render();
-
         outline.update();
-        outline.render();
-
+        
         player.update();
-
         player.setYaw(camera.getRotation().y());
         if (camera.isMovementDisabled()) {
             camera.setPosition(
@@ -100,22 +101,39 @@ public class Game {
                     player.getPosition().z()
             );
         }
-
-        drawCalls += AabRender.renderQueue(camera);
         
         Main.WINDOW_TITLE += " (Block: " + BlockRegister.getBlock(this.currentBlockId).getName() + ")";
         Main.WINDOW_TITLE += " (x:" + (int) Math.floor(camera.getPosition().x()) + ",y:" + (int) Math.floor(camera.getPosition().y()) + ",z:" + (int) Math.ceil(camera.getPosition().z()) + ")";
-        Main.WINDOW_TITLE += " (DrawCalls: " + drawCalls + ")";
-
+        
         AudioPlayer.update(camera);
-
+        
+        shadowCamera.setFront(world.getSky().getDirectionalDirection());
+        shadowCamera.setPosition(
+                camera.getPosition().x() + (-shadowCamera.getFront().x() * 128f),
+                camera.getPosition().y() + (-shadowCamera.getFront().y() * 128f),
+                camera.getPosition().z() + (-shadowCamera.getFront().z() * 128f)
+        );
+    }
+    
+    
+    public void shadowLoop() {
+        drawCalls += world.renderShadow(shadowCamera);
+    }
+    
+    public void renderLoop() {
+        drawCalls += world.render(shadowCamera);
+        
+        outline.render();
+        drawCalls++;
+        
+        drawCalls += AabRender.renderQueue(camera);
+        
         String lookingAt = "---";
         Block lookingAtBlock = this.outline.getBlock();
         if (lookingAtBlock != Blocks.AIR) {
             lookingAt = "Looking at " + lookingAtBlock.getName() + " at X: " + outline.getCastPos().x() + ", Y: " + outline.getCastPos().y() + ", Z: " + outline.getCastPos().z();
         }
-
-        GLFontRenderer.render(-1f, 0.90f,
+        drawCalls += GLFontRenderer.render(-1f, 0.90f,
                 new GLFontSpecification[]{
                     GLFontSpecifications.OPENSANS_ITALIC_0_10_BANANA_YELLOW,
                     GLFontSpecifications.ROBOTO_THIN_0_05_WHITE
@@ -139,11 +157,12 @@ public class Game {
                             .append("\tF - Random teleport.\n")
                             .append("\tR - Change current block.\n")
                             .append("\tV - Freecam\n")
-                            .append("\n\n\n\n")
+                            .append("\tE - Get block.\n")
                             .toString()
                 }
         );
 
+        Main.WINDOW_TITLE += " (DrawCalls: " + drawCalls + ")";
     }
 
     private String format(double d) {
@@ -202,6 +221,11 @@ public class Game {
             } else {
                 camera.setMovementDisabled(false);
                 player.setMovementDisabled(true);
+            }
+        }
+        if (key == GLFW_KEY_E && action == GLFW_PRESS) {
+            if (this.outline.getBlock() != Blocks.AIR) {
+                this.currentBlockId = this.outline.getBlock().getId();
             }
         }
     }

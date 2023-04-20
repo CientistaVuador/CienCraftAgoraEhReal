@@ -36,8 +36,8 @@ public class ShadowFBO {
     
     public static final int FBO;
     public static final int DEPTH_BUFFER_TEXTURE;
-    public static final int DEFAULT_WIDTH = 512;
-    public static final int DEFAULT_HEIGHT = 512;
+    public static final int DEFAULT_WIDTH = 2048;
+    public static final int DEFAULT_HEIGHT = 2048;
     private static int width = 0;
     private static int height = 0;
     
@@ -58,7 +58,7 @@ public class ShadowFBO {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
         
-        glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, new float[] {0f, 0f, 0f, 0f});
+        glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, new float[] {1f, 1f, 1f, 1f});
         
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);

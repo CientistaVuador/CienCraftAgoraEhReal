@@ -28,7 +28,7 @@ package cientistavuador.ciencraftreal.chunk.render.layer;
 
 import cientistavuador.ciencraftreal.camera.Camera;
 import cientistavuador.ciencraftreal.chunk.Chunk;
-import cientistavuador.ciencraftreal.chunk.render.layer.shaders.ChunkLayerProgram;
+import cientistavuador.ciencraftreal.chunk.render.layer.shaders.ChunkLayerShadowProgram;
 import cientistavuador.ciencraftreal.world.WorldCamera;
 import cientistavuador.ciencraftreal.world.WorldSky;
 import java.util.ArrayList;
@@ -40,8 +40,7 @@ import static org.lwjgl.opengl.GL20C.glUseProgram;
  *
  * @author Cien
  */
-public class ChunkLayersPipeline {
-
+public class ChunkLayersShadowPipeline {
     private static class DistancedChunkLayer {
 
         private final ChunkLayer layer;
@@ -79,7 +78,7 @@ public class ChunkLayersPipeline {
 
     }
 
-    public static int render(Camera camera, ChunkLayers[] chunks, Camera shadowCamera) {
+    public static int render(Camera camera, ChunkLayers[] chunks) {
         long time = System.nanoTime();
 
         if (chunks.length == 0) {
@@ -126,10 +125,8 @@ public class ChunkLayersPipeline {
             return 0;
         });
 
-        glUseProgram(ChunkLayerProgram.SHADER_PROGRAM);
-        ChunkLayerProgram.sendPerFrameUniforms(camera, sky, shadowCamera);
-
-        ChunkLayerProgram.sendUseAlphaUniform(false);
+        glUseProgram(ChunkLayerShadowProgram.SHADER_PROGRAM);
+        ChunkLayerShadowProgram.sendPerFrameUniforms(camera, sky);
 
         for (DistancedChunkLayer e : layerList) {
             ChunkLayer k = e.getLayer();
@@ -137,29 +134,19 @@ public class ChunkLayersPipeline {
                 k.update();
             }
 
-            ChunkLayerProgram.sendPerDrawUniforms(k.getChunk().getChunkX(), k.getY(), k.getChunk().getChunkZ());
+            ChunkLayerShadowProgram.sendPerDrawUniforms(k.getChunk().getChunkX(), k.getY(), k.getChunk().getChunkZ());
             if (k.render(false)) {
                 drawCalls++;
             }
         }
 
-        ChunkLayerProgram.sendUseAlphaUniform(true);
-
-        for (int i = (layerList.size() - 1); i >= 0; i--) {
-            ChunkLayer k = layerList.get(i).getLayer();
-            ChunkLayerProgram.sendPerDrawUniforms(k.getChunk().getChunkX(), k.getY(), k.getChunk().getChunkZ());
-            if (k.render(true)) {
-                drawCalls++;
-            }
-        }
-
-        ChunkLayerProgram.finishRendering();
+        ChunkLayerShadowProgram.finishRendering();
         glUseProgram(0);
 
         return drawCalls;
     }
 
-    private ChunkLayersPipeline() {
+    private ChunkLayersShadowPipeline() {
 
     }
 }

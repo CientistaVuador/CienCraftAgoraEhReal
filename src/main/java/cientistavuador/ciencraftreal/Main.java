@@ -312,24 +312,27 @@ public class Main {
                 }
             }
             
-            glBindFramebuffer(GL_FRAMEBUFFER, ShadowFBO.FBO);
-            glClear(GL_DEPTH_BUFFER_BIT);
-            glViewport(0, 0, ShadowFBO.width(), ShadowFBO.height());
-            Game.get().shadowLoop();
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
-            
-            glViewport(0, 0, Main.WIDTH, Main.HEIGHT);
-            glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
             glfwPollEvents();
-            
             Main.WINDOW_TITLE = "CienCraft - FPS: " + Main.FPS;
-
+            
             Game.get().loop();
             
             Runnable r;
             while ((r = MAIN_TASKS.poll()) != null) {
                 r.run();
             }
+            
+            glBindFramebuffer(GL_FRAMEBUFFER, ShadowFBO.FBO);
+            glViewport(0, 0, ShadowFBO.width(), ShadowFBO.height());
+            glClear(GL_DEPTH_BUFFER_BIT);
+            
+            Game.get().shadowLoop();
+            
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            glViewport(0, 0, Main.WIDTH, Main.HEIGHT);
+            glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+            Game.get().renderLoop();
             
             glFlush();
 

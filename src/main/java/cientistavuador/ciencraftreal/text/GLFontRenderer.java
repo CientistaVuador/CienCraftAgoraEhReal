@@ -158,7 +158,8 @@ public class GLFontRenderer {
         render(x, y, new GLFontSpecification[]{font}, new String[]{text});
     }
 
-    public static void render(float x, float y, GLFontSpecification[] fonts, String[] texts) {
+    public static int render(float x, float y, GLFontSpecification[] fonts, String[] texts) {
+        int drawCalls = 0;
         if (fonts.length != texts.length) {
             throw new RuntimeException("Fonts and Texts must have the same length.");
         }
@@ -239,11 +240,14 @@ public class GLFontRenderer {
                 if (!ubo.canPush() || (j >= length - 1)) {
                     ubo.flipAndUpdate();
                     glDrawArraysInstanced(GL_TRIANGLES, 0, 6, ubo.getLength());
+                    drawCalls++;
                 }
             }
         }
 
         glBindVertexArray(0);
         glUseProgram(0);
+        
+        return drawCalls;
     }
 }

@@ -27,6 +27,7 @@
 package cientistavuador.ciencraftreal.chunk.render.layer.shaders;
 
 import cientistavuador.ciencraftreal.Main;
+import cientistavuador.ciencraftreal.ShadowFBO;
 import cientistavuador.ciencraftreal.block.BlockTextures;
 import cientistavuador.ciencraftreal.ubo.ColorUBO;
 import cientistavuador.ciencraftreal.ubo.MaterialUBO;
@@ -36,16 +37,18 @@ import cientistavuador.ciencraftreal.chunk.render.layer.ChunkLayer;
 import cientistavuador.ciencraftreal.ubo.CameraUBO;
 import cientistavuador.ciencraftreal.util.ProgramCompiler;
 import cientistavuador.ciencraftreal.world.WorldSky;
+import java.nio.FloatBuffer;
 import java.util.Map;
-import org.joml.Vector3f;
+import org.joml.Matrix4f;
 import org.joml.Vector3fc;
 import static org.lwjgl.opengl.GL33C.*;
+import org.lwjgl.system.MemoryStack;
 
 /**
  *
  * @author Cien
  */
-public class ChunkLayerShaderProgram {
+public class ChunkLayerProgram {
     
     public static final String VERTEX_SHADER = 
             """
@@ -140,6 +143,9 @@ public class ChunkLayerShaderProgram {
             uniform bool useAlpha;
             uniform sampler2DArray textures;
             
+            uniform mat4 shadowProjectionView;
+            uniform sampler2DShadow shadowMap;
+            
             uniform vec3 directionalDiffuseColor;
             uniform vec3 directionalAmbientColor;
             uniform vec3 directionalDirection;
@@ -162,6 +168,20 @@ public class ChunkLayerShaderProgram {
                 vec3 halfwayDir = normalize(lightDir + viewDir);
                 
                 float diffuseValue = max(dot(FIn.normal, lightDir), 0.0);
+                
+                vec2 shadowMapTexelSize = 1.0 / vec2(textureSize(shadowMap, 0));
+                
+                vec4 mapCoords = shadowProjectionView * vec4(FIn.position, 1.0);
+                mapCoords /= mapCoords.w;
+                mapCoords.xyz = (mapCoords.xyz + 1.0) / 2.0;
+                float shadowValue = 0.0;
+                for (int x = -1; x <= 1; x++) {
+                    for (int y = -1; y <= 1; y++) {
+                        shadowValue += texture(shadowMap, vec3(mapCoords.xy + (vec2(float(x), float(y)) * shadowMapTexelSize), mapCoords.z - 0.0002));
+                    }
+                }
+                shadowValue /= 3.0 * 3.0;
+                diffuseValue *= shadowValue;
                 
                 vec3 ambient = directionalAmbientColor * pow(1.0 - FIn.ao, 3.0) * textureColor;
                 vec3 diffuse = directionalDiffuseColor * diffuseValue * textureColor;
@@ -216,13 +236,39 @@ public class ChunkLayerShaderProgram {
     public static final int DIRECTIONAL_DIFFUSE_COLOR_INDEX = glGetUniformLocation(SHADER_PROGRAM, "directionalDiffuseColor");
     public static final int DIRECTIONAL_AMBIENT_COLOR_INDEX = glGetUniformLocation(SHADER_PROGRAM, "directionalAmbientColor");
     public static final int DIRECTIONAL_DIRECTION_INDEX = glGetUniformLocation(SHADER_PROGRAM, "directionalDirection");
+    public static final int SHADOW_PROJECTION_VIEW_INDEX = glGetUniformLocation(SHADER_PROGRAM, "shadowProjectionView");
+    public static final int SHADOW_MAP_INDEX = glGetUniformLocation(SHADER_PROGRAM, "shadowMap");
     
-    public static void sendPerFrameUniforms(Camera camera, WorldSky sky) {
+    public static void sendPerFrameUniforms(Camera camera, WorldSky sky, Camera shadowCamera) {
+        CameraUBO cameraUbo = camera.getUBO();
+        if (cameraUbo == null) {
+            throw new NullPointerException("Camera UBO is null");
+        }
+        
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D_ARRAY, BlockTextures.GL_TEXTURE_ARRAY);
         
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, ShadowFBO.DEPTH_BUFFER_TEXTURE);
+        
         glUniform1i(TEXTURES_PROGRAM_INDEX, 0);
+        glUniform1i(SHADOW_MAP_INDEX, 1);
         glUniform1f(TIME_PROGRAM_INDEX, (float) Main.ONE_MINUTE_COUNTER);
+        
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            Matrix4f projectionView = new Matrix4f()
+                .set(shadowCamera.getProjection())
+                .mul(shadowCamera.getView())
+                .translate(
+                        (float) -(shadowCamera.getPosition().x() - camera.getPosition().x()),
+                        (float) -(shadowCamera.getPosition().y() - camera.getPosition().y()),
+                        (float) -(shadowCamera.getPosition().z() - camera.getPosition().z())
+                )
+                ;
+            FloatBuffer matrix = stack.mallocFloat(4*4);
+            projectionView.get(matrix);
+            glUniformMatrix4fv(SHADOW_PROJECTION_VIEW_INDEX, false, matrix);
+        }
         
         Vector3fc diffuse = sky.getDirectionalDiffuseColor();
         Vector3fc ambient = sky.getDirectionalAmbientColor();
@@ -230,11 +276,6 @@ public class ChunkLayerShaderProgram {
         glUniform3f(DIRECTIONAL_DIFFUSE_COLOR_INDEX, diffuse.x(), diffuse.y(), diffuse.z());
         glUniform3f(DIRECTIONAL_AMBIENT_COLOR_INDEX, ambient.x(), ambient.y(), ambient.z());
         glUniform3f(DIRECTIONAL_DIRECTION_INDEX, direction.x(), direction.y(), direction.z());
-        
-        CameraUBO cameraUbo = camera.getUBO();
-        if (cameraUbo == null) {
-            throw new NullPointerException("Camera UBO is null");
-        }
         
         glUniformBlockBinding(SHADER_PROGRAM, CAMERA_UBO_INDEX, cameraUbo.getBindingPoint());
         glUniformBlockBinding(SHADER_PROGRAM, BLOCK_COLORS_UBO_INDEX, ColorUBO.DEFAULT.getBindingPoint());
@@ -258,7 +299,7 @@ public class ChunkLayerShaderProgram {
         glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
     }
     
-    private ChunkLayerShaderProgram() {
+    private ChunkLayerProgram() {
         
     }
 }

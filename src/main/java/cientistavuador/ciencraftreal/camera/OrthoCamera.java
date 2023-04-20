@@ -28,9 +28,7 @@ package cientistavuador.ciencraftreal.camera;
 
 import static cientistavuador.ciencraftreal.camera.Camera.DEFAULT_POSITION;
 import static cientistavuador.ciencraftreal.camera.Camera.DEFAULT_WORLD_UP;
-import cientistavuador.ciencraftreal.chunk.Chunk;
 import cientistavuador.ciencraftreal.ubo.CameraUBO;
-import cientistavuador.ciencraftreal.world.WorldCamera;
 import org.joml.Matrix4d;
 import org.joml.Matrix4dc;
 import org.joml.Matrix4f;
@@ -47,25 +45,26 @@ import org.joml.Vector3fc;
  * @author Cien
  */
 public class OrthoCamera implements Camera {
-    public static final float DEFAULT_FAR_PLANE_ORTHO = 250f;
-    public static final float DEFAULT_NEAR_PLANE_ORTHO = 0.025f;
-    public static final float DEFAULT_ORTHO_WIDTH = WorldCamera.VIEW_DISTANCE_SIZE * Chunk.CHUNK_SIZE;
-    public static final float DEFAULT_ORTHO_HEIGHT = WorldCamera.VIEW_DISTANCE_SIZE * Chunk.CHUNK_SIZE;
-    public static final Vector3fc DEFAULT_FRONT = new Vector3f(0f, -1f, 1f).normalize();
+    public static final float DEFAULT_ORTHO_FAR_PLANE = 250f;
+    public static final float DEFAULT_ORTHO_NEAR_PLANE = 0.025f;
+    public static final float DEFAULT_ORTHO_WIDTH = 256;
+    public static final float DEFAULT_ORTHO_HEIGHT = 256;
+    public static final Vector3fc DEFAULT_ORTHO_FRONT = new Vector3f(0f, -1f, 1f).normalize();
+    public static final Vector3fc DEFAULT_ORTHO_POSITION = new Vector3f(0f, 192f, 0f);
     
     //Camera fields
     private final Vector2f dimensions = new Vector2f(DEFAULT_ORTHO_WIDTH, DEFAULT_ORTHO_HEIGHT);
     
-    private float nearPlane = DEFAULT_NEAR_PLANE_ORTHO;
-    private float farPlane = DEFAULT_FAR_PLANE_ORTHO;
+    private float nearPlane = DEFAULT_ORTHO_NEAR_PLANE;
+    private float farPlane = DEFAULT_ORTHO_FAR_PLANE;
     
     //Camera axises
-    private final Vector3f front = new Vector3f(DEFAULT_FRONT);
+    private final Vector3f front = new Vector3f(DEFAULT_ORTHO_FRONT);
     private final Vector3f up = new Vector3f(0, 1, 0);
     private final Vector3f right = new Vector3f(1, 0, 0);
     
     //Position and Rotation
-    private final Vector3d position = new Vector3d(DEFAULT_POSITION);
+    private final Vector3d position = new Vector3d(DEFAULT_ORTHO_POSITION);
     
     //Matrices
     private final Matrix4f view = new Matrix4f();
