@@ -143,6 +143,7 @@ public class ChunkLayerProgram {
             uniform bool useAlpha;
             uniform sampler2DArray textures;
             
+            uniform bool shadowEnabled;
             uniform mat4 shadowProjectionView;
             uniform sampler2DShadow shadowMap;
             
@@ -171,17 +172,19 @@ public class ChunkLayerProgram {
                 
                 vec2 shadowMapTexelSize = 1.0 / vec2(textureSize(shadowMap, 0));
                 
-                vec4 mapCoords = shadowProjectionView * vec4(FIn.position, 1.0);
-                mapCoords /= mapCoords.w;
-                mapCoords.xyz = (mapCoords.xyz + 1.0) / 2.0;
-                float shadowValue = 0.0;
-                for (int x = -1; x <= 1; x++) {
-                    for (int y = -1; y <= 1; y++) {
-                        shadowValue += texture(shadowMap, vec3(mapCoords.xy + (vec2(float(x), float(y)) * shadowMapTexelSize), mapCoords.z - 0.0002));
+                float shadowValue = 1.0;
+                if (shadowEnabled) {
+                    vec4 mapCoords = shadowProjectionView * vec4(FIn.position, 1.0);
+                    mapCoords /= mapCoords.w;
+                    mapCoords.xyz = (mapCoords.xyz + 1.0) / 2.0;
+                    for (int x = -1; x <= 1; x++) {
+                        for (int y = -1; y <= 1; y++) {
+                            shadowValue += texture(shadowMap, vec3(mapCoords.xy + (vec2(float(x), float(y)) * shadowMapTexelSize), mapCoords.z - 0.0002));
+                        }
                     }
+                    shadowValue /= 3.0 * 3.0;
+                    diffuseValue *= shadowValue;
                 }
-                shadowValue /= 3.0 * 3.0;
-                diffuseValue *= shadowValue;
                 
                 vec3 ambient = directionalAmbientColor * pow(1.0 - FIn.ao, 3.0) * textureColor;
                 vec3 diffuse = directionalDiffuseColor * diffuseValue * textureColor;
@@ -238,6 +241,7 @@ public class ChunkLayerProgram {
     public static final int DIRECTIONAL_DIRECTION_INDEX = glGetUniformLocation(SHADER_PROGRAM, "directionalDirection");
     public static final int SHADOW_PROJECTION_VIEW_INDEX = glGetUniformLocation(SHADER_PROGRAM, "shadowProjectionView");
     public static final int SHADOW_MAP_INDEX = glGetUniformLocation(SHADER_PROGRAM, "shadowMap");
+    public static final int SHADOW_ENABLED_INDEX = glGetUniformLocation(SHADER_PROGRAM, "shadowEnabled");
     
     public static void sendPerFrameUniforms(Camera camera, WorldSky sky, Camera shadowCamera) {
         CameraUBO cameraUbo = camera.getUBO();
@@ -252,6 +256,7 @@ public class ChunkLayerProgram {
         glBindTexture(GL_TEXTURE_2D, ShadowFBO.DEPTH_BUFFER_TEXTURE);
         
         glUniform1i(TEXTURES_PROGRAM_INDEX, 0);
+        glUniform1i(SHADOW_ENABLED_INDEX, (Main.SHADOWS_ENABLED ? 1 : 0));
         glUniform1i(SHADOW_MAP_INDEX, 1);
         glUniform1f(TIME_PROGRAM_INDEX, (float) Main.ONE_MINUTE_COUNTER);
         

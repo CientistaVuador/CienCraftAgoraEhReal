@@ -78,7 +78,7 @@ public class ChunkLayersShadowPipeline {
 
     }
 
-    public static int render(Camera camera, ChunkLayers[] chunks) {
+    public static int render(Camera camera, Camera shadowCamera, ChunkLayers[] chunks) {
         long time = System.nanoTime();
 
         if (chunks.length == 0) {
@@ -97,14 +97,14 @@ public class ChunkLayersShadowPipeline {
             if (Math.sqrt((xx * xx) + (zz * zz)) >= maxDistance) {
                 continue;
             }
-            if (!layers.testAab(camera)) {
+            if (!layers.testAab(shadowCamera)) {
                 continue;
             }
             for (int j = 0; j < layers.length(); j++) {
                 ChunkLayer layer = layers.layerAt(j);
-                boolean requiresUpdate = layer.requiresUpdate(camera);
+                boolean requiresUpdate = layer.requiresUpdate(shadowCamera);
                 if ((!layer.isCulled() && !layer.isEmpty()) || requiresUpdate) {
-                    layerList.add(new DistancedChunkLayer(layer, camera, requiresUpdate));
+                    layerList.add(new DistancedChunkLayer(layer, shadowCamera, requiresUpdate));
                 }
             }
         }
@@ -126,7 +126,7 @@ public class ChunkLayersShadowPipeline {
         });
 
         glUseProgram(ChunkLayerShadowProgram.SHADER_PROGRAM);
-        ChunkLayerShadowProgram.sendPerFrameUniforms(camera, sky);
+        ChunkLayerShadowProgram.sendPerFrameUniforms(shadowCamera, sky);
 
         for (DistancedChunkLayer e : layerList) {
             ChunkLayer k = e.getLayer();

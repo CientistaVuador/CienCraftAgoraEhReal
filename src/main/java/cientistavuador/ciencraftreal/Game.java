@@ -80,7 +80,7 @@ public class Game {
         camera.setMovementDisabled(true);
         player.setMovementDisabled(false);
         
-        shadowCamera.setDimensions(16f, 16f);
+        shadowCamera.setDimensions(512f, 512f);
         shadowCamera.setUBO(CameraUBO.create(UBOBindingPoints.SHADOW_CAMERA));
     }
     
@@ -158,6 +158,7 @@ public class Game {
                             .append("\tR - Change current block.\n")
                             .append("\tV - Freecam\n")
                             .append("\tE - Get block.\n")
+                            .append("\tG - Enable/disable shadows.\n")
                             .toString()
                 }
         );
@@ -196,16 +197,6 @@ public class Game {
                 player.setSpeed(0f, 0f, 0f);
             }
         }
-        if (key == GLFW_KEY_G && action == GLFW_PRESS) {
-            System.out.println(world.getWorldBlock(
-                    (int) Math.floor(this.camera.getPosition().x()),
-                    (int) Math.floor(this.camera.getPosition().y()),
-                    (int) Math.ceil(this.camera.getPosition().z())
-            ));
-        }
-        if (key == GLFW_KEY_E && action == GLFW_PRESS) {
-            System.out.println(this.outline.getBlock() + " at " + outline.getCastPos());
-        }
         if (key == GLFW_KEY_R && action == GLFW_PRESS) {
             this.currentBlockId++;
             if (this.currentBlockId >= BlockRegister.numberOfRegisteredBlocks()) {
@@ -227,6 +218,9 @@ public class Game {
             if (this.outline.getBlock() != Blocks.AIR) {
                 this.currentBlockId = this.outline.getBlock().getId();
             }
+        }
+        if (key == GLFW_KEY_G && action == GLFW_PRESS) {
+            Main.SHADOWS_ENABLED = !Main.SHADOWS_ENABLED;
         }
     }
 

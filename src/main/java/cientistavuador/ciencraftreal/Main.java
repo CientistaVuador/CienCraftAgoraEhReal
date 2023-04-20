@@ -106,6 +106,7 @@ public class Main {
     public static long FRAME = 0;
     public static double ONE_SECOND_COUNTER = 0.0;
     public static double ONE_MINUTE_COUNTER = 0.0;
+    public static boolean SHADOWS_ENABLED = true;
     public static final ConcurrentLinkedQueue<Runnable> MAIN_TASKS = new ConcurrentLinkedQueue<>();
     private static GLDebugMessageCallback DEBUG_CALLBACK = null;
 
@@ -200,7 +201,7 @@ public class Main {
 
         GL.createCapabilities();
         AudioSystem.init(); //static initialize
-        
+
         if (DEBUG_ENABLED) {
             debug:
             {
@@ -259,7 +260,7 @@ public class Main {
         }
 
         Main.checkGLError();
-        
+
         //GLPool.init(); //static initialize
         BlockTextures.init();  //static initialize
         GLFonts.init(); //static initialize
@@ -269,7 +270,7 @@ public class Main {
         Game.get(); //static initialize
 
         Main.checkGLError();
-        
+
         GLFWFramebufferSizeCallbackI frameBufferSizecb = (window, width, height) -> {
             glViewport(0, 0, width, height);
             Main.WIDTH = width;
@@ -308,32 +309,34 @@ public class Main {
             if (SPIKE_LAG_WARNINGS) {
                 int tpfFps = (int) (1.0 / Main.TPF);
                 if (tpfFps < 60 && ((Main.FPS - tpfFps) > 30)) {
-                    System.out.println("[Spike Lag Warning] From "+Main.FPS+" FPS to "+tpfFps+" FPS; current frame TPF: "+String.format("%.3f", Main.TPF)+"s");
+                    System.out.println("[Spike Lag Warning] From " + Main.FPS + " FPS to " + tpfFps + " FPS; current frame TPF: " + String.format("%.3f", Main.TPF) + "s");
                 }
             }
-            
+
             glfwPollEvents();
             Main.WINDOW_TITLE = "CienCraft - FPS: " + Main.FPS;
-            
+
             Game.get().loop();
-            
+
             Runnable r;
             while ((r = MAIN_TASKS.poll()) != null) {
                 r.run();
             }
-            
-            glBindFramebuffer(GL_FRAMEBUFFER, ShadowFBO.FBO);
-            glViewport(0, 0, ShadowFBO.width(), ShadowFBO.height());
-            glClear(GL_DEPTH_BUFFER_BIT);
-            
-            Game.get().shadowLoop();
+
+            if (Main.SHADOWS_ENABLED) {
+                glBindFramebuffer(GL_FRAMEBUFFER, ShadowFBO.FBO);
+                glViewport(0, 0, ShadowFBO.width(), ShadowFBO.height());
+                glClear(GL_DEPTH_BUFFER_BIT);
+
+                Game.get().shadowLoop();
+            }
             
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             glViewport(0, 0, Main.WIDTH, Main.HEIGHT);
             glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
             Game.get().renderLoop();
-            
+
             glFlush();
 
             Main.checkGLError();
