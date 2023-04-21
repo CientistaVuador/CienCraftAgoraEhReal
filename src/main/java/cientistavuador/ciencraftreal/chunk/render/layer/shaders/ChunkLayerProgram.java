@@ -172,17 +172,19 @@ public class ChunkLayerProgram {
                 
                 vec2 shadowMapTexelSize = 1.0 / vec2(textureSize(shadowMap, 0));
                 
-                float shadowValue = 1.0;
                 if (shadowEnabled) {
                     vec4 mapCoords = shadowProjectionView * vec4(FIn.position, 1.0);
                     mapCoords /= mapCoords.w;
                     mapCoords.xyz = (mapCoords.xyz + 1.0) / 2.0;
+            
+                    float shadowValue = 0.0;
                     for (int x = -1; x <= 1; x++) {
                         for (int y = -1; y <= 1; y++) {
                             shadowValue += texture(shadowMap, vec3(mapCoords.xy + (vec2(float(x), float(y)) * shadowMapTexelSize), mapCoords.z - 0.0002));
                         }
                     }
                     shadowValue /= 3.0 * 3.0;
+                    
                     diffuseValue *= shadowValue;
                 }
                 

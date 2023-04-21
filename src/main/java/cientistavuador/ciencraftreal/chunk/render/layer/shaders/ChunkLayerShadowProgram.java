@@ -37,22 +37,93 @@ import cientistavuador.ciencraftreal.ubo.MaterialUBO;
 import cientistavuador.ciencraftreal.util.ProgramCompiler;
 import cientistavuador.ciencraftreal.world.WorldSky;
 import java.util.Map;
-import static org.lwjgl.opengl.GL11C.glBindTexture;
-import static org.lwjgl.opengl.GL13C.GL_TEXTURE0;
-import static org.lwjgl.opengl.GL13C.glActiveTexture;
-import static org.lwjgl.opengl.GL20C.glGetUniformLocation;
-import static org.lwjgl.opengl.GL20C.glUniform1f;
-import static org.lwjgl.opengl.GL20C.glUniform1i;
-import static org.lwjgl.opengl.GL20C.glUniform3i;
-import static org.lwjgl.opengl.GL30C.GL_TEXTURE_2D_ARRAY;
-import static org.lwjgl.opengl.GL31C.glGetUniformBlockIndex;
-import static org.lwjgl.opengl.GL31C.glUniformBlockBinding;
+import static org.lwjgl.opengl.GL33C.*;
 
 /**
  *
  * @author Cien
  */
 public class ChunkLayerShadowProgram {
+    
+    public static final String VERTEX_SHADER = 
+            """
+            #version 330 core
+            
+            uniform ivec3 layerBlockPos;
+            uniform float time;
+            
+            layout (location = 0) in vec3 inVertexPos;
+            layout (location = 2) in vec2 inTexCoords;
+            layout (location = 3) in int inVertexTextureID;
+            
+            layout (std140) uniform Camera {
+                mat4 projection;
+                mat4 view;
+                ivec4 icamPos;
+                vec4 dcamPos;
+            };
+            
+            layout (std140) uniform BlockColors {
+                vec4 colors[COLORS_UBO_SIZE];
+            };
+            
+            struct BlockMaterial {
+                int colorPointer;
+                float frameTime;
+                int frameStart;
+                int frameEnd;
+            };
+            
+            layout (std140) uniform BlockMaterials {
+                BlockMaterial materials[MATERIALS_UBO_SIZE];
+            };
+            
+            out Vertex {
+                vec3 position;
+                vec2 texCoords;
+                flat int textureID;
+                flat int hasAlpha;
+                flat float alpha;
+            } VOut;
+            
+            void main() {
+                vec3 vertexPos = vec3(
+                    inVertexPos.x * CHUNK_SIZE,
+                    inVertexPos.y * LAYER_HEIGHT,
+                    -inVertexPos.z * CHUNK_SIZE
+                );
+                vertexPos += vec3(layerBlockPos - icamPos.xyz);
+                vertexPos -= dcamPos.xyz;
+                vec2 texCoords = inTexCoords * TEX_COORDS_SIZE;
+                
+                VOut.hasAlpha = int(false);
+            
+                int texture = inVertexTextureID;
+                if (texture >= MIN_TEXTURE_3D_SIZE_SUPPORTED) {
+                    texture -= MIN_TEXTURE_3D_SIZE_SUPPORTED;
+                    
+                    BlockMaterial material = materials[texture];
+                    
+                    if (material.frameTime != 0.0) {
+                        int frameLength = material.frameEnd - material.frameStart;
+                        int currentFrame = material.frameStart + (int(time / material.frameTime) % frameLength);
+                        texture = currentFrame;
+                    } else {
+                        texture = material.frameStart;
+                    }
+                    
+                    if (material.colorPointer != NULL_COLOR_POINTER) {
+                        VOut.hasAlpha = int(true);
+                        VOut.alpha = colors[material.colorPointer].a;
+                    }
+                }
+                
+                VOut.position = vertexPos;
+                VOut.texCoords = texCoords;
+                VOut.textureID = texture;
+                gl_Position = projection * view * vec4(vertexPos, 1.0);
+            }
+            """;
     
     public static final String FRAGMENT_SHADER = 
             """
@@ -62,28 +133,25 @@ public class ChunkLayerShadowProgram {
             
             in Vertex {
                 vec3 position;
-                vec3 normal;
                 vec2 texCoords;
-                float ao;
                 flat int textureID;
-                flat int hasColor;
-                flat vec4 color;
+                flat int hasAlpha;
+                flat float alpha;
             } FIn;
             
             void main() {
-                vec4 color = texture(textures, vec3(FIn.texCoords, float(FIn.textureID)));
-                vec4 outputColor = color;
-                if (bool(FIn.hasColor)) {
-                    outputColor *= FIn.color;
+                float colorAlpha = texture(textures, vec3(FIn.texCoords, float(FIn.textureID))).a;
+                if (bool(FIn.hasAlpha)) {
+                    colorAlpha *= FIn.alpha;
                 }
-                if (outputColor.a < 0.5) {
+                if (colorAlpha < 0.5) {
                     discard;
                 }
             }
             """;
     
     public static final int SHADER_PROGRAM = ProgramCompiler.compile(
-            ChunkLayerProgram.VERTEX_SHADER,
+            VERTEX_SHADER,
             FRAGMENT_SHADER,
             Map.of(
                     "CHUNK_SIZE", Integer.toString(Chunk.CHUNK_SIZE) + ".0",
