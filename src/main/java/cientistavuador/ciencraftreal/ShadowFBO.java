@@ -36,8 +36,8 @@ public class ShadowFBO {
     
     public static final int FBO;
     public static final int DEPTH_BUFFER_TEXTURE;
-    public static final int DEFAULT_WIDTH = 4096;
-    public static final int DEFAULT_HEIGHT = 4096;
+    public static final int DEFAULT_WIDTH = 512;
+    public static final int DEFAULT_HEIGHT = 512;
     private static int width = 0;
     private static int height = 0;
     

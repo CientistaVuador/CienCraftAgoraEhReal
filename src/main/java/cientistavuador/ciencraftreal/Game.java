@@ -80,7 +80,7 @@ public class Game {
         camera.setMovementDisabled(true);
         player.setMovementDisabled(false);
         
-        shadowCamera.setDimensions(64f, 64f);
+        shadowCamera.setDimensions(4f, 4f);
         shadowCamera.setUBO(CameraUBO.create(UBOBindingPoints.SHADOW_CAMERA));
     }
     

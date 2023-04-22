@@ -188,7 +188,7 @@ public class ChunkLayerProgram {
                     diffuseValue *= shadowValue;
                 }
                 
-                vec3 ambient = directionalAmbientColor * pow(1.0 - FIn.ao, 3.0) * textureColor;
+                vec3 ambient = directionalAmbientColor * pow(1.0 - FIn.ao, 2.0) * textureColor;
                 vec3 diffuse = directionalDiffuseColor * diffuseValue * textureColor;
                 
                 return (ambient + diffuse);
