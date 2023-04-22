@@ -317,7 +317,7 @@ public class Main {
             Main.WINDOW_TITLE = "CienCraft - FPS: " + Main.FPS;
 
             Game.get().loop();
-
+            
             Runnable r;
             while ((r = MAIN_TASKS.poll()) != null) {
                 r.run();
