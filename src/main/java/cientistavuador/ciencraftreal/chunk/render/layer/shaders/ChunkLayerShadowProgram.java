@@ -79,7 +79,6 @@ public class ChunkLayerShadowProgram {
             };
             
             out Vertex {
-                vec3 position;
                 vec2 texCoords;
                 flat int textureID;
                 flat int hasAlpha;
@@ -118,7 +117,6 @@ public class ChunkLayerShadowProgram {
                     }
                 }
                 
-                VOut.position = vertexPos;
                 VOut.texCoords = texCoords;
                 VOut.textureID = texture;
                 gl_Position = projection * view * vec4(vertexPos, 1.0);
@@ -132,17 +130,16 @@ public class ChunkLayerShadowProgram {
             uniform sampler2DArray textures;
             
             in Vertex {
-                vec3 position;
                 vec2 texCoords;
                 flat int textureID;
                 flat int hasAlpha;
                 flat float alpha;
-            } FIn;
+            } VIn;
             
             void main() {
-                float colorAlpha = texture(textures, vec3(FIn.texCoords, float(FIn.textureID))).a;
-                if (bool(FIn.hasAlpha)) {
-                    colorAlpha *= FIn.alpha;
+                float colorAlpha = texture(textures, vec3(VIn.texCoords, float(VIn.textureID))).a;
+                if (bool(VIn.hasAlpha)) {
+                    colorAlpha *= VIn.alpha;
                 }
                 if (colorAlpha < 0.5) {
                     discard;

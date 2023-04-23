@@ -190,7 +190,7 @@ public class PerspectiveCamera implements Camera {
     }
     
     @Override
-    public void setPosition(Vector3fc position) {
+    public void setPosition(Vector3dc position) {
         setPosition(position.x(), position.y(), position.z());
     }
 

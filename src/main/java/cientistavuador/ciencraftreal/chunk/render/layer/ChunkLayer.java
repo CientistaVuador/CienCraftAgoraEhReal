@@ -26,6 +26,7 @@
  */
 package cientistavuador.ciencraftreal.chunk.render.layer;
 
+import cientistavuador.ciencraftreal.Main;
 import cientistavuador.ciencraftreal.camera.Camera;
 import cientistavuador.ciencraftreal.chunk.Chunk;
 import cientistavuador.ciencraftreal.chunk.render.layer.vertices.VerticesCreator;
@@ -162,27 +163,28 @@ public class ChunkLayer {
         }
     }
 
-    public boolean render(boolean alpha) {
+    public void render(boolean alpha) {
         if (this.culled) {
-            return false;
+            return;
         }
         if (alpha && (this.verticesAlpha == null || this.verticesAlpha.length == 0)) {
-            return false;
+            return;
         }
         if (!alpha && (this.vertices == null || this.vertices.length == 0)) {
-            return false;
+            return;
         }
 
         if (alpha) {
             glBindVertexArray(this.vaoAlpha);
             glDrawElements(GL_TRIANGLES, this.indicesAlpha.length, GL_UNSIGNED_INT, 0);
+            Main.NUMBER_OF_VERTICES += this.indicesAlpha.length;
         } else {
             glBindVertexArray(this.vao);
             glDrawElements(GL_TRIANGLES, this.indices.length, GL_UNSIGNED_INT, 0);
+            Main.NUMBER_OF_VERTICES += this.indices.length;
         }
+        Main.NUMBER_OF_DRAWCALLS++;
         glBindVertexArray(0);
-        
-        return true;
     }
 
     public void delete(boolean lazy) {

@@ -26,7 +26,6 @@
  */
 package cientistavuador.ciencraftreal.camera;
 
-import static cientistavuador.ciencraftreal.camera.Camera.DEFAULT_POSITION;
 import static cientistavuador.ciencraftreal.camera.Camera.DEFAULT_WORLD_UP;
 import cientistavuador.ciencraftreal.ubo.CameraUBO;
 import org.joml.Matrix4d;
@@ -45,8 +44,8 @@ import org.joml.Vector3fc;
  * @author Cien
  */
 public class OrthoCamera implements Camera {
-    public static final float DEFAULT_ORTHO_FAR_PLANE = 250f;
-    public static final float DEFAULT_ORTHO_NEAR_PLANE = 0.025f;
+    public static final float DEFAULT_ORTHO_FAR_PLANE = 512f;
+    public static final float DEFAULT_ORTHO_NEAR_PLANE = 0f;
     public static final float DEFAULT_ORTHO_WIDTH = 256;
     public static final float DEFAULT_ORTHO_HEIGHT = 256;
     public static final Vector3fc DEFAULT_ORTHO_FRONT = new Vector3f(0f, -1f, 1f).normalize();
@@ -180,7 +179,7 @@ public class OrthoCamera implements Camera {
     }
     
     @Override
-    public void setPosition(Vector3fc position) {
+    public void setPosition(Vector3dc position) {
         setPosition(position.x(), position.y(), position.z());
     }
 

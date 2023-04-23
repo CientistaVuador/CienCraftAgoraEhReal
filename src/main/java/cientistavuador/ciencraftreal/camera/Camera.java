@@ -77,7 +77,7 @@ public interface Camera {
 
     void setPosition(double x, double y, double z);
 
-    void setPosition(Vector3fc position);
+    void setPosition(Vector3dc position);
 
     void setUBO(CameraUBO ubo);
 

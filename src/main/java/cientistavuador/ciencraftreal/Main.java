@@ -107,6 +107,8 @@ public class Main {
     public static double ONE_SECOND_COUNTER = 0.0;
     public static double ONE_MINUTE_COUNTER = 0.0;
     public static boolean SHADOWS_ENABLED = true;
+    public static int NUMBER_OF_DRAWCALLS = 0;
+    public static int NUMBER_OF_VERTICES = 0;
     public static final ConcurrentLinkedQueue<Runnable> MAIN_TASKS = new ConcurrentLinkedQueue<>();
     private static GLDebugMessageCallback DEBUG_CALLBACK = null;
 
@@ -258,7 +260,7 @@ public class Main {
         if (maxUBOBindings < MIN_UNIFORM_BUFFER_BINDINGS) {
             throw new IllegalStateException("Max UBO Bindings too small! Update your drivers or buy a new GPU.");
         }
-
+        
         Main.checkGLError();
 
         //GLPool.init(); //static initialize
@@ -305,6 +307,10 @@ public class Main {
         while (!glfwWindowShouldClose(WINDOW_POINTER)) {
             Main.TPF = (System.nanoTime() - timeFrameBegin) / 1E9d;
             timeFrameBegin = System.nanoTime();
+            
+            Main.NUMBER_OF_DRAWCALLS = 0;
+            Main.NUMBER_OF_VERTICES = 0;
+            Main.WINDOW_TITLE = "CienCraft - FPS: " + Main.FPS;
 
             if (SPIKE_LAG_WARNINGS) {
                 int tpfFps = (int) (1.0 / Main.TPF);
@@ -314,7 +320,6 @@ public class Main {
             }
 
             glfwPollEvents();
-            Main.WINDOW_TITLE = "CienCraft - FPS: " + Main.FPS;
 
             Game.get().loop();
             
@@ -329,9 +334,9 @@ public class Main {
                 glClear(GL_DEPTH_BUFFER_BIT);
 
                 Game.get().shadowLoop();
+                glBindFramebuffer(GL_FRAMEBUFFER, 0);
             }
             
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
             glViewport(0, 0, Main.WIDTH, Main.HEIGHT);
             glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 

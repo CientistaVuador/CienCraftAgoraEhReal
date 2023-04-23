@@ -34,6 +34,8 @@ import cientistavuador.ciencraftreal.block.Blocks;
 import cientistavuador.ciencraftreal.block.StateOfMatter;
 import cientistavuador.ciencraftreal.camera.FreeCamera;
 import cientistavuador.ciencraftreal.camera.OrthoCamera;
+import cientistavuador.ciencraftreal.camera.PerspectiveCamera;
+import cientistavuador.ciencraftreal.camera.ShadowCamera;
 import cientistavuador.ciencraftreal.chunk.generation.WorldChunkGeneratorFactory;
 import cientistavuador.ciencraftreal.player.Player;
 import cientistavuador.ciencraftreal.player.PlayerPhysics;
@@ -60,38 +62,35 @@ public class Game {
     }
 
     private final FreeCamera camera = new FreeCamera();
-    private final OrthoCamera shadowCamera = new OrthoCamera();
+    private final ShadowCamera shadowCamera = new ShadowCamera();
     private final WorldCamera world = new WorldCamera(camera, 65487321654L, new WorldChunkGeneratorFactory());
     private final BlockOutline outline = new BlockOutline(world, camera);
     private final Player player = new Player(world);
-    
+
     private int currentBlockId = Blocks.HAPPY_2023.getId();
-    private int drawCalls = 0;
-    
+
     private Game() {
 
     }
 
     public void start() {
+
         camera.setPosition(0, 80, 0);
         camera.setUBO(CameraUBO.create(UBOBindingPoints.PLAYER_CAMERA));
         player.setPosition(0, 100, 0);
 
         camera.setMovementDisabled(true);
         player.setMovementDisabled(false);
-        
-        shadowCamera.setDimensions(4f, 4f);
+
         shadowCamera.setUBO(CameraUBO.create(UBOBindingPoints.SHADOW_CAMERA));
     }
-    
+
     public void loop() {
-        drawCalls = 0;
-        
         camera.updateMovement();
-        
+
         world.update();
         outline.update();
-        
+
         player.update();
         player.setYaw(camera.getRotation().y());
         if (camera.isMovementDisabled()) {
@@ -101,39 +100,35 @@ public class Game {
                     player.getPosition().z()
             );
         }
-        
+
         Main.WINDOW_TITLE += " (Block: " + BlockRegister.getBlock(this.currentBlockId).getName() + ")";
         Main.WINDOW_TITLE += " (x:" + (int) Math.floor(camera.getPosition().x()) + ",y:" + (int) Math.floor(camera.getPosition().y()) + ",z:" + (int) Math.ceil(camera.getPosition().z()) + ")";
-        
+
         AudioPlayer.update(camera);
-        
-        shadowCamera.setFront(world.getSky().getDirectionalDirection());
-        shadowCamera.setPosition(
-                camera.getPosition().x() + (-shadowCamera.getFront().x() * 128f),
-                camera.getPosition().y() + (-shadowCamera.getFront().y() * 128f),
-                camera.getPosition().z() + (-shadowCamera.getFront().z() * 128f)
-        );
+
+        float farPlane = this.camera.getFarPlane();
+        this.camera.setFarPlane(32f);
+        shadowCamera.update(this.camera, this.world.getSky().getDirectionalDirection(), 50f);
+        this.camera.setFarPlane(farPlane);
     }
-    
-    
+
     public void shadowLoop() {
-        drawCalls += world.renderShadow(shadowCamera);
+        world.renderShadow(shadowCamera);
     }
-    
+
     public void renderLoop() {
-        drawCalls += world.render(shadowCamera);
-        
+        world.render(shadowCamera);
+
         outline.render();
-        drawCalls++;
-        
-        drawCalls += AabRender.renderQueue(camera);
-        
+
+        AabRender.renderQueue(camera);
+
         String lookingAt = "---";
         Block lookingAtBlock = this.outline.getBlock();
         if (lookingAtBlock != Blocks.AIR) {
             lookingAt = "Looking at " + lookingAtBlock.getName() + " at X: " + outline.getCastPos().x() + ", Y: " + outline.getCastPos().y() + ", Z: " + outline.getCastPos().z();
         }
-        drawCalls += GLFontRenderer.render(-1f, 0.90f,
+        GLFontRenderer.render(-1f, 0.90f,
                 new GLFontSpecification[]{
                     GLFontSpecifications.OPENSANS_ITALIC_0_10_BANANA_YELLOW,
                     GLFontSpecifications.ROBOTO_THIN_0_05_WHITE
@@ -163,7 +158,7 @@ public class Game {
                 }
         );
 
-        Main.WINDOW_TITLE += " (DrawCalls: " + drawCalls + ")";
+        Main.WINDOW_TITLE += " (DrawCalls: " + Main.NUMBER_OF_DRAWCALLS + ", Vertices: " + Main.NUMBER_OF_VERTICES + ")";
     }
 
     private String format(double d) {

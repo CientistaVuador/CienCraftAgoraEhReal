@@ -41,6 +41,7 @@ import static org.lwjgl.opengl.GL20C.glUseProgram;
  * @author Cien
  */
 public class ChunkLayersShadowPipeline {
+
     private static class DistancedChunkLayer {
 
         private final ChunkLayer layer;
@@ -78,11 +79,11 @@ public class ChunkLayersShadowPipeline {
 
     }
 
-    public static int render(Camera camera, Camera shadowCamera, ChunkLayers[] chunks) {
+    public static void render(Camera camera, Camera shadowCamera, ChunkLayers[] chunks) {
         long time = System.nanoTime();
 
         if (chunks.length == 0) {
-            return 0;
+            return;
         }
         WorldSky sky = chunks[0].getChunk().getWorld().getSky();
 
@@ -110,10 +111,8 @@ public class ChunkLayersShadowPipeline {
         }
 
         if (layerList.isEmpty()) {
-            return 0;
+            return;
         }
-
-        int drawCalls = 0;
 
         layerList.sort((o1, o2) -> {
             if (o1.getDistance() > o2.getDistance()) {
@@ -135,15 +134,11 @@ public class ChunkLayersShadowPipeline {
             }
 
             ChunkLayerShadowProgram.sendPerDrawUniforms(k.getChunk().getChunkX(), k.getY(), k.getChunk().getChunkZ());
-            if (k.render(false)) {
-                drawCalls++;
-            }
+            k.render(false);
         }
 
         ChunkLayerShadowProgram.finishRendering();
         glUseProgram(0);
-
-        return drawCalls;
     }
 
     private ChunkLayersShadowPipeline() {

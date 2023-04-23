@@ -49,7 +49,7 @@ import org.lwjgl.system.MemoryStack;
  * @author Cien
  */
 public class ChunkLayerProgram {
-    
+
     public static final String VERTEX_SHADER = 
             """
             #version 330 core
@@ -135,7 +135,7 @@ public class ChunkLayerProgram {
                 gl_Position = projection * view * vec4(vertexPos, 1.0);
             }
             """;
-    
+
     public static final String FRAGMENT_SHADER = 
             """
             #version 330 core
@@ -180,7 +180,7 @@ public class ChunkLayerProgram {
                     float shadowValue = 0.0;
                     for (int x = -1; x <= 1; x++) {
                         for (int y = -1; y <= 1; y++) {
-                            shadowValue += texture(shadowMap, vec3(mapCoords.xy + (vec2(float(x), float(y)) * shadowMapTexelSize), mapCoords.z - 0.0002));
+                            shadowValue += texture(shadowMap, vec3(mapCoords.xy + (vec2(float(x), float(y)) * shadowMapTexelSize), mapCoords.z - 0.000036));
                         }
                     }
                     shadowValue /= 3.0 * 3.0;
@@ -216,7 +216,7 @@ public class ChunkLayerProgram {
                 out_Color = outputColor;
             }
             """;
-    
+
     public static final int SHADER_PROGRAM = ProgramCompiler.compile(
             VERTEX_SHADER,
             FRAGMENT_SHADER,
@@ -230,7 +230,7 @@ public class ChunkLayerProgram {
                     "NULL_COLOR_POINTER", Integer.toString(ColorUBO.NULL)
             )
     );
-    
+
     public static final int BLOCK_COLORS_UBO_INDEX = glGetUniformBlockIndex(SHADER_PROGRAM, "BlockColors");
     public static final int BLOCK_MATERIALS_UBO_INDEX = glGetUniformBlockIndex(SHADER_PROGRAM, "BlockMaterials");
     public static final int LAYER_BLOCK_POS_PROGRAM_INDEX = glGetUniformLocation(SHADER_PROGRAM, "layerBlockPos");
@@ -244,69 +244,68 @@ public class ChunkLayerProgram {
     public static final int SHADOW_PROJECTION_VIEW_INDEX = glGetUniformLocation(SHADER_PROGRAM, "shadowProjectionView");
     public static final int SHADOW_MAP_INDEX = glGetUniformLocation(SHADER_PROGRAM, "shadowMap");
     public static final int SHADOW_ENABLED_INDEX = glGetUniformLocation(SHADER_PROGRAM, "shadowEnabled");
-    
+
     public static void sendPerFrameUniforms(Camera camera, WorldSky sky, Camera shadowCamera) {
         CameraUBO cameraUbo = camera.getUBO();
         if (cameraUbo == null) {
             throw new NullPointerException("Camera UBO is null");
         }
-        
+
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D_ARRAY, BlockTextures.GL_TEXTURE_ARRAY);
-        
+
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, ShadowFBO.DEPTH_BUFFER_TEXTURE);
-        
+
         glUniform1i(TEXTURES_PROGRAM_INDEX, 0);
         glUniform1i(SHADOW_ENABLED_INDEX, (Main.SHADOWS_ENABLED ? 1 : 0));
         glUniform1i(SHADOW_MAP_INDEX, 1);
         glUniform1f(TIME_PROGRAM_INDEX, (float) Main.ONE_MINUTE_COUNTER);
-        
+
         try (MemoryStack stack = MemoryStack.stackPush()) {
             Matrix4f projectionView = new Matrix4f()
-                .set(shadowCamera.getProjection())
-                .mul(shadowCamera.getView())
-                .translate(
-                        (float) -(shadowCamera.getPosition().x() - camera.getPosition().x()),
-                        (float) -(shadowCamera.getPosition().y() - camera.getPosition().y()),
-                        (float) -(shadowCamera.getPosition().z() - camera.getPosition().z())
-                )
-                ;
-            FloatBuffer matrix = stack.mallocFloat(4*4);
+                    .set(shadowCamera.getProjection())
+                    .mul(shadowCamera.getView())
+                    .translate(
+                            (float) -(shadowCamera.getPosition().x() - camera.getPosition().x()),
+                            (float) -(shadowCamera.getPosition().y() - camera.getPosition().y()),
+                            (float) -(shadowCamera.getPosition().z() - camera.getPosition().z())
+                    );
+            FloatBuffer matrix = stack.mallocFloat(4 * 4);
             projectionView.get(matrix);
             glUniformMatrix4fv(SHADOW_PROJECTION_VIEW_INDEX, false, matrix);
         }
-        
+
         Vector3fc diffuse = sky.getDirectionalDiffuseColor();
         Vector3fc ambient = sky.getDirectionalAmbientColor();
         Vector3fc direction = sky.getDirectionalDirection();
         glUniform3f(DIRECTIONAL_DIFFUSE_COLOR_INDEX, diffuse.x(), diffuse.y(), diffuse.z());
         glUniform3f(DIRECTIONAL_AMBIENT_COLOR_INDEX, ambient.x(), ambient.y(), ambient.z());
         glUniform3f(DIRECTIONAL_DIRECTION_INDEX, direction.x(), direction.y(), direction.z());
-        
+
         glUniformBlockBinding(SHADER_PROGRAM, CAMERA_UBO_INDEX, cameraUbo.getBindingPoint());
         glUniformBlockBinding(SHADER_PROGRAM, BLOCK_COLORS_UBO_INDEX, ColorUBO.DEFAULT.getBindingPoint());
         glUniformBlockBinding(SHADER_PROGRAM, BLOCK_MATERIALS_UBO_INDEX, MaterialUBO.DEFAULT.getBindingPoint());
-        
+
         cameraUbo.updateUBO();
         ColorUBO.DEFAULT.updateUBO();
         MaterialUBO.DEFAULT.updateUBO();
     }
-    
+
     public static void sendUseAlphaUniform(boolean useAlpha) {
         glUniform1i(USE_ALPHA_PROGRAM_INDEX, (useAlpha ? 1 : 0));
     }
-    
+
     public static void sendPerDrawUniforms(int chunkX, int blockY, int chunkZ) {
         glUniform3i(LAYER_BLOCK_POS_PROGRAM_INDEX, chunkX * Chunk.CHUNK_SIZE, blockY, chunkZ * Chunk.CHUNK_SIZE);
     }
-    
+
     public static void finishRendering() {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
     }
-    
+
     private ChunkLayerProgram() {
-        
+
     }
 }

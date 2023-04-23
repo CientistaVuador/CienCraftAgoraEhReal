@@ -79,11 +79,11 @@ public class ChunkLayersPipeline {
 
     }
 
-    public static int render(Camera camera, ChunkLayers[] chunks, Camera shadowCamera) {
+    public static void render(Camera camera, ChunkLayers[] chunks, Camera shadowCamera) {
         long time = System.nanoTime();
 
         if (chunks.length == 0) {
-            return 0;
+            return;
         }
         WorldSky sky = chunks[0].getChunk().getWorld().getSky();
 
@@ -111,10 +111,8 @@ public class ChunkLayersPipeline {
         }
 
         if (layerList.isEmpty()) {
-            return 0;
+            return;
         }
-
-        int drawCalls = 0;
 
         layerList.sort((o1, o2) -> {
             if (o1.getDistance() > o2.getDistance()) {
@@ -138,9 +136,7 @@ public class ChunkLayersPipeline {
             }
 
             ChunkLayerProgram.sendPerDrawUniforms(k.getChunk().getChunkX(), k.getY(), k.getChunk().getChunkZ());
-            if (k.render(false)) {
-                drawCalls++;
-            }
+            k.render(false);
         }
 
         ChunkLayerProgram.sendUseAlphaUniform(true);
@@ -148,15 +144,11 @@ public class ChunkLayersPipeline {
         for (int i = (layerList.size() - 1); i >= 0; i--) {
             ChunkLayer k = layerList.get(i).getLayer();
             ChunkLayerProgram.sendPerDrawUniforms(k.getChunk().getChunkX(), k.getY(), k.getChunk().getChunkZ());
-            if (k.render(true)) {
-                drawCalls++;
-            }
+            k.render(true);
         }
 
         ChunkLayerProgram.finishRendering();
         glUseProgram(0);
-
-        return drawCalls;
     }
 
     private ChunkLayersPipeline() {
