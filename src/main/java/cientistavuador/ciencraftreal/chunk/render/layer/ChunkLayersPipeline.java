@@ -79,7 +79,7 @@ public class ChunkLayersPipeline {
 
     }
 
-    public static void render(Camera camera, ChunkLayers[] chunks, Camera shadowCamera) {
+    public static void render(Camera camera, ChunkLayers[] chunks, Camera shadowCamera, ShadowProfile shadowProfile) {
         long time = System.nanoTime();
 
         if (chunks.length == 0) {
@@ -125,7 +125,7 @@ public class ChunkLayersPipeline {
         });
 
         glUseProgram(ChunkLayerProgram.SHADER_PROGRAM);
-        ChunkLayerProgram.sendPerFrameUniforms(camera, sky, shadowCamera);
+        ChunkLayerProgram.sendPerFrameUniforms(camera, sky, shadowCamera, shadowProfile);
 
         ChunkLayerProgram.sendUseAlphaUniform(false);
 

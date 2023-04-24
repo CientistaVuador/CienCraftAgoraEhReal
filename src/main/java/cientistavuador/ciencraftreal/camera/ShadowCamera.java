@@ -131,7 +131,7 @@ public class ShadowCamera implements Camera {
             maxY = (float) Math.max(maxY, trf.y());
             minZ = (float) Math.min(minZ, trf.z());
             maxZ = (float) Math.max(maxZ, trf.z());
-        }
+                    }
 
         if (minZ < 0) {
             minZ *= zMult;

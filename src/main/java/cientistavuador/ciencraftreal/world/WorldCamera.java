@@ -35,6 +35,7 @@ import cientistavuador.ciencraftreal.chunk.generation.ChunkGeneratorFactory;
 import cientistavuador.ciencraftreal.chunk.render.layer.ChunkLayers;
 import cientistavuador.ciencraftreal.chunk.render.layer.ChunkLayersPipeline;
 import cientistavuador.ciencraftreal.chunk.render.layer.ChunkLayersShadowPipeline;
+import cientistavuador.ciencraftreal.chunk.render.layer.ShadowProfile;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -375,7 +376,7 @@ public class WorldCamera {
         return Blocks.AIR;
     }
 
-    public void render(Camera shadowCamera) {
+    public void render(Camera shadowCamera, ShadowProfile shadowProfile) {
         List<ChunkLayers> layers = new ArrayList<>();
 
         for (int i = 0; i < length(); i++) {
@@ -385,7 +386,7 @@ public class WorldCamera {
             }
         }
 
-        ChunkLayersPipeline.render(this.camera, layers.toArray(ChunkLayers[]::new), shadowCamera);
+        ChunkLayersPipeline.render(this.camera, layers.toArray(ChunkLayers[]::new), shadowCamera, shadowProfile);
     }
 
     public void renderShadow(Camera shadowCamera) {

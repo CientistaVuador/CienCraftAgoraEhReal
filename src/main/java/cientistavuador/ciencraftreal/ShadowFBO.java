@@ -26,6 +26,7 @@
  */
 package cientistavuador.ciencraftreal;
 
+import cientistavuador.ciencraftreal.chunk.render.layer.ShadowProfile;
 import static org.lwjgl.opengl.GL33C.*;
 
 /**
@@ -36,8 +37,8 @@ public class ShadowFBO {
     
     public static final int FBO;
     public static final int DEPTH_BUFFER_TEXTURE;
-    public static final int DEFAULT_WIDTH = 4096;
-    public static final int DEFAULT_HEIGHT = 4096;
+    public static final int DEFAULT_WIDTH = ShadowProfile.VERY_LOW.resolution();
+    public static final int DEFAULT_HEIGHT = ShadowProfile.VERY_LOW.resolution();
     private static int width = 0;
     private static int height = 0;
     

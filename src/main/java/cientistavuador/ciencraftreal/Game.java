@@ -37,6 +37,7 @@ import cientistavuador.ciencraftreal.camera.OrthoCamera;
 import cientistavuador.ciencraftreal.camera.PerspectiveCamera;
 import cientistavuador.ciencraftreal.camera.ShadowCamera;
 import cientistavuador.ciencraftreal.chunk.generation.WorldChunkGeneratorFactory;
+import cientistavuador.ciencraftreal.chunk.render.layer.ShadowProfile;
 import cientistavuador.ciencraftreal.player.Player;
 import cientistavuador.ciencraftreal.player.PlayerPhysics;
 import cientistavuador.ciencraftreal.ubo.CameraUBO;
@@ -66,7 +67,8 @@ public class Game {
     private final WorldCamera world = new WorldCamera(camera, 65487321654L, new WorldChunkGeneratorFactory());
     private final BlockOutline outline = new BlockOutline(world, camera);
     private final Player player = new Player(world);
-
+    
+    private ShadowProfile shadowProfile = ShadowProfile.VERY_LOW;
     private int currentBlockId = Blocks.HAPPY_2023.getId();
 
     private Game() {
@@ -107,7 +109,7 @@ public class Game {
         AudioPlayer.update(camera);
 
         float farPlane = this.camera.getFarPlane();
-        this.camera.setFarPlane(32f);
+        this.camera.setFarPlane(64f);
         shadowCamera.update(this.camera, this.world.getSky().getDirectionalDirection(), 50f);
         this.camera.setFarPlane(farPlane);
     }
@@ -117,7 +119,7 @@ public class Game {
     }
 
     public void renderLoop() {
-        world.render(shadowCamera);
+        world.render(shadowCamera, this.shadowProfile);
 
         outline.render();
 
@@ -154,6 +156,7 @@ public class Game {
                             .append("\tV - Freecam\n")
                             .append("\tE - Get block.\n")
                             .append("\tG - Enable/disable shadows.\n")
+                            .append("\tT - Shadow Profile: ").append(this.shadowProfile.toString()).append("\n")
                             .toString()
                 }
         );
@@ -216,6 +219,26 @@ public class Game {
         }
         if (key == GLFW_KEY_G && action == GLFW_PRESS) {
             Main.SHADOWS_ENABLED = !Main.SHADOWS_ENABLED;
+        }
+        if (key == GLFW_KEY_T && action == GLFW_PRESS) {
+            switch (this.shadowProfile) {
+                case VERY_LOW -> {
+                    this.shadowProfile = ShadowProfile.LOW;
+                }
+                case LOW -> {
+                    this.shadowProfile = ShadowProfile.MEDIUM;
+                }
+                case MEDIUM -> {
+                    this.shadowProfile = ShadowProfile.HIGH;
+                }
+                case HIGH -> {
+                    this.shadowProfile = ShadowProfile.VERY_HIGH;
+                }
+                case VERY_HIGH -> {
+                    this.shadowProfile = ShadowProfile.VERY_LOW;
+                }
+            }
+            ShadowFBO.updateDepthBufferTextureSize(this.shadowProfile.resolution(), this.shadowProfile.resolution());
         }
     }
 
