@@ -31,11 +31,11 @@ package cientistavuador.ciencraftreal.chunk.render.layer;
  * @author Cien
  */
 public enum ShadowProfile {
-    VERY_LOW(512, 1, 0.0001f),
-    LOW(1024, 1, 0.0005f),
-    MEDIUM(2048, 1, 0.0005f),
-    HIGH(4096, 1, 0.00005f),
-    VERY_HIGH(8192, 1, 0.00005f)
+    VERY_LOW(512, 1, 0.022f),
+    LOW(1024, 2, 0.011f),
+    MEDIUM(2048, 2, 0.008f),
+    HIGH(4096, 1, 0.00065f),
+    VERY_HIGH(8192, 1, 0.000325f)
     ;
 
     private final int resolution;

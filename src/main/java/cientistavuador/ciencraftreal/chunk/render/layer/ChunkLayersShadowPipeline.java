@@ -56,8 +56,14 @@ public class ChunkLayersShadowPipeline {
 
     static {
         DRAW_SHADOW_CAMERA = new OrthoCamera();
+        DRAW_SHADOW_CAMERA.setDimensions(256f, 256f);
+        DRAW_SHADOW_CAMERA.setFarPlane(512f);
+        DRAW_SHADOW_CAMERA.setNearPlane(0f);
         DRAW_SHADOW_CAMERA.setUBO(CameraUBO.create(UBOBindingPoints.SHADOW_CAMERA));
         READ_SHADOW_CAMERA = new OrthoCamera();
+        READ_SHADOW_CAMERA.setDimensions(256f, 256f);
+        READ_SHADOW_CAMERA.setFarPlane(512f);
+        READ_SHADOW_CAMERA.setNearPlane(0f);
     }
 
     private static int drawcallsPerFrame = 0;

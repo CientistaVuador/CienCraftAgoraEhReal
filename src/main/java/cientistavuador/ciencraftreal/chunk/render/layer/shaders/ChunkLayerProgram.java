@@ -54,7 +54,8 @@ import org.lwjgl.system.MemoryStack;
 public class ChunkLayerProgram {
 
     public static final String VERTEX_SHADER
-            = """
+            = 
+            """
             #version 330 core
             
             uniform ivec3 layerBlockPos;
@@ -140,7 +141,8 @@ public class ChunkLayerProgram {
             """;
 
     public static final String FRAGMENT_SHADER
-            = """
+            = 
+            """
             #version 330 core
             
             uniform bool useAlpha;
@@ -168,6 +170,8 @@ public class ChunkLayerProgram {
             
             layout (location = 0) out vec4 out_Color;
             
+            const float gamma = 2.2;  
+            
             vec3 calculateDirectional(vec3 textureColor) {
                 vec3 lightDir = normalize(-directionalDirection);
                 vec3 viewDir = normalize(-FIn.position);
@@ -193,7 +197,7 @@ public class ChunkLayerProgram {
                     diffuseValue *= shadowValue;
                 }
                 
-                vec3 ambient = directionalAmbientColor * pow(1.0 - FIn.ao, 2.0) * textureColor;
+                vec3 ambient = directionalAmbientColor * pow(1.0 - FIn.ao, gamma) * textureColor;
                 vec3 diffuse = directionalDiffuseColor * diffuseValue * textureColor;
                 
                 return (ambient + diffuse);
@@ -211,8 +215,6 @@ public class ChunkLayerProgram {
                     }
                     outputColor.a = 1.0;
                 }
-                
-                const float gamma = 2.2;
                 
                 outputColor.rgb = pow(outputColor.rgb, vec3(gamma));
                 outputColor.rgb = calculateDirectional(outputColor.rgb);

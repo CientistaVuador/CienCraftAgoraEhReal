@@ -97,7 +97,7 @@ public class ChunkLayersPipeline {
             }
             for (int j = 0; j < layers.length(); j++) {
                 ChunkLayer layer = layers.layerAt(j);
-                if (layer.testAab(camera)) {
+                if (!layer.testEmpty() && layer.testAab(camera)) {
                     layerList.add(new DistancedChunkLayer(layer, camera));
                 }
             }
@@ -125,7 +125,7 @@ public class ChunkLayersPipeline {
         for (DistancedChunkLayer e : layerList) {
             ChunkLayer k = e.getLayer();
             k.update(time);
-
+            
             if (k.readyForRendering(false)) {
                 ChunkLayerProgram.sendPerDrawUniforms(k.getChunk().getChunkX(), k.getY(), k.getChunk().getChunkZ());
                 k.render(false);

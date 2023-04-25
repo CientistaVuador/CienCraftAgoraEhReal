@@ -35,7 +35,7 @@ import org.joml.Vector3fc;
  */
 public class WorldSky {
     
-    private final Vector3f directionalDiffuseColor = new Vector3f(0xDD / 255f, 0x54 / 255f, 0x1C / 255f).mul(1.2f);
+    private final Vector3f directionalDiffuseColor = new Vector3f(0xDD / 255f, 0x54 / 255f, 0x1C / 255f).mul(1.5f);
     private final Vector3f directionalAmbientColor = new Vector3f(0xDD / 255f, 0x54 / 255f, 0x1C / 255f).mul(0.05f);
     private final Vector3f directionalDirection = new Vector3f(1f, -0.5f, 1f).normalize();
     

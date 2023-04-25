@@ -38,7 +38,7 @@ import java.util.Arrays;
  */
 public class AmbientOcclusion {
 
-    public static final float AO_STEP = 0.15f;
+    public static final float AO_STEP = 0.25f;
     
     public static final AmbientOcclusion NO_OCCLUSION = new AmbientOcclusion() {
         @Override

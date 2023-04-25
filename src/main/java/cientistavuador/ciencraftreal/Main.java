@@ -52,7 +52,7 @@ public class Main {
 
     public static final boolean USE_MSAA = false;
     public static final boolean DEBUG_ENABLED = true;
-    public static final boolean SPIKE_LAG_WARNINGS = true;
+    public static final boolean SPIKE_LAG_WARNINGS = false;
     public static final int MIN_TEXTURE_3D_SIZE_SUPPORTED = 2048;
     public static final int MIN_UNIFORM_BUFFER_BINDINGS = UBOBindingPoints.MIN_NUMBER_OF_UBO_BINDING_POINTS;
 

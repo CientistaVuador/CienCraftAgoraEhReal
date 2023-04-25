@@ -33,9 +33,7 @@ import cientistavuador.ciencraftreal.block.BlockSounds;
 import cientistavuador.ciencraftreal.block.Blocks;
 import cientistavuador.ciencraftreal.block.StateOfMatter;
 import cientistavuador.ciencraftreal.camera.FreeCamera;
-import cientistavuador.ciencraftreal.camera.ShadowCamera;
 import cientistavuador.ciencraftreal.chunk.generation.WorldChunkGeneratorFactory;
-import cientistavuador.ciencraftreal.chunk.render.layer.ChunkLayersShadowPipeline;
 import cientistavuador.ciencraftreal.chunk.render.layer.ShadowProfile;
 import cientistavuador.ciencraftreal.player.Player;
 import cientistavuador.ciencraftreal.player.PlayerPhysics;
@@ -48,6 +46,7 @@ import cientistavuador.ciencraftreal.text.GLFontSpecifications;
 import cientistavuador.ciencraftreal.util.BlockOutline;
 import cientistavuador.ciencraftreal.world.WorldCamera;
 import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.opengl.GL33C.*;
 
 /**
  *
@@ -68,13 +67,14 @@ public class Game {
     
     private ShadowProfile shadowProfile = ShadowProfile.VERY_LOW;
     private int currentBlockId = Blocks.HAPPY_2023.getId();
+    private int maxTextureSize = glGetInteger(GL_MAX_TEXTURE_SIZE);
 
     private Game() {
 
     }
 
     public void start() {
-
+        
         camera.setPosition(0, 80, 0);
         camera.setUBO(CameraUBO.create(UBOBindingPoints.PLAYER_CAMERA));
         player.setPosition(0, 100, 0);
@@ -127,8 +127,8 @@ public class Game {
         }
         GLFontRenderer.render(-1f, 0.90f,
                 new GLFontSpecification[]{
-                    GLFontSpecifications.OPENSANS_ITALIC_0_10_BANANA_YELLOW,
-                    GLFontSpecifications.ROBOTO_THIN_0_05_WHITE
+                    GLFontSpecifications.OPENSANS_ITALIC_0_07_BANANA_YELLOW,
+                    GLFontSpecifications.ROBOTO_THIN_0_03_WHITE
                 },
                 new String[]{
                     "CienCraft-2.5-DEV\n",
@@ -223,23 +223,28 @@ public class Game {
             }
         }
         if (key == GLFW_KEY_T && action == GLFW_PRESS) {
+            ShadowProfile nextProfile = ShadowProfile.VERY_LOW;
             switch (this.shadowProfile) {
                 case VERY_LOW -> {
-                    this.shadowProfile = ShadowProfile.LOW;
+                    nextProfile = ShadowProfile.LOW;
                 }
                 case LOW -> {
-                    this.shadowProfile = ShadowProfile.MEDIUM;
+                    nextProfile = ShadowProfile.MEDIUM;
                 }
                 case MEDIUM -> {
-                    this.shadowProfile = ShadowProfile.HIGH;
+                    nextProfile = ShadowProfile.HIGH;
                 }
                 case HIGH -> {
-                    this.shadowProfile = ShadowProfile.VERY_HIGH;
+                    nextProfile = ShadowProfile.VERY_HIGH;
                 }
                 case VERY_HIGH -> {
-                    this.shadowProfile = ShadowProfile.VERY_LOW;
+                    nextProfile = ShadowProfile.VERY_LOW;
                 }
             }
+            if (nextProfile.resolution() > maxTextureSize) {
+                nextProfile = ShadowProfile.VERY_LOW;
+            }
+            this.shadowProfile = nextProfile;
             ShadowFBO.updateDepthBufferTextureSize(this.shadowProfile.resolution(), this.shadowProfile.resolution());
         }
     }
