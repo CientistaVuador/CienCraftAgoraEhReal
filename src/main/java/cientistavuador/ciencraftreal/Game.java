@@ -64,10 +64,10 @@ public class Game {
     private final WorldCamera world = new WorldCamera(camera, 65487321654L, new WorldChunkGeneratorFactory());
     private final BlockOutline outline = new BlockOutline(world, camera);
     private final Player player = new Player(world);
+    private final int maxTextureSize = glGetInteger(GL_MAX_TEXTURE_SIZE);
     
     private ShadowProfile shadowProfile = ShadowProfile.VERY_LOW;
     private int currentBlockId = Blocks.HAPPY_2023.getId();
-    private int maxTextureSize = glGetInteger(GL_MAX_TEXTURE_SIZE);
 
     private Game() {
 
@@ -131,7 +131,7 @@ public class Game {
                     GLFontSpecifications.ROBOTO_THIN_0_03_WHITE
                 },
                 new String[]{
-                    "CienCraft-2.5-DEV\n",
+                    "CienCraft-2.6-DEV\n",
                     new StringBuilder()
                             .append("FPS: ").append(Main.FPS).append('\n')
                             .append("X: ").append(format(camera.getPosition().x())).append(" ")
