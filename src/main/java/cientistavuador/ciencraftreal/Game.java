@@ -33,10 +33,9 @@ import cientistavuador.ciencraftreal.block.BlockSounds;
 import cientistavuador.ciencraftreal.block.Blocks;
 import cientistavuador.ciencraftreal.block.StateOfMatter;
 import cientistavuador.ciencraftreal.camera.FreeCamera;
-import cientistavuador.ciencraftreal.camera.OrthoCamera;
-import cientistavuador.ciencraftreal.camera.PerspectiveCamera;
 import cientistavuador.ciencraftreal.camera.ShadowCamera;
 import cientistavuador.ciencraftreal.chunk.generation.WorldChunkGeneratorFactory;
+import cientistavuador.ciencraftreal.chunk.render.layer.ChunkLayersShadowPipeline;
 import cientistavuador.ciencraftreal.chunk.render.layer.ShadowProfile;
 import cientistavuador.ciencraftreal.player.Player;
 import cientistavuador.ciencraftreal.player.PlayerPhysics;
@@ -63,7 +62,6 @@ public class Game {
     }
 
     private final FreeCamera camera = new FreeCamera();
-    private final ShadowCamera shadowCamera = new ShadowCamera();
     private final WorldCamera world = new WorldCamera(camera, 65487321654L, new WorldChunkGeneratorFactory());
     private final BlockOutline outline = new BlockOutline(world, camera);
     private final Player player = new Player(world);
@@ -83,8 +81,6 @@ public class Game {
 
         camera.setMovementDisabled(true);
         player.setMovementDisabled(false);
-
-        shadowCamera.setUBO(CameraUBO.create(UBOBindingPoints.SHADOW_CAMERA));
     }
 
     public void loop() {
@@ -107,19 +103,18 @@ public class Game {
         Main.WINDOW_TITLE += " (x:" + (int) Math.floor(camera.getPosition().x()) + ",y:" + (int) Math.floor(camera.getPosition().y()) + ",z:" + (int) Math.ceil(camera.getPosition().z()) + ")";
 
         AudioPlayer.update(camera);
-
-        float farPlane = this.camera.getFarPlane();
-        this.camera.setFarPlane(64f);
-        shadowCamera.update(this.camera, this.world.getSky().getDirectionalDirection(), 50f);
-        this.camera.setFarPlane(farPlane);
     }
 
+    public void prepareShadowLoop() {
+        world.prepareShadow();
+    }
+    
     public void shadowLoop() {
-        world.renderShadow(shadowCamera);
+        world.renderShadow();
     }
 
     public void renderLoop() {
-        world.render(shadowCamera, this.shadowProfile);
+        world.render(this.shadowProfile);
 
         outline.render();
 
@@ -157,6 +152,7 @@ public class Game {
                             .append("\tE - Get block.\n")
                             .append("\tG - Enable/disable shadows.\n")
                             .append("\tT - Shadow Profile: ").append(this.shadowProfile.toString()).append("\n")
+                            .append("\tC - Shadow Framerate Divisor: ").append(Main.SHADOWS_FRAMERATE_DIVISOR).append("\n")
                             .toString()
                 }
         );
@@ -219,6 +215,12 @@ public class Game {
         }
         if (key == GLFW_KEY_G && action == GLFW_PRESS) {
             Main.SHADOWS_ENABLED = !Main.SHADOWS_ENABLED;
+        }
+        if (key == GLFW_KEY_C && action == GLFW_PRESS) {
+            Main.SHADOWS_FRAMERATE_DIVISOR++;
+            if (Main.SHADOWS_FRAMERATE_DIVISOR > 16) {
+                Main.SHADOWS_FRAMERATE_DIVISOR = 1;
+            }
         }
         if (key == GLFW_KEY_T && action == GLFW_PRESS) {
             switch (this.shadowProfile) {

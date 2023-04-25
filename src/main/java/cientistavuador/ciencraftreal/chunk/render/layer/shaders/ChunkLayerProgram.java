@@ -32,8 +32,10 @@ import cientistavuador.ciencraftreal.block.BlockTextures;
 import cientistavuador.ciencraftreal.ubo.ColorUBO;
 import cientistavuador.ciencraftreal.ubo.MaterialUBO;
 import cientistavuador.ciencraftreal.camera.Camera;
+import cientistavuador.ciencraftreal.camera.OrthoCamera;
 import cientistavuador.ciencraftreal.chunk.Chunk;
 import cientistavuador.ciencraftreal.chunk.render.layer.ChunkLayer;
+import cientistavuador.ciencraftreal.chunk.render.layer.ChunkLayersShadowPipeline;
 import cientistavuador.ciencraftreal.chunk.render.layer.ShadowProfile;
 import cientistavuador.ciencraftreal.ubo.CameraUBO;
 import cientistavuador.ciencraftreal.util.ProgramCompiler;
@@ -250,7 +252,7 @@ public class ChunkLayerProgram {
     public static final int PCF_INDEX = glGetUniformLocation(SHADER_PROGRAM, "pcf");
     public static final int BIAS_INDEX = glGetUniformLocation(SHADER_PROGRAM, "bias");
 
-    public static void sendPerFrameUniforms(Camera camera, WorldSky sky, Camera shadowCamera, ShadowProfile shadowProfile) {
+    public static void sendPerFrameUniforms(Camera camera, WorldSky sky, ShadowProfile shadowProfile) {
         CameraUBO cameraUbo = camera.getUBO();
         if (cameraUbo == null) {
             throw new NullPointerException("Camera UBO is null");
@@ -260,7 +262,7 @@ public class ChunkLayerProgram {
         glBindTexture(GL_TEXTURE_2D_ARRAY, BlockTextures.GL_TEXTURE_ARRAY);
 
         glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, ShadowFBO.DEPTH_BUFFER_TEXTURE);
+        glBindTexture(GL_TEXTURE_2D, ShadowFBO.readBuffer());
 
         glUniform1i(TEXTURES_PROGRAM_INDEX, 0);
         glUniform1i(SHADOW_ENABLED_INDEX, (Main.SHADOWS_ENABLED ? 1 : 0));
@@ -271,6 +273,7 @@ public class ChunkLayerProgram {
         glUniform1i(SHADOW_MAP_INDEX, 1);
         glUniform1f(TIME_PROGRAM_INDEX, (float) Main.ONE_MINUTE_COUNTER);
 
+        OrthoCamera shadowCamera = ChunkLayersShadowPipeline.READ_SHADOW_CAMERA;
         if (Main.SHADOWS_ENABLED) {
             try (MemoryStack stack = MemoryStack.stackPush()) {
                 Matrix4f projectionView = new Matrix4f()

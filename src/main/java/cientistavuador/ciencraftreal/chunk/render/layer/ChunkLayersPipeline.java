@@ -46,13 +46,11 @@ public class ChunkLayersPipeline {
 
         private final ChunkLayer layer;
         private final Camera camera;
-        private final boolean requiresUpdate;
         private final float distance;
 
-        public DistancedChunkLayer(ChunkLayer layer, Camera camera, boolean requiresUpdate) {
+        public DistancedChunkLayer(ChunkLayer layer, Camera camera) {
             this.layer = layer;
             this.camera = camera;
-            this.requiresUpdate = requiresUpdate;
             Vector3dc cameraPos = camera.getPosition();
             this.distance = (float) layer.getCenter().distance(
                     cameraPos.x(),
@@ -73,13 +71,9 @@ public class ChunkLayersPipeline {
             return distance;
         }
 
-        public boolean requiresUpdate() {
-            return requiresUpdate;
-        }
-
     }
 
-    public static void render(Camera camera, ChunkLayers[] chunks, Camera shadowCamera, ShadowProfile shadowProfile) {
+    public static void render(Camera camera, ChunkLayers[] chunks, ShadowProfile shadowProfile) {
         long time = System.nanoTime();
 
         if (chunks.length == 0) {
@@ -103,9 +97,8 @@ public class ChunkLayersPipeline {
             }
             for (int j = 0; j < layers.length(); j++) {
                 ChunkLayer layer = layers.layerAt(j);
-                boolean requiresUpdate = layer.requiresUpdate(camera);
-                if ((!layer.isCulled() && !layer.isEmpty()) || requiresUpdate) {
-                    layerList.add(new DistancedChunkLayer(layer, camera, requiresUpdate));
+                if (layer.testAab(camera)) {
+                    layerList.add(new DistancedChunkLayer(layer, camera));
                 }
             }
         }
@@ -125,26 +118,29 @@ public class ChunkLayersPipeline {
         });
 
         glUseProgram(ChunkLayerProgram.SHADER_PROGRAM);
-        ChunkLayerProgram.sendPerFrameUniforms(camera, sky, shadowCamera, shadowProfile);
+        ChunkLayerProgram.sendPerFrameUniforms(camera, sky, shadowProfile);
 
         ChunkLayerProgram.sendUseAlphaUniform(false);
 
         for (DistancedChunkLayer e : layerList) {
             ChunkLayer k = e.getLayer();
-            if (e.requiresUpdate() && ((System.nanoTime() - time) / 1E9d) < (1.0 / 90.0)) {
-                k.update();
-            }
+            k.update(time);
 
-            ChunkLayerProgram.sendPerDrawUniforms(k.getChunk().getChunkX(), k.getY(), k.getChunk().getChunkZ());
-            k.render(false);
+            if (k.readyForRendering(false)) {
+                ChunkLayerProgram.sendPerDrawUniforms(k.getChunk().getChunkX(), k.getY(), k.getChunk().getChunkZ());
+                k.render(false);
+            }
         }
 
         ChunkLayerProgram.sendUseAlphaUniform(true);
 
         for (int i = (layerList.size() - 1); i >= 0; i--) {
             ChunkLayer k = layerList.get(i).getLayer();
-            ChunkLayerProgram.sendPerDrawUniforms(k.getChunk().getChunkX(), k.getY(), k.getChunk().getChunkZ());
-            k.render(true);
+
+            if (k.readyForRendering(true)) {
+                ChunkLayerProgram.sendPerDrawUniforms(k.getChunk().getChunkX(), k.getY(), k.getChunk().getChunkZ());
+                k.render(true);
+            }
         }
 
         ChunkLayerProgram.finishRendering();

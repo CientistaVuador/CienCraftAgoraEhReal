@@ -30,6 +30,7 @@ import cientistavuador.ciencraftreal.audio.AudioSystem;
 import cientistavuador.ciencraftreal.block.BlockSounds;
 import cientistavuador.ciencraftreal.block.BlockTextures;
 import cientistavuador.ciencraftreal.block.Blocks;
+import cientistavuador.ciencraftreal.chunk.render.layer.ChunkLayersShadowPipeline;
 import cientistavuador.ciencraftreal.text.GLFonts;
 import cientistavuador.ciencraftreal.ubo.UBOBindingPoints;
 import java.io.PrintStream;
@@ -51,7 +52,7 @@ public class Main {
 
     public static final boolean USE_MSAA = false;
     public static final boolean DEBUG_ENABLED = true;
-    public static final boolean SPIKE_LAG_WARNINGS = false;
+    public static final boolean SPIKE_LAG_WARNINGS = true;
     public static final int MIN_TEXTURE_3D_SIZE_SUPPORTED = 2048;
     public static final int MIN_UNIFORM_BUFFER_BINDINGS = UBOBindingPoints.MIN_NUMBER_OF_UBO_BINDING_POINTS;
 
@@ -107,6 +108,9 @@ public class Main {
     public static double ONE_SECOND_COUNTER = 0.0;
     public static double ONE_MINUTE_COUNTER = 0.0;
     public static boolean SHADOWS_ENABLED = true;
+    public static int SHADOWS_FRAMERATE_DIVISOR = 8;
+    public static int SHADOWS_CURRENT_FRAMERATE_DIVISOR = 8;
+    public static int SHADOWS_CURRENT_FRAME = 0;
     public static int NUMBER_OF_DRAWCALLS = 0;
     public static int NUMBER_OF_VERTICES = 0;
     public static final ConcurrentLinkedQueue<Runnable> MAIN_TASKS = new ConcurrentLinkedQueue<>();
@@ -269,6 +273,7 @@ public class Main {
         BlockSounds.init(); //static initialize
         Blocks.init(); //static initialize
         ShadowFBO.init(); //static initialize
+        ChunkLayersShadowPipeline.init();  //static initialize
         Game.get(); //static initialize
 
         Main.checkGLError();
@@ -329,10 +334,18 @@ public class Main {
             }
 
             if (Main.SHADOWS_ENABLED) {
-                glBindFramebuffer(GL_FRAMEBUFFER, ShadowFBO.FBO);
-                glViewport(0, 0, ShadowFBO.width(), ShadowFBO.height());
-                glClear(GL_DEPTH_BUFFER_BIT);
-
+                Main.SHADOWS_CURRENT_FRAME--;
+                if (Main.SHADOWS_CURRENT_FRAME <= -1) {
+                    Main.SHADOWS_CURRENT_FRAMERATE_DIVISOR = Main.SHADOWS_FRAMERATE_DIVISOR;
+                    Main.SHADOWS_CURRENT_FRAME = Main.SHADOWS_CURRENT_FRAMERATE_DIVISOR-1;
+                    ShadowFBO.flip();
+                    Game.get().prepareShadowLoop();
+                }
+                glBindFramebuffer(GL_FRAMEBUFFER, ShadowFBO.drawFBO());
+                glViewport(0, 0, ShadowFBO.drawWidth(), ShadowFBO.drawHeight());
+                if (Main.SHADOWS_CURRENT_FRAME == (Main.SHADOWS_CURRENT_FRAMERATE_DIVISOR-1)) {
+                    glClear(GL_DEPTH_BUFFER_BIT);
+                }
                 Game.get().shadowLoop();
                 glBindFramebuffer(GL_FRAMEBUFFER, 0);
             }

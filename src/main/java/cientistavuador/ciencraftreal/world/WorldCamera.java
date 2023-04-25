@@ -376,7 +376,7 @@ public class WorldCamera {
         return Blocks.AIR;
     }
 
-    public void render(Camera shadowCamera, ShadowProfile shadowProfile) {
+    public void render(ShadowProfile shadowProfile) {
         List<ChunkLayers> layers = new ArrayList<>();
 
         for (int i = 0; i < length(); i++) {
@@ -386,10 +386,10 @@ public class WorldCamera {
             }
         }
 
-        ChunkLayersPipeline.render(this.camera, layers.toArray(ChunkLayers[]::new), shadowCamera, shadowProfile);
+        ChunkLayersPipeline.render(this.camera, layers.toArray(ChunkLayers[]::new), shadowProfile);
     }
 
-    public void renderShadow(Camera shadowCamera) {
+    public void prepareShadow() {
         List<ChunkLayers> layers = new ArrayList<>();
 
         for (int i = 0; i < length(); i++) {
@@ -399,7 +399,11 @@ public class WorldCamera {
             }
         }
 
-        ChunkLayersShadowPipeline.render(this.camera, shadowCamera, layers.toArray(ChunkLayers[]::new));
+        ChunkLayersShadowPipeline.prepare(this.camera, layers.toArray(ChunkLayers[]::new));
+    }
+    
+    public void renderShadow() {
+        ChunkLayersShadowPipeline.render();
     }
     
     public Camera getCamera() {

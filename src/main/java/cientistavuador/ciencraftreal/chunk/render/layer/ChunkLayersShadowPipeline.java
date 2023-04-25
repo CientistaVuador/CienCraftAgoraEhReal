@@ -26,15 +26,20 @@
  */
 package cientistavuador.ciencraftreal.chunk.render.layer;
 
+import cientistavuador.ciencraftreal.Main;
 import cientistavuador.ciencraftreal.camera.Camera;
+import cientistavuador.ciencraftreal.camera.OrthoCamera;
 import cientistavuador.ciencraftreal.chunk.Chunk;
 import cientistavuador.ciencraftreal.chunk.render.layer.shaders.ChunkLayerShadowProgram;
-import cientistavuador.ciencraftreal.world.WorldCamera;
+import cientistavuador.ciencraftreal.ubo.CameraUBO;
+import cientistavuador.ciencraftreal.ubo.UBOBindingPoints;
 import cientistavuador.ciencraftreal.world.WorldSky;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
 import org.joml.Vector3dc;
-import static org.lwjgl.opengl.GL20C.glUseProgram;
+import static org.lwjgl.opengl.GL33C.*;
 
 /**
  *
@@ -42,17 +47,31 @@ import static org.lwjgl.opengl.GL20C.glUseProgram;
  */
 public class ChunkLayersShadowPipeline {
 
+    public static final OrthoCamera DRAW_SHADOW_CAMERA;
+    public static final OrthoCamera READ_SHADOW_CAMERA;
+
+    public static void init() {
+
+    }
+
+    static {
+        DRAW_SHADOW_CAMERA = new OrthoCamera();
+        DRAW_SHADOW_CAMERA.setUBO(CameraUBO.create(UBOBindingPoints.SHADOW_CAMERA));
+        READ_SHADOW_CAMERA = new OrthoCamera();
+    }
+
+    private static int drawcallsPerFrame = 0;
+    private static final Deque<DistancedChunkLayer> scheduledLayers = new ArrayDeque<>();
+
     private static class DistancedChunkLayer {
 
         private final ChunkLayer layer;
         private final Camera camera;
-        private final boolean requiresUpdate;
         private final float distance;
 
-        public DistancedChunkLayer(ChunkLayer layer, Camera camera, boolean requiresUpdate) {
+        public DistancedChunkLayer(ChunkLayer layer, Camera camera) {
             this.layer = layer;
             this.camera = camera;
-            this.requiresUpdate = requiresUpdate;
             Vector3dc cameraPos = camera.getPosition();
             this.distance = (float) layer.getCenter().distance(
                     cameraPos.x(),
@@ -73,39 +92,36 @@ public class ChunkLayersShadowPipeline {
             return distance;
         }
 
-        public boolean requiresUpdate() {
-            return requiresUpdate;
-        }
-
     }
 
-    public static void render(Camera camera, Camera shadowCamera, ChunkLayers[] chunks) {
-        long time = System.nanoTime();
+    public static void prepare(Camera camera, ChunkLayers[] chunks) {
+        READ_SHADOW_CAMERA.setPosition(DRAW_SHADOW_CAMERA.getPosition());
+        READ_SHADOW_CAMERA.setFront(DRAW_SHADOW_CAMERA.getFront());
 
         if (chunks.length == 0) {
             return;
         }
         WorldSky sky = chunks[0].getChunk().getWorld().getSky();
 
+        DRAW_SHADOW_CAMERA.setFront(sky.getDirectionalDirection());
+        DRAW_SHADOW_CAMERA.setPosition(
+                camera.getPosition().x() + (-DRAW_SHADOW_CAMERA.getFront().x() * Chunk.CHUNK_HEIGHT),
+                camera.getPosition().y() + (-DRAW_SHADOW_CAMERA.getFront().y() * Chunk.CHUNK_HEIGHT),
+                camera.getPosition().z() + (-DRAW_SHADOW_CAMERA.getFront().z() * Chunk.CHUNK_HEIGHT)
+        );
+
         List<DistancedChunkLayer> layerList = new ArrayList<>(chunks.length * (Chunk.CHUNK_HEIGHT / ChunkLayer.HEIGHT));
 
-        final double maxDistance = (WorldCamera.VIEW_DISTANCE + 0.5) * Chunk.CHUNK_SIZE;
         for (int i = 0; i < chunks.length; i++) {
             ChunkLayers layers = chunks[i];
 
-            double xx = camera.getPosition().x() - ((layers.getChunk().getChunkX() + 0.5) * Chunk.CHUNK_SIZE);
-            double zz = camera.getPosition().z() - ((layers.getChunk().getChunkZ() - 0.5) * Chunk.CHUNK_SIZE);
-            if (Math.sqrt((xx * xx) + (zz * zz)) >= maxDistance) {
-                continue;
-            }
-            if (!layers.testAab(shadowCamera)) {
+            if (!layers.testAab(DRAW_SHADOW_CAMERA)) {
                 continue;
             }
             for (int j = 0; j < layers.length(); j++) {
                 ChunkLayer layer = layers.layerAt(j);
-                boolean requiresUpdate = layer.requiresUpdate(shadowCamera);
-                if ((!layer.isCulled() && !layer.isEmpty()) || requiresUpdate) {
-                    layerList.add(new DistancedChunkLayer(layer, shadowCamera, requiresUpdate));
+                if (layer.readyForRendering(false) && layer.testAab(DRAW_SHADOW_CAMERA)) {
+                    layerList.add(new DistancedChunkLayer(layer, DRAW_SHADOW_CAMERA));
                 }
             }
         }
@@ -124,21 +140,43 @@ public class ChunkLayersShadowPipeline {
             return 0;
         });
 
-        glUseProgram(ChunkLayerShadowProgram.SHADER_PROGRAM);
-        ChunkLayerShadowProgram.sendPerFrameUniforms(shadowCamera, sky);
+        scheduledLayers.addAll(layerList);
+        drawcallsPerFrame = scheduledLayers.size() / Main.SHADOWS_CURRENT_FRAMERATE_DIVISOR;
+        if (drawcallsPerFrame <= 0) {
+            drawcallsPerFrame = 1;
+        }
+    }
 
-        for (DistancedChunkLayer e : layerList) {
-            ChunkLayer k = e.getLayer();
-            if (e.requiresUpdate() && ((System.nanoTime() - time) / 1E9d) < (1.0 / 90.0)) {
-                k.update();
-            }
-
-            ChunkLayerShadowProgram.sendPerDrawUniforms(k.getChunk().getChunkX(), k.getY(), k.getChunk().getChunkZ());
-            k.render(false);
+    public static void render() {
+        if (scheduledLayers.isEmpty()) {
+            return;
         }
 
-        ChunkLayerShadowProgram.finishRendering();
-        glUseProgram(0);
+        boolean firstDrawcall = true;
+        int drawCalls = drawcallsPerFrame;
+        while (drawCalls > 0 || Main.SHADOWS_CURRENT_FRAME == 0) {
+            DistancedChunkLayer e = scheduledLayers.poll();
+            if (e == null) {
+                break;
+            }
+            ChunkLayer k = e.getLayer();
+
+            if (k.readyForRendering(false)) {
+                if (firstDrawcall) {
+                    firstDrawcall = false;
+                    glUseProgram(ChunkLayerShadowProgram.SHADER_PROGRAM);
+                    ChunkLayerShadowProgram.sendPerFrameUniforms(DRAW_SHADOW_CAMERA, k.getChunk().getWorld().getSky());
+                }
+                ChunkLayerShadowProgram.sendPerDrawUniforms(k.getChunk().getChunkX(), k.getY(), k.getChunk().getChunkZ());
+                k.render(false);
+                drawCalls--;
+            }
+        }
+
+        if (!firstDrawcall) {
+            ChunkLayerShadowProgram.finishRendering();
+            glUseProgram(0);
+        }
     }
 
     private ChunkLayersShadowPipeline() {

@@ -57,7 +57,6 @@ public class ChunkLayer {
     private boolean useCachedElimination = false;
     private boolean empty = false;
     private boolean deleted = true;
-    private boolean culled = false;
 
     private Future<VerticesStream> futureVertices = null;
     private short[] vertices = null;
@@ -103,40 +102,34 @@ public class ChunkLayer {
         return center;
     }
 
-    public boolean isCulled() {
-        return culled;
-    }
-
-    public boolean isEmpty() {
-        return empty;
-    }
-    
     public boolean isDeleted() {
         return deleted;
     }
     
-    public boolean requiresUpdate(Camera camera) {
-        this.deleted = false;
-        if (this.futureVertices != null) {
-            return true;
-        }
-        if (doPreElimination()) {
-            return false;
-        }
+    public boolean testEmpty() {
+        return doPreElimination();
+    }
+
+    public boolean testAab(Camera camera) {
         double xMin = this.chunk.getChunkX() * Chunk.CHUNK_SIZE;
         double yMin = this.y;
         double zMin = this.chunk.getChunkZ() * Chunk.CHUNK_SIZE;
-        this.culled = !camera.getProjectionView().testAab(
+        return camera.getProjectionView().testAab(
                 xMin, yMin, zMin - Chunk.CHUNK_SIZE,
                 xMin + Chunk.CHUNK_SIZE, yMin + HEIGHT, zMin
         );
-        return !this.culled;
     }
 
-    public void update() {
+    public void update(long nanoTime) {
+        this.deleted = false;
+        
         if (this.vertices == null && this.futureVertices == null) {
             this.futureVertices = CompletableFuture.supplyAsync(() -> VerticesCreator.generateStream(this, false));
             this.futureVerticesAlpha = CompletableFuture.supplyAsync(() -> VerticesCreator.generateStream(this, true));
+            return;
+        }
+
+        if (((System.nanoTime() - nanoTime) / 1E9d) >= (1.0 / 90.0)) {
             return;
         }
 
@@ -163,17 +156,17 @@ public class ChunkLayer {
         }
     }
 
-    public void render(boolean alpha) {
-        if (this.culled) {
-            return;
-        }
+    public boolean readyForRendering(boolean alpha) {
         if (alpha && (this.verticesAlpha == null || this.verticesAlpha.length == 0)) {
-            return;
+            return false;
         }
         if (!alpha && (this.vertices == null || this.vertices.length == 0)) {
-            return;
+            return false;
         }
+        return true;
+    }
 
+    public void render(boolean alpha) {
         if (alpha) {
             glBindVertexArray(this.vaoAlpha);
             glDrawElements(GL_TRIANGLES, this.indicesAlpha.length, GL_UNSIGNED_INT, 0);
@@ -191,7 +184,7 @@ public class ChunkLayer {
         if (this.deleted) {
             return;
         }
-
+        
         this.useCachedElimination = false;
         this.deleted = true;
 
@@ -228,11 +221,7 @@ public class ChunkLayer {
             return this.empty;
         }
         this.useCachedElimination = true;
-
-        if ((this.vertices != null && this.vertices.length == 0) && (this.verticesAlpha != null && this.verticesAlpha.length == 0)) {
-            this.empty = true;
-            return this.empty;
-        }
+        
         if (this.chunk.getHighestY() < this.y) {
             this.empty = true;
             return this.empty;
@@ -287,14 +276,14 @@ public class ChunkLayer {
         this.vbo = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, this.vbo);
         glBufferData(GL_ARRAY_BUFFER, this.vertices, GL_STATIC_DRAW);
-        
+
         this.vao = glGenVertexArrays();
         glBindVertexArray(this.vao);
 
         this.ebo = glGenBuffers();
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this.ebo);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, this.indices, GL_STATIC_DRAW);
-        
+
         setupVao();
 
         glBindVertexArray(0);
@@ -319,7 +308,7 @@ public class ChunkLayer {
         this.vboAlpha = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, this.vboAlpha);
         glBufferData(GL_ARRAY_BUFFER, this.verticesAlpha, GL_STATIC_DRAW);
-        
+
         this.vaoAlpha = glGenVertexArrays();
         glBindVertexArray(this.vaoAlpha);
 
