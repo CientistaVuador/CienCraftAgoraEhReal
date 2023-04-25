@@ -26,6 +26,7 @@
  */
 package cientistavuador.ciencraftreal.debug;
 
+import cientistavuador.ciencraftreal.Main;
 import cientistavuador.ciencraftreal.camera.Camera;
 import cientistavuador.ciencraftreal.ubo.CameraUBO;
 import cientistavuador.ciencraftreal.util.ProgramCompiler;
@@ -155,6 +156,8 @@ public class AabRender {
         glUniform3f(AAB_SCALE_INDEX, scaleX, scaleY, scaleZ);
 
         glDrawArrays(GL_LINES, 0, 24);
+        Main.NUMBER_OF_DRAWCALLS++;
+        Main.NUMBER_OF_VERTICES += 24;
     }
 
     public static void endRendering() {
@@ -182,12 +185,14 @@ public class AabRender {
             glUniform3f(AAB_SCALE_INDEX, scaleX, scaleY, scaleZ);
 
             glDrawArrays(GL_LINES, 0, 24);
+            Main.NUMBER_OF_DRAWCALLS++;
+            Main.NUMBER_OF_VERTICES += 24;
         });
     }
 
     public static int renderQueue(Camera camera) {
         int drawCalls = 0;
-        
+
         beginRendering(camera);
         Runnable r;
         while ((r = renderQueue.poll()) != null) {
@@ -195,7 +200,7 @@ public class AabRender {
             drawCalls++;
         }
         endRendering();
-        
+
         return drawCalls;
     }
 

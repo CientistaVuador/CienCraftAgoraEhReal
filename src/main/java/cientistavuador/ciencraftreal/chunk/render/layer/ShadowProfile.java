@@ -24,35 +24,43 @@
  *
  * For more information, please refer to <https://unlicense.org>
  */
-package cientistavuador.ciencraftreal.block.blocks;
-
-import cientistavuador.ciencraftreal.block.BlockTextures;
-import cientistavuador.ciencraftreal.block.BlockTransparency;
-import cientistavuador.ciencraftreal.block.SimpleBlock;
+package cientistavuador.ciencraftreal.chunk.render.layer;
 
 /**
  *
  * @author Cien
  */
-public class Glass extends SimpleBlock {
-    
-    public Glass() {
-        super("ciencraft_glass", BlockTextures.GLASS);
-    }
+public enum ShadowProfile {
+    VERY_LOW(512, 1, 0.025f),
+    LOW(1024, 1, 0.011f),
+    MEDIUM(2048, 1, 0.008f),
+    HIGH(4096, 1, 0.00065f),
+    VERY_HIGH(8192, 1, 0.000325f)
+    ;
 
-    @Override
-    public BlockTransparency getBlockTransparency() {
-        return BlockTransparency.LIKE_GLASS;
-    }
-
-    @Override
-    public boolean isAOSolid() {
-        return false;
-    }
-
-    @Override
-    public boolean hasAO() {
-        return false;
+    private final int resolution;
+    private final int pcf;
+    private final float bias;
+    private ShadowProfile(int resolution, int pcf, float bias) {
+        this.resolution = resolution;
+        this.pcf = pcf;
+        this.bias = bias;
     }
     
+    public int resolution() {
+        return this.resolution;
+    }
+    
+    public int pcf() {
+        return this.pcf;
+    }
+    
+    public float bias() {
+        return this.bias;
+    }
+
+    @Override
+    public String toString() {
+        return this.name()+" ("+this.resolution+"x"+this.resolution+", PCF: "+this.pcf+", BIAS: "+String.format("%.5f", this.bias)+")";
+    }
 }

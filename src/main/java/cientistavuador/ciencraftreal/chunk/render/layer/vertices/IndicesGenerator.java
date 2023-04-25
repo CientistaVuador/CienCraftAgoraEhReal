@@ -35,6 +35,7 @@ import java.util.Map;
  *
  * @author Cien
  */
+@Deprecated
 public class IndicesGenerator {
 
     private static final class ShortArray {

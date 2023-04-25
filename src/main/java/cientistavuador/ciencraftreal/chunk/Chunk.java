@@ -110,12 +110,12 @@ public class Chunk {
             }
         }
         
-        this.layers.layerAtY(y).delete();
+        this.layers.layerAtY(y).delete(true);
         if (y < (CHUNK_HEIGHT-1)) {
-            this.layers.layerAtY(y+1).delete();
+            this.layers.layerAtY(y+1).delete(true);
         }
         if (y > 0) {
-            this.layers.layerAtY(y-1).delete();
+            this.layers.layerAtY(y-1).delete(true);
         }
     }
     

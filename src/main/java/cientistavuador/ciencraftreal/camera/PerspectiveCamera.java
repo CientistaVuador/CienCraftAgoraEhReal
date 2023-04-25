@@ -46,7 +46,9 @@ import org.joml.Vector3fc;
  */
 public class PerspectiveCamera implements Camera {
 
-    public static final float DEFAULT_FOV = 75f;
+    public static final float DEFAULT_FOV = 80f;
+    public static final float DEFAULT_PITCH = 0f;
+    public static final float DEFAULT_YAW = -90f;
     
     //Camera fields
     private final Vector2f dimensions = new Vector2f(Main.WIDTH, Main.HEIGHT);
@@ -188,17 +190,15 @@ public class PerspectiveCamera implements Camera {
     }
     
     @Override
-    public void setPosition(Vector3fc position) {
+    public void setPosition(Vector3dc position) {
         setPosition(position.x(), position.y(), position.z());
     }
 
-    @Override
     public void setRotation(float pitch, float yaw, float roll) {
         this.rotation.set(pitch, yaw, roll);
         updateView();
     }
     
-    @Override
     public void setRotation(Vector3fc rotation) {
         setRotation(rotation.x(), rotation.y(), rotation.z());
     }
@@ -227,7 +227,6 @@ public class PerspectiveCamera implements Camera {
         return position;
     }
 
-    @Override
     public Vector3fc getRotation() {
         return rotation;
     }

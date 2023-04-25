@@ -226,23 +226,13 @@ public class GLFontLoader {
         for (int i = 0; i < result.length; i++) {
             Font font = result[i];
             
-            String name = font.getName();
             int atlasTexture = fontAtlasTextures[i];
             int atlasBoundsTexture = fontAtlasBoundsTextures[i];
-            float[] advance = new float[font.getCharactersLength()];
-            for (int j = 0; j < advance.length; j++) {
-                advance[j] = font.getCharacter(j).getAdvance();
-            }
-            int unknownCharacterIndex = font.getUnknownCharacterIndex();
-            Map<Integer, Integer> unicodeMap = new HashMap<>();
-            for (int j = 0; j < advance.length; j++) {
-                unicodeMap.put(font.getCharacter(j).getUnicode(), j);
-            }
             
-            finalOutput[i] = new GLFont(name, atlasTexture, atlasBoundsTexture, advance, unknownCharacterIndex, unicodeMap);
+            finalOutput[i] = new GLFont(font, atlasTexture, atlasBoundsTexture);
             
             if (DEBUG_OUTPUT) {
-                System.out.println("Finished Loading GLFont "+name+", atlas "+font.getAtlasImage().getWidth()+"x"+font.getAtlasImage().getHeight()+", atlas bounds "+fontAtlasBoundsSizes[i]+"x"+fontAtlasBoundsSizes[i]+", characters "+font.getCharactersLength());
+                System.out.println("Finished Loading GLFont "+font.getName()+", atlas "+font.getAtlasImage().getWidth()+"x"+font.getAtlasImage().getHeight()+", atlas bounds "+fontAtlasBoundsSizes[i]+"x"+fontAtlasBoundsSizes[i]+", characters "+font.getCharactersLength());
             }
         }
         

@@ -29,12 +29,19 @@ package cientistavuador.ciencraftreal.block.blocks;
 import cientistavuador.ciencraftreal.block.Block;
 import cientistavuador.ciencraftreal.block.BlockFacesVertices;
 import cientistavuador.ciencraftreal.block.BlockSide;
+import static cientistavuador.ciencraftreal.block.BlockSide.BOTTOM;
+import static cientistavuador.ciencraftreal.block.BlockSide.EAST;
+import static cientistavuador.ciencraftreal.block.BlockSide.NORTH;
+import static cientistavuador.ciencraftreal.block.BlockSide.SOUTH;
+import static cientistavuador.ciencraftreal.block.BlockSide.TOP;
+import static cientistavuador.ciencraftreal.block.BlockSide.WEST;
 import cientistavuador.ciencraftreal.block.BlockTextures;
 import cientistavuador.ciencraftreal.block.BlockTransparency;
 import cientistavuador.ciencraftreal.block.SolidBlockCheck;
 import cientistavuador.ciencraftreal.block.StateOfMatter;
 import cientistavuador.ciencraftreal.block.material.BlockMaterial;
 import cientistavuador.ciencraftreal.chunk.Chunk;
+import cientistavuador.ciencraftreal.chunk.render.layer.vertices.VerticesStream;
 
 /**
  *
@@ -105,6 +112,41 @@ public class Water implements Block, SolidBlockCheck {
         this.id = id;
     }
 
+    @Override
+    public void generateVertices(VerticesStream stream, Chunk chunk, int chunkBlockX, int chunkBlockY, int chunkBlockZ) {
+        boolean[] sides = isSolidBlockSides(chunk, chunkBlockX, chunkBlockY, chunkBlockZ);
+        
+        boolean empty = true;
+        for (int i = 0; i < sides.length; i++) {
+            if (!sides[i]) {
+                empty = false;
+                break;
+            }
+        }
+        if (empty) {
+            return;
+        }
+
+        float chunkX = chunkBlockX + 0.5f;
+        float chunkY = chunkBlockY + 0.5f;
+        float chunkZ = chunkBlockZ - 0.5f;
+        
+        for (int i = 0; i < sides.length; i++) {
+            if (sides[i]) {
+                continue;
+            }
+            BlockSide side = BlockSide.sideOf(i);
+            
+            int texture = 0;
+            switch (side) {
+                case TOP, BOTTOM -> texture = this.textureId;
+                case EAST, NORTH, SOUTH, WEST -> texture = this.textureIdSide;
+            }
+            
+            BlockFacesVertices.generateFaceVertices(stream, side, chunkX, chunkY, chunkZ, texture);
+        }
+    }
+    
     @Override
     public float[] generateVertices(Chunk chunk, int chunkBlockX, int chunkBlockY, int chunkBlockZ) {
         boolean[] sides = isSolidBlockSides(chunk, chunkBlockX, chunkBlockY, chunkBlockZ);

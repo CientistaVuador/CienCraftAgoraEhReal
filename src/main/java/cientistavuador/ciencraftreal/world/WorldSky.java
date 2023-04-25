@@ -24,35 +24,37 @@
  *
  * For more information, please refer to <https://unlicense.org>
  */
-package cientistavuador.ciencraftreal.block.blocks;
+package cientistavuador.ciencraftreal.world;
 
-import cientistavuador.ciencraftreal.block.BlockTextures;
-import cientistavuador.ciencraftreal.block.BlockTransparency;
-import cientistavuador.ciencraftreal.block.SimpleBlock;
+import org.joml.Vector3f;
+import org.joml.Vector3fc;
 
 /**
  *
  * @author Cien
  */
-public class Glass extends SimpleBlock {
+public class WorldSky {
     
-    public Glass() {
-        super("ciencraft_glass", BlockTextures.GLASS);
+    private final Vector3f directionalDiffuseColor = new Vector3f(1.0f, 0.8f, 0.8f).mul(1.2f);
+    private final Vector3f directionalAmbientColor = new Vector3f(1.0f, 0.8f, 0.8f).mul(0.2f);
+    private final Vector3f directionalDirection = new Vector3f(1f, -1f, 1f).normalize();
+    
+    public WorldSky() {
+        
     }
 
-    @Override
-    public BlockTransparency getBlockTransparency() {
-        return BlockTransparency.LIKE_GLASS;
+    public Vector3fc getDirectionalAmbientColor() {
+        return directionalAmbientColor;
     }
 
-    @Override
-    public boolean isAOSolid() {
-        return false;
+    public Vector3fc getDirectionalDiffuseColor() {
+        return directionalDiffuseColor;
     }
 
-    @Override
-    public boolean hasAO() {
-        return false;
+    public Vector3fc getDirectionalDirection() {
+        return directionalDirection;
     }
+    
+    
     
 }

@@ -30,6 +30,7 @@ import cientistavuador.ciencraftreal.audio.AudioSystem;
 import cientistavuador.ciencraftreal.block.BlockSounds;
 import cientistavuador.ciencraftreal.block.BlockTextures;
 import cientistavuador.ciencraftreal.block.Blocks;
+import cientistavuador.ciencraftreal.chunk.render.layer.ChunkLayersShadowPipeline;
 import cientistavuador.ciencraftreal.text.GLFonts;
 import cientistavuador.ciencraftreal.ubo.UBOBindingPoints;
 import java.io.PrintStream;
@@ -106,6 +107,12 @@ public class Main {
     public static long FRAME = 0;
     public static double ONE_SECOND_COUNTER = 0.0;
     public static double ONE_MINUTE_COUNTER = 0.0;
+    public static boolean SHADOWS_ENABLED = true;
+    public static int SHADOWS_FRAMERATE_DIVISOR = 8;
+    public static int SHADOWS_CURRENT_FRAMERATE_DIVISOR = 8;
+    public static int SHADOWS_CURRENT_FRAME = 0;
+    public static int NUMBER_OF_DRAWCALLS = 0;
+    public static int NUMBER_OF_VERTICES = 0;
     public static final ConcurrentLinkedQueue<Runnable> MAIN_TASKS = new ConcurrentLinkedQueue<>();
     private static GLDebugMessageCallback DEBUG_CALLBACK = null;
 
@@ -200,7 +207,7 @@ public class Main {
 
         GL.createCapabilities();
         AudioSystem.init(); //static initialize
-        
+
         if (DEBUG_ENABLED) {
             debug:
             {
@@ -257,14 +264,16 @@ public class Main {
         if (maxUBOBindings < MIN_UNIFORM_BUFFER_BINDINGS) {
             throw new IllegalStateException("Max UBO Bindings too small! Update your drivers or buy a new GPU.");
         }
-
-        Main.checkGLError();
         
+        Main.checkGLError();
+
         //GLPool.init(); //static initialize
         BlockTextures.init();  //static initialize
         GLFonts.init(); //static initialize
         BlockSounds.init(); //static initialize
         Blocks.init(); //static initialize
+        ShadowFBO.init(); //static initialize
+        ChunkLayersShadowPipeline.init();  //static initialize
         Game.get(); //static initialize
 
         Main.checkGLError();
@@ -303,18 +312,19 @@ public class Main {
         while (!glfwWindowShouldClose(WINDOW_POINTER)) {
             Main.TPF = (System.nanoTime() - timeFrameBegin) / 1E9d;
             timeFrameBegin = System.nanoTime();
+            
+            Main.NUMBER_OF_DRAWCALLS = 0;
+            Main.NUMBER_OF_VERTICES = 0;
+            Main.WINDOW_TITLE = "CienCraft - FPS: " + Main.FPS;
 
             if (SPIKE_LAG_WARNINGS) {
                 int tpfFps = (int) (1.0 / Main.TPF);
                 if (tpfFps < 60 && ((Main.FPS - tpfFps) > 30)) {
-                    System.out.println("[Spike Lag Warning] From "+Main.FPS+" FPS to "+tpfFps+" FPS; current frame TPF: "+String.format("%.3f", Main.TPF)+"s");
+                    System.out.println("[Spike Lag Warning] From " + Main.FPS + " FPS to " + tpfFps + " FPS; current frame TPF: " + String.format("%.3f", Main.TPF) + "s");
                 }
             }
 
-            glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
             glfwPollEvents();
-
-            Main.WINDOW_TITLE = "CienCraft - FPS: " + Main.FPS;
 
             Game.get().loop();
             
@@ -322,7 +332,29 @@ public class Main {
             while ((r = MAIN_TASKS.poll()) != null) {
                 r.run();
             }
+
+            if (Main.SHADOWS_ENABLED) {
+                Main.SHADOWS_CURRENT_FRAME--;
+                if (Main.SHADOWS_CURRENT_FRAME <= -1) {
+                    Main.SHADOWS_CURRENT_FRAMERATE_DIVISOR = Main.SHADOWS_FRAMERATE_DIVISOR;
+                    Main.SHADOWS_CURRENT_FRAME = Main.SHADOWS_CURRENT_FRAMERATE_DIVISOR-1;
+                    ShadowFBO.flip();
+                    Game.get().prepareShadowLoop();
+                }
+                glBindFramebuffer(GL_FRAMEBUFFER, ShadowFBO.drawFBO());
+                glViewport(0, 0, ShadowFBO.drawWidth(), ShadowFBO.drawHeight());
+                if (Main.SHADOWS_CURRENT_FRAME == (Main.SHADOWS_CURRENT_FRAMERATE_DIVISOR-1)) {
+                    glClear(GL_DEPTH_BUFFER_BIT);
+                }
+                Game.get().shadowLoop();
+                glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            }
             
+            glViewport(0, 0, Main.WIDTH, Main.HEIGHT);
+            glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+            Game.get().renderLoop();
+
             glFlush();
 
             Main.checkGLError();

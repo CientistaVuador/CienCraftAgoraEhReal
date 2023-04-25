@@ -33,7 +33,9 @@ import cientistavuador.ciencraftreal.chunk.Chunk;
 import cientistavuador.ciencraftreal.chunk.generation.ChunkGenerator;
 import cientistavuador.ciencraftreal.chunk.generation.ChunkGeneratorFactory;
 import cientistavuador.ciencraftreal.chunk.render.layer.ChunkLayers;
-import cientistavuador.ciencraftreal.chunk.render.layer.ChunkLayersRender;
+import cientistavuador.ciencraftreal.chunk.render.layer.ChunkLayersPipeline;
+import cientistavuador.ciencraftreal.chunk.render.layer.ChunkLayersShadowPipeline;
+import cientistavuador.ciencraftreal.chunk.render.layer.ShadowProfile;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -47,9 +49,62 @@ import java.util.concurrent.Future;
  */
 public class WorldCamera {
 
-    public static final int VIEW_DISTANCE = 5;
+    public static final int VIEW_DISTANCE = 6;
     public static final int VIEW_DISTANCE_SIZE = (VIEW_DISTANCE * 2) + 1;
     public static final int VIEW_DISTANCE_NUMBER_OF_CHUNKS = VIEW_DISTANCE_SIZE * VIEW_DISTANCE_SIZE;
+
+    private static class DistancedChunk {
+
+        private final int index;
+        private final int chunkX;
+        private final int chunkZ;
+        private final float distance;
+
+        public DistancedChunk(int index, int chunkX, int chunkZ) {
+            this.index = index;
+            this.chunkX = chunkX;
+            this.chunkZ = chunkZ;
+
+            this.distance = (float) Math.sqrt((chunkX * chunkX) + (chunkZ * chunkZ));
+        }
+
+        public int getIndex() {
+            return index;
+        }
+
+        public int getChunkX() {
+            return chunkX;
+        }
+
+        public int getChunkZ() {
+            return chunkZ;
+        }
+
+        public float getDistance() {
+            return distance;
+        }
+    }
+
+    private static final DistancedChunk[] distancedMatrix;
+
+    static {
+        List<DistancedChunk> list = new ArrayList<>();
+        for (int i = 0; i < VIEW_DISTANCE_NUMBER_OF_CHUNKS; i++) {
+            int x = (i % VIEW_DISTANCE_SIZE) - VIEW_DISTANCE;
+            int z = -((i / VIEW_DISTANCE_SIZE) - VIEW_DISTANCE);
+            list.add(new DistancedChunk(i, x, z));
+        }
+        list.sort((o1, o2) -> {
+            if (o1.getDistance() > o2.getDistance()) {
+                return 1;
+            }
+            if (o1.getDistance() < o2.getDistance()) {
+                return -1;
+            }
+            return 0;
+        });
+        distancedMatrix = list.toArray(DistancedChunk[]::new);
+    }
 
     private final Object[] map = new Object[VIEW_DISTANCE_NUMBER_OF_CHUNKS];
 
@@ -60,6 +115,7 @@ public class WorldCamera {
     private int chunkX = 0;
     private int chunkZ = 0;
     private final ChunkGeneratorFactory chunkGeneratorFactory;
+    private final WorldSky sky = new WorldSky();
 
     public WorldCamera(Camera camera, long seed, ChunkGeneratorFactory chunkGeneratorFactory) {
         this.camera = camera;
@@ -70,6 +126,10 @@ public class WorldCamera {
 
     public ChunkGeneratorFactory getChunkGeneratorFactory() {
         return chunkGeneratorFactory;
+    }
+
+    public WorldSky getSky() {
+        return sky;
     }
 
     private void updatePosition() {
@@ -92,7 +152,7 @@ public class WorldCamera {
             for (int i = 0; i < this.map.length; i++) {
                 Object m = this.map[i];
                 if (m instanceof Chunk e) {
-                    e.getLayers().delete();
+                    e.getLayers().delete(false);
                 }
             }
 
@@ -123,7 +183,7 @@ public class WorldCamera {
                 boolean outOfBoundsZ = (newCamRelativeZ > VIEW_DISTANCE) || (newCamRelativeZ < -VIEW_DISTANCE);
 
                 if (outOfBoundsX || outOfBoundsZ) {
-                    m.getLayers().delete();
+                    m.getLayers().delete(false);
                 } else {
                     this.map[(newCamRelativeX + VIEW_DISTANCE) + ((-newCamRelativeZ + VIEW_DISTANCE) * VIEW_DISTANCE_SIZE)] = m;
                 }
@@ -137,20 +197,30 @@ public class WorldCamera {
     }
 
     private void updateChunks() {
-        for (int i = 0; i < VIEW_DISTANCE_NUMBER_OF_CHUNKS; i++) {
-            int x = (i % VIEW_DISTANCE_SIZE) - VIEW_DISTANCE;
-            int z = -((i / VIEW_DISTANCE_SIZE) - VIEW_DISTANCE);
+        boolean nineLoaded = true;
+        for (int i = 0; i < distancedMatrix.length; i++) {
+            if (i > 8 && !nineLoaded) {
+                break;
+            }
 
-            Object m = this.map[i];
+            DistancedChunk distanced = distancedMatrix[i];
+
+            int x = distanced.getChunkX();
+            int z = distanced.getChunkZ();
+
+            Object m = this.map[distanced.getIndex()];
             if (m == null) {
-                this.map[i] = CompletableFuture.supplyAsync(() -> {
+                if (i <= 8) {
+                    nineLoaded = false;
+                }
+                this.map[distanced.getIndex()] = CompletableFuture.supplyAsync(() -> {
                     Chunk chunk = new Chunk(this, this.chunkX + x, this.chunkZ + z);
                     ChunkGenerator generator = this.chunkGeneratorFactory.create(chunk);
                     generator.generate();
                     return chunk;
                 });
             } else if (m instanceof Future<?> e) {
-                if (!e.isDone()) {
+                if (!e.isDone() && i > 8) {
                     continue;
                 }
                 try {
@@ -163,7 +233,7 @@ public class WorldCamera {
                         deleteLayersIfPossible(chunkX - 1, chunkZ);
                         deleteLayersIfPossible(chunkX, chunkZ + 1);
                         deleteLayersIfPossible(chunkX, chunkZ - 1);
-                        this.map[i] = f;
+                        this.map[distanced.getIndex()] = f;
                     } else {
                         throw new RuntimeException("what");
                     }
@@ -177,7 +247,7 @@ public class WorldCamera {
     private void deleteLayersIfPossible(int chunkX, int chunkZ) {
         Chunk c = getChunk(chunkX, chunkZ);
         if (c != null) {
-            c.getLayers().delete();
+            c.getLayers().delete(true);
         }
     }
 
@@ -222,7 +292,11 @@ public class WorldCamera {
     private void deleteLayer(int chunkX, int chunkZ, int y) {
         Chunk c = getLocalChunk(chunkX, chunkZ);
         if (c != null) {
-            c.getLayers().layerAtY(y).delete();
+            ChunkLayers layers = c.getLayers();
+
+            layers.layerAtY(y).delete(true);
+            layers.layerAtY(y + 1).delete(true);
+            layers.layerAtY(y - 1).delete(true);
         }
     }
 
@@ -302,7 +376,7 @@ public class WorldCamera {
         return Blocks.AIR;
     }
 
-    public int render() {
+    public void render(ShadowProfile shadowProfile) {
         List<ChunkLayers> layers = new ArrayList<>();
 
         for (int i = 0; i < length(); i++) {
@@ -312,9 +386,26 @@ public class WorldCamera {
             }
         }
 
-        return ChunkLayersRender.render(this.camera, layers.toArray(ChunkLayers[]::new));
+        ChunkLayersPipeline.render(this.camera, layers.toArray(ChunkLayers[]::new), shadowProfile);
     }
 
+    public void prepareShadow() {
+        List<ChunkLayers> layers = new ArrayList<>();
+
+        for (int i = 0; i < length(); i++) {
+            Chunk c = chunkAtIndex(i);
+            if (c != null) {
+                layers.add(c.getLayers());
+            }
+        }
+
+        ChunkLayersShadowPipeline.prepare(this.camera, layers.toArray(ChunkLayers[]::new));
+    }
+    
+    public void renderShadow() {
+        ChunkLayersShadowPipeline.render();
+    }
+    
     public Camera getCamera() {
         return camera;
     }

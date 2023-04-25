@@ -38,6 +38,31 @@ import java.util.List;
  */
 public class DebugCounter {
 
+    public static final class CloseableCounter implements AutoCloseable {
+
+        private final DebugCounter counter;
+        private final String name;
+
+        private CloseableCounter(DebugCounter counter, String name) {
+            this.counter = counter;
+            this.name = name;
+        }
+
+        public DebugCounter getCounter() {
+            return counter;
+        }
+
+        public String getName() {
+            return name;
+        }
+        
+        @Override
+        public void close() {
+            this.counter.markEnd(name);
+        }
+        
+    }
+    
     private final String name;
     
     private static class Counter {
@@ -97,11 +122,44 @@ public class DebugCounter {
     
     private final List<Counter> countersList = new ArrayList<>();
     private final HashMap<String, Counter> counters = new HashMap<>();
+    private long timerActionInterval = 3000;
+    private long nextTimerAction = (System.nanoTime()/1_000_000L) + this.timerActionInterval;
+    private Runnable timerAction = null;
+
+    public DebugCounter() {
+        this.name = Thread.currentThread().getName().toUpperCase();
+    }
     
     public DebugCounter(String name) {
         this.name = name;
     }
 
+    public Runnable getTimerAction() {
+        return timerAction;
+    }
+
+    public void setTimerAction(Runnable timerAction) {
+        this.timerAction = timerAction;
+    }
+    
+    private void checkTimer() {
+        if (this.timerAction == null) {
+            return;
+        }
+        if ((System.nanoTime()/1_000_000L) > this.nextTimerAction) {
+            this.nextTimerAction = (System.nanoTime()/1_000_000L) + this.timerActionInterval;
+            this.timerAction.run();
+        }
+    }
+
+    public long getTimerActionInterval() {
+        return timerActionInterval;
+    }
+
+    public void setTimerActionInterval(long timerActionInterval) {
+        this.timerActionInterval = timerActionInterval;
+    }
+    
     public String getName() {
         return name;
     }
@@ -112,6 +170,7 @@ public class DebugCounter {
     }
     
     public void markStart(String counterName) {
+        checkTimer();
         Counter counter = counters.get(counterName);
         if (counter == null) {
             counter = new Counter(counterName);
@@ -121,6 +180,11 @@ public class DebugCounter {
         counter.markStart();
     }
     
+    public CloseableCounter markStartAuto(String counterName) {
+        markStart(counterName);
+        return new CloseableCounter(this, counterName);
+    }
+    
     public void markEnd(String counterName) {
         Counter counter = counters.get(counterName);
         if (counter == null) {
@@ -128,6 +192,7 @@ public class DebugCounter {
         }
         counter.markEnd();
         counter.pushMeasurement();
+        checkTimer();
     }
     
     private float nsToMs(long ns) {

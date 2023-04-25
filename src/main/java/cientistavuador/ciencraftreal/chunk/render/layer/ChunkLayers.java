@@ -26,6 +26,7 @@
  */
 package cientistavuador.ciencraftreal.chunk.render.layer;
 
+import cientistavuador.ciencraftreal.camera.Camera;
 import cientistavuador.ciencraftreal.chunk.Chunk;
 
 /**
@@ -48,6 +49,16 @@ public class ChunkLayers {
         return chunk;
     }
     
+    public boolean testAab(Camera camera) {
+        double xMin = this.chunk.getChunkX() * Chunk.CHUNK_SIZE;
+        double yMin = 0;
+        double zMin = this.chunk.getChunkZ() * Chunk.CHUNK_SIZE;
+        return camera.getProjectionView().testAab(
+                xMin, yMin, zMin - Chunk.CHUNK_SIZE,
+                xMin + Chunk.CHUNK_SIZE, yMin + Chunk.CHUNK_HEIGHT, zMin
+        );
+    }
+    
     public int length() {
         return this.layers.length;
     }
@@ -61,9 +72,9 @@ public class ChunkLayers {
         return layerAt(y);
     }
 
-    public void delete() {
+    public void delete(boolean lazy) {
         for (int i = 0; i < this.layers.length; i++) {
-            this.layers[i].delete();
+            this.layers[i].delete(lazy);
         }
     }
     

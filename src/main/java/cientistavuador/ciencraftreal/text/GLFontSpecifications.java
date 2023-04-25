@@ -32,8 +32,8 @@ package cientistavuador.ciencraftreal.text;
  */
 public class GLFontSpecifications {
     
-    public static final GLFontSpecification ROBOTO_THIN_0_05_WHITE = new GLFontSpecification(GLFonts.ROBOTO_BOLD, 0.05f, GLFontSpecification.THIN, 1f, 1f, 1f, 1f);
-    public static final GLFontSpecification OPENSANS_ITALIC_0_10_BANANA_YELLOW = new GLFontSpecification(GLFonts.OPENSANS_LIGHT_ITALIC, 0.1f, GLFontSpecification.NORMAL, 255f / 255f, 216f / 255f, 50f / 255f, 1f);
+    public static final GLFontSpecification ROBOTO_THIN_0_03_WHITE = new GLFontSpecification(GLFonts.ROBOTO_BOLD, 0.03f, GLFontSpecification.THIN, 1f, 1f, 1f, 1f);
+    public static final GLFontSpecification OPENSANS_ITALIC_0_07_BANANA_YELLOW = new GLFontSpecification(GLFonts.OPENSANS_LIGHT_ITALIC, 0.07f, GLFontSpecification.NORMAL, 255f / 255f, 216f / 255f, 50f / 255f, 1f);
     
     private GLFontSpecifications() {
         

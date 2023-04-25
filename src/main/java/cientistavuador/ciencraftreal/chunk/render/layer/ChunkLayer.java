@@ -26,13 +26,11 @@
  */
 package cientistavuador.ciencraftreal.chunk.render.layer;
 
+import cientistavuador.ciencraftreal.Main;
 import cientistavuador.ciencraftreal.camera.Camera;
 import cientistavuador.ciencraftreal.chunk.Chunk;
-import cientistavuador.ciencraftreal.chunk.render.layer.shaders.ChunkLayerShaderProgram;
-import cientistavuador.ciencraftreal.chunk.render.layer.vertices.IndicesGenerator;
-import cientistavuador.ciencraftreal.chunk.render.layer.vertices.VerticesCompressor;
 import cientistavuador.ciencraftreal.chunk.render.layer.vertices.VerticesCreator;
-import java.util.Map;
+import cientistavuador.ciencraftreal.chunk.render.layer.vertices.VerticesStream;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -46,28 +44,8 @@ import static org.lwjgl.opengl.GL33C.*;
  */
 public class ChunkLayer {
 
-    public static void useDefaultProgram() {
-        glUseProgram(ChunkLayerShaderProgram.SHADER_PROGRAM);
-    }
-    
-    public static void sendPerFrameUniforms(Camera camera) {
-        ChunkLayerShaderProgram.sendPerFrameUniforms(camera);
-    }
-    
-    public static void sendUseAlphaUniform(boolean useAlpha) {
-        ChunkLayerShaderProgram.sendUseAlphaUniform(useAlpha);
-    }
-    
-    public static void finishRendering() {
-        ChunkLayerShaderProgram.finishRendering();
-    }
-    
-    public static void discardProgram() {
-        glUseProgram(0);
-    }
-    
-    //pos, tex coords, tex id, ao, unused 
-    public static final int VERTEX_SIZE_ELEMENTS = 3 + 2 + 1 + 1 + 1;
+    //pos, normal, tex coords, tex id, ao
+    public static final int VERTEX_SIZE_ELEMENTS = 3 + 2 + 1 + 1 + 1 + 1;
     public static final int TEX_COORDS_MAX = 10;
 
     public static final int HEIGHT = 32;
@@ -77,17 +55,17 @@ public class ChunkLayer {
     private final Vector3d center;
 
     private boolean useCachedElimination = false;
-    private boolean eliminate = false;
+    private boolean empty = false;
     private boolean deleted = true;
 
-    private Future<Map.Entry<short[], int[]>> futureVerticesIndices = null;
+    private Future<VerticesStream> futureVertices = null;
     private short[] vertices = null;
     private int[] indices = null;
     private int vao = 0;
     private int vbo = 0;
     private int ebo = 0;
-    
-    private Future<Map.Entry<short[], int[]>> futureVerticesIndicesAlpha = null;
+
+    private Future<VerticesStream> futureVerticesAlpha = null;
     private short[] verticesAlpha = null;
     private int[] indicesAlpha = null;
     private int vaoAlpha = 0;
@@ -124,11 +102,15 @@ public class ChunkLayer {
         return center;
     }
 
-    public boolean cullingStage0(Camera camera) {
-        this.deleted = false;
-        if (doPreElimination()) {
-            return false;
-        }
+    public boolean isDeleted() {
+        return deleted;
+    }
+    
+    public boolean testEmpty() {
+        return doPreElimination();
+    }
+
+    public boolean testAab(Camera camera) {
         double xMin = this.chunk.getChunkX() * Chunk.CHUNK_SIZE;
         double yMin = this.y;
         double zMin = this.chunk.getChunkZ() * Chunk.CHUNK_SIZE;
@@ -138,50 +120,120 @@ public class ChunkLayer {
         );
     }
 
+    public void update(long nanoTime) {
+        this.deleted = false;
+        
+        if (this.vertices == null && this.futureVertices == null) {
+            this.futureVertices = CompletableFuture.supplyAsync(() -> VerticesCreator.generateStream(this, false));
+            this.futureVerticesAlpha = CompletableFuture.supplyAsync(() -> VerticesCreator.generateStream(this, true));
+            return;
+        }
+
+        if (((System.nanoTime() - nanoTime) / 1E9d) >= (1.0 / 90.0)) {
+            return;
+        }
+
+        if (this.futureVertices != null && (this.futureVertices.isDone() && this.futureVerticesAlpha.isDone())) {
+            glDeleteVertexArrays(this.vao);
+            glDeleteBuffers(this.vbo);
+            glDeleteBuffers(this.ebo);
+            glDeleteVertexArrays(this.vaoAlpha);
+            glDeleteBuffers(this.vboAlpha);
+            glDeleteBuffers(this.eboAlpha);
+            this.vao = 0;
+            this.vbo = 0;
+            this.ebo = 0;
+            this.vaoAlpha = 0;
+            this.vboAlpha = 0;
+            this.eboAlpha = 0;
+
+            prepareVaoVbo();
+            prepareVaoVboAlpha();
+
+            this.futureVertices = null;
+            this.futureVerticesAlpha = null;
+            return;
+        }
+    }
+
+    public boolean readyForRendering(boolean alpha) {
+        if (alpha && (this.verticesAlpha == null || this.verticesAlpha.length == 0)) {
+            return false;
+        }
+        if (!alpha && (this.vertices == null || this.vertices.length == 0)) {
+            return false;
+        }
+        return true;
+    }
+
+    public void render(boolean alpha) {
+        if (alpha) {
+            glBindVertexArray(this.vaoAlpha);
+            glDrawElements(GL_TRIANGLES, this.indicesAlpha.length, GL_UNSIGNED_INT, 0);
+            Main.NUMBER_OF_VERTICES += this.indicesAlpha.length;
+        } else {
+            glBindVertexArray(this.vao);
+            glDrawElements(GL_TRIANGLES, this.indices.length, GL_UNSIGNED_INT, 0);
+            Main.NUMBER_OF_VERTICES += this.indices.length;
+        }
+        Main.NUMBER_OF_DRAWCALLS++;
+        glBindVertexArray(0);
+    }
+
+    public void delete(boolean lazy) {
+        if (this.deleted) {
+            return;
+        }
+        
+        this.useCachedElimination = false;
+        this.deleted = true;
+
+        if (lazy) {
+            this.futureVertices = CompletableFuture.supplyAsync(() -> VerticesCreator.generateStream(this, false));
+            this.futureVerticesAlpha = CompletableFuture.supplyAsync(() -> VerticesCreator.generateStream(this, true));
+        } else {
+            glDeleteVertexArrays(this.vao);
+            glDeleteBuffers(this.vbo);
+            glDeleteBuffers(this.ebo);
+
+            this.futureVertices = null;
+            this.vertices = null;
+            this.indices = null;
+            this.vao = 0;
+            this.vbo = 0;
+            this.ebo = 0;
+
+            glDeleteVertexArrays(this.vaoAlpha);
+            glDeleteBuffers(this.vboAlpha);
+            glDeleteBuffers(this.eboAlpha);
+
+            this.futureVerticesAlpha = null;
+            this.verticesAlpha = null;
+            this.indicesAlpha = null;
+            this.vaoAlpha = 0;
+            this.vboAlpha = 0;
+            this.eboAlpha = 0;
+        }
+    }
+
     private boolean doPreElimination() {
         if (this.useCachedElimination) {
-            return this.eliminate;
+            return this.empty;
         }
         this.useCachedElimination = true;
-
-        if ((this.vertices != null && this.vertices.length == 0) && (this.verticesAlpha != null && this.verticesAlpha.length == 0)) {
-            this.eliminate = true;
-            return this.eliminate;
-        }
+        
         if (this.chunk.getHighestY() < this.y) {
-            this.eliminate = true;
-            return this.eliminate;
+            this.empty = true;
+            return this.empty;
         }
         for (int blockY = 0; blockY < ChunkLayer.HEIGHT; blockY++) {
             if (this.chunk.getAmountOfBlocksInY(blockY + this.y) != 0) {
-                this.eliminate = false;
-                return this.eliminate;
+                this.empty = false;
+                return this.empty;
             }
         }
-        this.eliminate = true;
-        return this.eliminate;
-    }
-
-    public boolean checkVerticesStage1(Camera camera) {
-        return !(this.vertices != null && this.verticesAlpha != null);
-    }
-    
-    public boolean prepareVerticesStage2() {
-        this.futureVerticesIndices = CompletableFuture.supplyAsync(() -> {
-            float[] verticesCreated = VerticesCreator.create(this, false);
-            short[] compressedVertices = VerticesCompressor.compress(this, verticesCreated);
-            Map.Entry<short[], int[]> indicesVertices = IndicesGenerator.generate(compressedVertices);
-            return indicesVertices;
-        });
-        
-        this.futureVerticesIndicesAlpha = CompletableFuture.supplyAsync(() -> {
-            float[] verticesCreated = VerticesCreator.create(this, true);
-            short[] compressedVertices = VerticesCompressor.compress(this, verticesCreated);
-            Map.Entry<short[], int[]> indicesVertices = IndicesGenerator.generate(compressedVertices);
-            return indicesVertices;
-        });
-
-        return true;
+        this.empty = true;
+        return this.empty;
     }
 
     private void setupVao() {
@@ -189,37 +241,41 @@ public class ChunkLayer {
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(0, 3, GL_UNSIGNED_SHORT, true, VERTEX_SIZE_ELEMENTS * Short.BYTES, 0);
 
-        //texture coordinates, 2 of signed short (normalized)
+        //normal, 2 of short interpreted as int (normalized)
         glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 2, GL_SHORT, true, VERTEX_SIZE_ELEMENTS * Short.BYTES, 3 * Short.BYTES);
+        glVertexAttribPointer(1, 4, GL_UNSIGNED_INT_2_10_10_10_REV, true, VERTEX_SIZE_ELEMENTS * Short.BYTES, (3) * Short.BYTES);
+
+        //texture coordinates, 2 of signed short (normalized)
+        glEnableVertexAttribArray(2);
+        glVertexAttribPointer(2, 2, GL_SHORT, true, VERTEX_SIZE_ELEMENTS * Short.BYTES, (3 + 2) * Short.BYTES);
 
         //texture id, 1 of unsigned short (integer)
-        glEnableVertexAttribArray(2);
-        glVertexAttribIPointer(2, 1, GL_UNSIGNED_SHORT, VERTEX_SIZE_ELEMENTS * Short.BYTES, (3 + 2) * Short.BYTES);
+        glEnableVertexAttribArray(3);
+        glVertexAttribIPointer(3, 1, GL_UNSIGNED_SHORT, VERTEX_SIZE_ELEMENTS * Short.BYTES, (3 + 2 + 2) * Short.BYTES);
 
         //ao, 1 of unsigned short (normalized)
-        glEnableVertexAttribArray(3);
-        glVertexAttribPointer(3, 1, GL_UNSIGNED_SHORT, true, VERTEX_SIZE_ELEMENTS * Short.BYTES, (3 + 2 + 1) * Short.BYTES);
-
-        //unused, 1 of unsigned short (normalized)
-        //glEnableVertexAttribArray(4);
-        //glVertexAttribPointer(4, 1, GL_UNSIGNED_SHORT, true, VERTEX_SIZE_ELEMENTS * Short.BYTES, (3 + 2 + 1 + 1) * Short.BYTES);
+        glEnableVertexAttribArray(4);
+        glVertexAttribPointer(4, 1, GL_UNSIGNED_SHORT, true, VERTEX_SIZE_ELEMENTS * Short.BYTES, (3 + 2 + 2 + 1) * Short.BYTES);
     }
-    
-    private boolean prepareVaoVbo() {
-        Map.Entry<short[], int[]> result;
+
+    private void prepareVaoVbo() {
+        VerticesStream result;
         try {
-            result = this.futureVerticesIndices.get();
+            result = this.futureVertices.get();
         } catch (InterruptedException | ExecutionException ex) {
             throw new RuntimeException(ex);
         }
 
-        this.vertices = result.getKey();
-        this.indices = result.getValue();
+        this.vertices = result.vertices();
+        this.indices = result.indices();
 
         if (this.vertices.length == 0) {
-            return false;
+            return;
         }
+
+        this.vbo = glGenBuffers();
+        glBindBuffer(GL_ARRAY_BUFFER, this.vbo);
+        glBufferData(GL_ARRAY_BUFFER, this.vertices, GL_STATIC_DRAW);
 
         this.vao = glGenVertexArrays();
         glBindVertexArray(this.vao);
@@ -228,33 +284,31 @@ public class ChunkLayer {
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this.ebo);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, this.indices, GL_STATIC_DRAW);
 
-        this.vbo = glGenBuffers();
-        glBindBuffer(GL_ARRAY_BUFFER, this.vbo);
-        glBufferData(GL_ARRAY_BUFFER, this.vertices, GL_STATIC_DRAW);
-        
         setupVao();
-        
+
         glBindVertexArray(0);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
-        return true;
     }
-    
-    private boolean prepareVaoVboAlpha() {
-        Map.Entry<short[], int[]> result;
+
+    private void prepareVaoVboAlpha() {
+        VerticesStream result;
         try {
-            result = this.futureVerticesIndicesAlpha.get();
+            result = this.futureVerticesAlpha.get();
         } catch (InterruptedException | ExecutionException ex) {
             throw new RuntimeException(ex);
         }
 
-        this.verticesAlpha = result.getKey();
-        this.indicesAlpha = result.getValue();
-        
+        this.verticesAlpha = result.vertices();
+        this.indicesAlpha = result.indices();
+
         if (this.verticesAlpha.length == 0) {
-            return false;
+            return;
         }
-        
+
+        this.vboAlpha = glGenBuffers();
+        glBindBuffer(GL_ARRAY_BUFFER, this.vboAlpha);
+        glBufferData(GL_ARRAY_BUFFER, this.verticesAlpha, GL_STATIC_DRAW);
+
         this.vaoAlpha = glGenVertexArrays();
         glBindVertexArray(this.vaoAlpha);
 
@@ -262,97 +316,9 @@ public class ChunkLayer {
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this.eboAlpha);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, this.indicesAlpha, GL_STATIC_DRAW);
 
-        this.vboAlpha = glGenBuffers();
-        glBindBuffer(GL_ARRAY_BUFFER, this.vboAlpha);
-        glBufferData(GL_ARRAY_BUFFER, this.verticesAlpha, GL_STATIC_DRAW);
-        
         setupVao();
-        
+
         glBindVertexArray(0);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
-        return true;
-    }
-    
-    public boolean prepareVaoVboStage3() {
-        boolean a = prepareVaoVbo();
-        boolean b = prepareVaoVboAlpha();
-        return a || b;
-    }
-
-    public boolean renderStage4() {
-        if (this.vertices.length == 0) {
-            return false;
-        }
-        
-        ChunkLayerShaderProgram.sendPerDrawUniforms(this.chunk.getChunkX(), this.y, this.chunk.getChunkZ());
-        
-        glBindVertexArray(this.vao);
-        glDrawElements(GL_TRIANGLES, this.indices.length, GL_UNSIGNED_INT, 0);
-        glBindVertexArray(0);
-        
-        return true;
-    }
-    
-    public boolean renderAlphaStage5() {
-        if (this.verticesAlpha.length == 0) {
-            return false;
-        }
-        
-        ChunkLayerShaderProgram.sendPerDrawUniforms(this.chunk.getChunkX(), this.y, this.chunk.getChunkZ());
-        
-        glBindVertexArray(this.vaoAlpha);
-        glDrawElements(GL_TRIANGLES, this.indicesAlpha.length, GL_UNSIGNED_INT, 0);
-        glBindVertexArray(0);
-        
-        return true;
-    }
-
-    public boolean isDeleted() {
-        return deleted;
-    }
-    
-    public void delete() {
-        if (this.deleted) {
-            return;
-        }
-        this.useCachedElimination = false;
-        this.eliminate = false;
-        
-        if (this.vao != 0) {
-            glDeleteVertexArrays(this.vao);
-        }
-        if (this.vbo != 0) {
-            glDeleteBuffers(this.vbo);
-        }
-        if (this.ebo != 0) {
-            glDeleteBuffers(this.ebo);
-        }
-
-        this.futureVerticesIndices = null;
-        this.vertices = null;
-        this.indices = null;
-        this.vao = 0;
-        this.vbo = 0;
-        this.ebo = 0;
-        
-        if (this.vaoAlpha != 0) {
-            glDeleteVertexArrays(this.vaoAlpha);
-        }
-        if (this.vboAlpha != 0) {
-            glDeleteBuffers(this.vboAlpha);
-        }
-        if (this.eboAlpha != 0) {
-            glDeleteBuffers(this.eboAlpha);
-        }
-        
-        this.futureVerticesIndicesAlpha = null;
-        this.verticesAlpha = null;
-        this.indicesAlpha = null;
-        this.vaoAlpha = 0;
-        this.vboAlpha = 0;
-        this.eboAlpha = 0;
-        
-        this.deleted = true;
     }
 }

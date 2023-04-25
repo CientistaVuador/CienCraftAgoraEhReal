@@ -34,21 +34,19 @@ import cientistavuador.ciencraftreal.block.Blocks;
 import cientistavuador.ciencraftreal.block.StateOfMatter;
 import cientistavuador.ciencraftreal.camera.FreeCamera;
 import cientistavuador.ciencraftreal.chunk.generation.WorldChunkGeneratorFactory;
+import cientistavuador.ciencraftreal.chunk.render.layer.ShadowProfile;
 import cientistavuador.ciencraftreal.player.Player;
 import cientistavuador.ciencraftreal.player.PlayerPhysics;
 import cientistavuador.ciencraftreal.ubo.CameraUBO;
 import cientistavuador.ciencraftreal.ubo.UBOBindingPoints;
 import cientistavuador.ciencraftreal.debug.AabRender;
-import cientistavuador.ciencraftreal.debug.DebugCharacter;
-import cientistavuador.ciencraftreal.debug.SDFQuad;
-import cientistavuador.ciencraftreal.resources.image.ImageResources;
 import cientistavuador.ciencraftreal.text.GLFontRenderer;
 import cientistavuador.ciencraftreal.text.GLFontSpecification;
 import cientistavuador.ciencraftreal.text.GLFontSpecifications;
-import cientistavuador.ciencraftreal.text.GLFonts;
 import cientistavuador.ciencraftreal.util.BlockOutline;
 import cientistavuador.ciencraftreal.world.WorldCamera;
 import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.opengl.GL33C.*;
 
 /**
  *
@@ -66,48 +64,32 @@ public class Game {
     private final WorldCamera world = new WorldCamera(camera, 65487321654L, new WorldChunkGeneratorFactory());
     private final BlockOutline outline = new BlockOutline(world, camera);
     private final Player player = new Player(world);
+    private final int maxTextureSize = glGetInteger(GL_MAX_TEXTURE_SIZE);
+    
+    private ShadowProfile shadowProfile = ShadowProfile.VERY_LOW;
     private int currentBlockId = Blocks.HAPPY_2023.getId();
-    private final SDFQuad atlasTest = new SDFQuad(ImageResources.load("atlas.png", 4), true);
-    private final SDFQuad logoTest = new SDFQuad(ImageResources.load("ciencraftSDF.png", 4), false);
-    private final DebugCharacter character = new DebugCharacter();
 
     private Game() {
 
     }
 
     public void start() {
+        
         camera.setPosition(0, 80, 0);
         camera.setUBO(CameraUBO.create(UBOBindingPoints.PLAYER_CAMERA));
         player.setPosition(0, 100, 0);
 
         camera.setMovementDisabled(true);
         player.setMovementDisabled(false);
-
-        atlasTest.setPosition(0, 70, 0);
-        atlasTest.setScale(10, 10, 10);
-        logoTest.setPosition(-10, 70, 0);
-        logoTest.setScale(10, 10, 10);
-        logoTest.setColor(
-                125f / 255f,
-                249f / 255f,
-                255f / 255f,
-                1f
-        );
-
-        character.setFont(GLFonts.OPENSANS_LIGHT_ITALIC);
     }
 
     public void loop() {
         camera.updateMovement();
 
         world.update();
-        int drawCalls = world.render();
-
         outline.update();
-        outline.render();
 
         player.update();
-
         player.setYaw(camera.getRotation().y());
         if (camera.isMovementDisabled()) {
             camera.setPosition(
@@ -117,33 +99,39 @@ public class Game {
             );
         }
 
-        drawCalls += AabRender.renderQueue(camera);
-
-        SDFQuad.render(camera, new SDFQuad[]{
-            atlasTest,
-            logoTest
-        });
-        drawCalls++;
-
         Main.WINDOW_TITLE += " (Block: " + BlockRegister.getBlock(this.currentBlockId).getName() + ")";
         Main.WINDOW_TITLE += " (x:" + (int) Math.floor(camera.getPosition().x()) + ",y:" + (int) Math.floor(camera.getPosition().y()) + ",z:" + (int) Math.ceil(camera.getPosition().z()) + ")";
-        Main.WINDOW_TITLE += " (DrawCalls: " + drawCalls + ")";
 
         AudioPlayer.update(camera);
+    }
+
+    public void prepareShadowLoop() {
+        world.prepareShadow();
+    }
+    
+    public void shadowLoop() {
+        world.renderShadow();
+    }
+
+    public void renderLoop() {
+        world.render(this.shadowProfile);
+
+        outline.render();
+
+        AabRender.renderQueue(camera);
 
         String lookingAt = "---";
         Block lookingAtBlock = this.outline.getBlock();
         if (lookingAtBlock != Blocks.AIR) {
             lookingAt = "Looking at " + lookingAtBlock.getName() + " at X: " + outline.getCastPos().x() + ", Y: " + outline.getCastPos().y() + ", Z: " + outline.getCastPos().z();
         }
-
         GLFontRenderer.render(-1f, 0.90f,
                 new GLFontSpecification[]{
-                    GLFontSpecifications.OPENSANS_ITALIC_0_10_BANANA_YELLOW,
-                    GLFontSpecifications.ROBOTO_THIN_0_05_WHITE
+                    GLFontSpecifications.OPENSANS_ITALIC_0_07_BANANA_YELLOW,
+                    GLFontSpecifications.ROBOTO_THIN_0_03_WHITE
                 },
                 new String[]{
-                    "CienCraft-2.5-DEV\n",
+                    "CienCraft-2.6-DEV\n",
                     new StringBuilder()
                             .append("FPS: ").append(Main.FPS).append('\n')
                             .append("X: ").append(format(camera.getPosition().x())).append(" ")
@@ -161,11 +149,15 @@ public class Game {
                             .append("\tF - Random teleport.\n")
                             .append("\tR - Change current block.\n")
                             .append("\tV - Freecam\n")
-                            .append("\n\n\n\n")
+                            .append("\tE - Get block.\n")
+                            .append("\tG - Enable/disable shadows.\n")
+                            .append("\tT - Shadow Profile: ").append(this.shadowProfile.toString()).append("\n")
+                            .append("\tC - Shadow Framerate Divisor: ").append(Main.SHADOWS_FRAMERATE_DIVISOR).append("\n")
                             .toString()
                 }
         );
 
+        Main.WINDOW_TITLE += " (DrawCalls: " + Main.NUMBER_OF_DRAWCALLS + ", Vertices: " + Main.NUMBER_OF_VERTICES + ")";
     }
 
     private String format(double d) {
@@ -196,17 +188,8 @@ public class Game {
                         90,
                         Math.random() * 100000000
                 );
+                player.setSpeed(0f, 0f, 0f);
             }
-        }
-        if (key == GLFW_KEY_G && action == GLFW_PRESS) {
-            System.out.println(world.getWorldBlock(
-                    (int) Math.floor(this.camera.getPosition().x()),
-                    (int) Math.floor(this.camera.getPosition().y()),
-                    (int) Math.ceil(this.camera.getPosition().z())
-            ));
-        }
-        if (key == GLFW_KEY_E && action == GLFW_PRESS) {
-            System.out.println(this.outline.getBlock() + " at " + outline.getCastPos());
         }
         if (key == GLFW_KEY_R && action == GLFW_PRESS) {
             this.currentBlockId++;
@@ -218,10 +201,51 @@ public class Game {
             if (player.isMovementDisabled()) {
                 camera.setMovementDisabled(true);
                 player.setMovementDisabled(false);
+                player.setPosition(camera.getPosition());
+                player.setSpeed(0, 0, 0);
             } else {
                 camera.setMovementDisabled(false);
                 player.setMovementDisabled(true);
             }
+        }
+        if (key == GLFW_KEY_E && action == GLFW_PRESS) {
+            if (this.outline.getBlock() != Blocks.AIR) {
+                this.currentBlockId = this.outline.getBlock().getId();
+            }
+        }
+        if (key == GLFW_KEY_G && action == GLFW_PRESS) {
+            Main.SHADOWS_ENABLED = !Main.SHADOWS_ENABLED;
+        }
+        if (key == GLFW_KEY_C && action == GLFW_PRESS) {
+            Main.SHADOWS_FRAMERATE_DIVISOR++;
+            if (Main.SHADOWS_FRAMERATE_DIVISOR > 16) {
+                Main.SHADOWS_FRAMERATE_DIVISOR = 1;
+            }
+        }
+        if (key == GLFW_KEY_T && action == GLFW_PRESS) {
+            ShadowProfile nextProfile = ShadowProfile.VERY_LOW;
+            switch (this.shadowProfile) {
+                case VERY_LOW -> {
+                    nextProfile = ShadowProfile.LOW;
+                }
+                case LOW -> {
+                    nextProfile = ShadowProfile.MEDIUM;
+                }
+                case MEDIUM -> {
+                    nextProfile = ShadowProfile.HIGH;
+                }
+                case HIGH -> {
+                    nextProfile = ShadowProfile.VERY_HIGH;
+                }
+                case VERY_HIGH -> {
+                    nextProfile = ShadowProfile.VERY_LOW;
+                }
+            }
+            if (nextProfile.resolution() > maxTextureSize) {
+                nextProfile = ShadowProfile.VERY_LOW;
+            }
+            this.shadowProfile = nextProfile;
+            ShadowFBO.updateDepthBufferTextureSize(this.shadowProfile.resolution(), this.shadowProfile.resolution());
         }
     }
 
